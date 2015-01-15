@@ -1,0 +1,49 @@
+{% load static from staticfiles %}
+
+{% url 'problems:index' as problems_url %}
+
+<header class="container-fluid">
+
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">
+                    <img alt="Brand" src="{% static 'images/logo.png' %}" id="logo"/>
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li class="{% ifequal request.path '/' %}active{% endifequal %}"><a href="/"><img src="{% static 'images/algator_icon.png' %}" height="15px"/>&nbsp;&nbsp;&nbsp;&nbsp;ALGator</a></li>
+                    <li class="{% ifequal request.path problems_url %}active{% endifequal %}" ><a href="{{ problems_url }}"><img src="{% static 'images/problems_icon.png' %}" height="15px"/>&nbsp;&nbsp;&nbsp;&nbsp;PROBLEMS &nbsp;<span class="badge background-color-primary">{{ projects_list|length }}</span></a></li>
+                    <li><a href="#"><img src="{% static 'images/my_solutions_icon.png' %}" height="15px"/>&nbsp;&nbsp;&nbsp;&nbsp;MY SOLUTIONS&nbsp;<span class="badge background-color-primary">4</span><span class="sr-only">(current)</span></a></li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                           aria-expanded="false">Profile <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="/settings/">My settings</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/logout/">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container-fluid -->
+    </nav>
+
+</header>
+

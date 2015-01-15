@@ -1,0 +1,25 @@
+{% if projects_list %}
+
+    <div class="list-group">
+        {% for algorithm in project.algorithms %}
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <a data-toggle="collapse" href="#collapse{{ algorithm.name }}" aria-expanded="false" aria-controls="collapse{{ algorithm.name }}">
+                        <h3 class="panel-title">{{ algorithm.name }}<br><small>{{ algorithm.description }}</small></h3>
+                    </a>
+                </div>
+                <div class="container-fluid collapse" id="collapse{{ algorithm.name }}">
+                    <br>
+                    <div class="alert alert-info" role="alert">
+                        Author: {{ algorithm.author }}<br>
+                        Date: {{ algorithm.date }}
+                    </div>
+                    {{ algorithm.html_description|safe }}
+                    <br><br>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <h4><p><strong>No Algorithms found!</strong></p></h4>
+{% endif %}

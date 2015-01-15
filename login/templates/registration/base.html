@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{% load static from staticfiles %}
+<html>
+    <head>
+        <title>ALGator Login |
+        {% block title %}{% endblock %}</title>
+
+        <!-- Bootstrap -->
+        <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+
+        <!-- Font awesome include -->
+        <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
+
+        <!-- jQuery include -->
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
+        <!-- Bootstrap include -->
+        <script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+        <!-- Main style -->
+        <link href="{% static 'css/style.css' %}" rel="stylesheet">
+
+        <!-- Include google web fonts -->
+        <link href='http://fonts.googleapis.com/css?family=Quicksand:400,700|Roboto:400,300' rel='stylesheet' type='text/css'>
+    </head>
+    <body>
+        {% block content %}{% endblock %}
+ 
+    </body>
+</html>

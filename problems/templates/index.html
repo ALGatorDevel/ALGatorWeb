@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block body_block %}
+{% if projects_list %}
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        {% for project in projects_list %}
+            <!-- Accordion -->
+            <div class="panel panel-default">
+                <div class="panel-heading row" role="tab" id="heading{{ project.name }}">
+                    <div class="col-xs-6">
+                        <h3 class="panel-title">
+                            <span class="label background-color-primary"> &nbsp;&nbsp;{{ project.algorithms|length }} &nbsp;&nbsp;</span>&nbsp;&nbsp;
+
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ project.name }}" aria-expanded="true" aria-controls="heading{{ project.name }}">
+                                {{ project.name }}<br>
+                                <small class="padding-47">{{ project.description }}</small>
+                            </a>
+
+                        </h3>
+                    </div>
+
+                    <!-- Modal info -->
+
+                    <div class="col-xs-6">
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-success btn-sm pull-right" data-toggle="modal" data-target="#modal{{ project.name }}">
+                          View project details
+                        </button>
+
+                        <!-- Project details Modal -->
+                        <div class="modal modal-wide fade" id="modal{{ project.name }}" tabindex="-1" role="dialog" aria-labelledby="label{{ project.name }}" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                        <h4 class="modal-title primary-color" id="label{{ project.name }}">
+                                            <span class="label background-color-primary"> &nbsp;&nbsp;<strong>{{ project.algorithms|length }}</strong> &nbsp;&nbsp;</span>&nbsp;&nbsp;<strong>{{ project.name }}</strong><br>
+                                            <small>{{ project.description }} </small>
+                                        </h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        {% include 'project_details.html' %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-success" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="collapse{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading{{ project.name }}">
+                    <div class="panel-body">
+                        <div class="list-group">
+                            {% for algorithm in project.algorithms %}
+                                <a href="#" class="list-group-item">
+                                    <h5>{{ algorithm.name }}&nbsp;<br><small>{{ algorithm.description }}</small></h5>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endfor %}
+
+    </div>
+{% else %}
+    <h4><p><strong>No Projects found!</strong></p></h4>
+{% endif %}
+{% endblock %}
