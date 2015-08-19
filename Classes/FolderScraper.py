@@ -13,7 +13,7 @@ class FolderScraper(object):
         # Main path used through out the class. This folder contains all the
         # json files of different type
         #-------------------------------------------------------------------#
-        self.path = "../../data_root/projects/"
+        self.path = os.environ["ALGATOR_ROOT"] + "/data_root/projects/"
 
         #the render(output) lists of objects -> Array of Project objects
         self.projects_list = []

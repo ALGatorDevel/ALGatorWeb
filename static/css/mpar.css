@@ -1,0 +1,90 @@
+body, td, th, input {
+        font-family: Verdana, sans-serif;
+        font-size: small;
+}
+
+Xbody {
+    background: #c8c8c8;
+    font-family: Helvetica, Arial, Geneva;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+
+#mybody {
+    background: #f0f0f0;
+    color: black;
+    border: 1px solid #747e93;
+    padding: 10px;
+    font-size: 10pt;
+    border-radius: 5px;
+}
+
+#header {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border: none;
+}
+
+#menu {
+  width: 10em;
+  margin-top: 0 em;
+  margin-right: 0.5em;
+  border: solid thin;
+  border-spacing: 0px;
+  border-collapse: collapse;
+  text-align: center;
+  color: black;
+  background-color: #edf2f2;
+  font-weight: normal;
+}
+
+#menu a:link, #menu a:visited {
+  color: #039;
+  background-color: transparent;
+}
+
+#menu a:hover, #menu a:active {
+  color: red;
+  background-color: transparent;
+}
+
+#menu td {
+  border: solid thin;
+  padding: 0.2em 0.5em;
+}
+
+table td {
+  vertical-align: top;
+  text-align: left;
+}
+
+td.selected_section {
+  color: #090;
+  background-color: white;
+}
+
+td.index {
+  color: black;
+  background-color: #edf;
+}
+
+dt {
+  font-weight: bold;
+}
+
+dd {
+  margin-bottom: 1.5em;
+}
+
+.sortlist_separator {
+    font-weight: bold;
+    font-size: 80%;
+    background-color: #dddddd;
+}
+
+
+#vsebina {
+  padding-left: 1em;
+  padding-right: 1em;
+}

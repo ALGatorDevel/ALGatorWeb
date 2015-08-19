@@ -1,8 +1,9 @@
 {% load static from staticfiles %}
 
 {% url 'problems:index' as problems_url %}
+{% url 'cpanel:index' as cpanel_url %}
 
-<header class="container-fluid">
+<header class="container-fluid" style="padding-left: 0px;">
 
     <nav class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
@@ -23,15 +24,23 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li class="{% ifequal request.path '/' %}active{% endifequal %}"><a href="/"><img src="{% static 'images/algator_icon.png' %}" height="15px"/>&nbsp;&nbsp;&nbsp;&nbsp;ALGator</a></li>
-                    <li class="{% ifequal request.path problems_url %}active{% endifequal %}" ><a href="{{ problems_url }}"><img src="{% static 'images/problems_icon.png' %}" height="15px"/>&nbsp;&nbsp;&nbsp;&nbsp;PROBLEMS &nbsp;<span class="badge background-color-primary">{{ projects_list|length }}</span></a></li>
-                    <li><a href="#"><img src="{% static 'images/my_solutions_icon.png' %}" height="15px"/>&nbsp;&nbsp;&nbsp;&nbsp;MY SOLUTIONS&nbsp;<span class="badge background-color-primary">4</span><span class="sr-only">(current)</span></a></li>
+                    <li class="{% ifequal request.path '/' %}active{% endifequal %}">
+                       <a href="/"><img src="{% static 'images/algator_icon.png' %}" height="15px"/>&nbsp;&nbsp;&nbsp;&nbsp;ALGator</a></li>
+                    <li class="{% ifequal request.path problems_url %}active{% endifequal %}" >
+                       <a href="{{ problems_url }}"><img src="{% static 'images/problems_icon.png' %}" height="15px"/>
+                          &nbsp;&nbsp;&nbsp;&nbsp;Problems &nbsp;
+                          <span class="badge background-color-primary">{{ projects_list|length }}</span>
+                       </a></li>
+                    <li class="{% ifequal request.path cpanel_url %}active{% endifequal %}" >
+                       <a href="{{ cpanel_url }}"><img src="{% static 'images/my_solutions_icon.png' %}" height="15px"/>
+                          &nbsp;&nbsp;&nbsp;&nbsp;Control panel&nbsp;
+                       </a></li>
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                           aria-expanded="false">Profile <span class="caret"></span></a>
+                           aria-expanded="false">Hi, {{request.user.username}}<span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="/settings/">My settings</a></li>
                             <li class="divider"></li>

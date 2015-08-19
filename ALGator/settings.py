@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'login',
     'polls',
     'problems',
+    'cpanel'
 )
 
 MIDDLEWARE_CLASSES = (

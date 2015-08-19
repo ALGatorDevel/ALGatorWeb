@@ -16,5 +16,6 @@ urlpatterns = patterns('',
     url(r'^register/success/$', register_success),
     url(r'^home/$', home),
     url(r'^settings/$', settings_page),
+    url(r'^cpanel/', include('cpanel.urls', namespace='cpanel'))
 )
 

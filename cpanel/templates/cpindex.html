@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% load static from staticfiles %}
+
+{% block body_block %}
+
+<link href="{% static 'css/mpar.css' %}" rel="stylesheet">
+
+
+<div id="mybody">
+
+<table border="0" width="100%" height=100%>
+  <tbody><tr>
+    <td>
+      <table id="menu">
+        <tbody>
+        <tr>
+          <td class="selected_section">
+          <span title="Control panel settings">Control panel</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+          <span title="Tooltip for section"><a href="#" onclick="loadVsebina('{% url 'cpanel:taskserver' %}?project=SSort')">Task Server</a></span>
+          </td>
+        </tr>
+        <tr>  
+          <td align=left>
+          <span title="Available projects">Projects</span>
+{% if projects_list %}
+  <ul>
+  {% for project in  projects_list %}
+    <li><a href="">{{ project.name }}</a></li>
+  {% empty %}
+    <li>None!</li>
+  {% endfor %}
+  </ul>
+{% endif %}
+          </td>          
+        </tr>
+
+        </tbody>
+    </table>
+    </td>
+    <td width=100%>
+
+    <div id="vsebina">
+    Besedilo strani.
+    </div>
+
+        
+    </td>
+  </tr>
+</tbody></table>
+</div>
+
+</body>
+
+
+</html>
+{% endblock %}

@@ -21,6 +21,11 @@
                 </a>
             </li>
             <li role="presentation" class="custom-tab">
+                <a href="#manage{{ project.name }}" role="tab" data-toggle="tab">
+                    <strong>MANAGE</strong>
+                </a>
+            </li>
+            <li role="presentation" class="custom-tab">
                 <a href="#results{{ project.name }}" role="tab" data-toggle="tab">
                     <strong>RESULTS</strong>
                 </a>
@@ -45,7 +50,7 @@
 
                 <div class="panel-group" id="basic-info-accordion{{ project.name }}" role="tablist" aria-multiselectable="true">
 
-                    <div class="panel panel-success">
+                    <!--div class="panel panel-success">
                         <div class="panel-heading" role="tab" id="technicalDescriptionHeading{{ project.name }}">
                             <h5 class="">
                                 <a data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}"
@@ -60,14 +65,14 @@
                                 {{ project.html_desc|safe }}
                             </div>
                         </div>
-                    </div>
+                    </div-->
 
 
                     <div class="panel panel-success">
                         <div class="panel-heading" role="tab" id="projectDescriptionHeading{{ project.name }}">
                             <h5 class="">
                                 <a class="collapsed" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}"
-                                   href="#projectDescription{{ project.name }}" aria-expanded="false" aria-controls="projectDescription{{ project.name }}">
+                                   href="#projectDescription{{ project.name }}" aria-expanded="true" aria-controls="projectDescription{{ project.name }}">
                                     <strong>PROJECT DESCRIPTION</strong>
                                 </a>
                             </h5>
@@ -75,7 +80,7 @@
                         <div id="projectDescription{{ project.name }}" class="panel-collapse collapse" role="tabpanel"
                              aria-labelledby="projectDescriptionHeading{{ project.name }}">
                             <div class="panel-body">
-                                {{ project.description }}
+                                {{ project.html_desc|safe }}
                             </div>
                         </div>
                     </div>
@@ -121,6 +126,9 @@
             <div role="tabpanel" class="tab-pane padding-20" id="testsets{{ project.name }}">...</div>
             <div role="tabpanel" class="tab-pane padding-20" id="algorithms{{ project.name }}">
                 {% include 'algorithms_details.html' %}
+            </div>
+            <div role="tabpanel" class="tab-pane padding-20" id="manage{{ project.name }}">
+                {% include 'manage.html' %}
             </div>
             <div role="tabpanel" class="tab-pane padding-20" id="results{{ project.name }}">...</div>
         </div>
