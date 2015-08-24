@@ -21,7 +21,7 @@
         </tr>
         <tr>
           <td>
-          <span title="Tooltip for section"><a href="#" onclick="loadVsebina('{% url 'cpanel:taskserver' %}?project=SSort')">Task Server</a></span>
+          <span title="Tooltip for section"><a href="#" onclick="loadVsebina('{% url 'cpanel:taskserver' %}')">Task Server</a></span>
           </td>
         </tr>
         <tr>  
@@ -30,7 +30,15 @@
 {% if projects_list %}
   <ul>
   {% for project in  projects_list %}
-    <li><a href="">{{ project.name }}</a></li>
+    <li><a href="#" onclick="loadVsebina('{% url 'cpanel:project' %}?project={{ project.name }}')">{{ project.name }} </a>
+    </li>
+    {% if project.algorithms %}
+      <ul>
+        {% for algorithm in project.algorithms %}
+          <li><a href="#" onclick="loadVsebina('{% url 'cpanel:algorithm' %}?project={{ project.name }}&algorithm={{ algorithm.name }}')">{{ algorithm.name }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}    
   {% empty %}
     <li>None!</li>
   {% endfor %}

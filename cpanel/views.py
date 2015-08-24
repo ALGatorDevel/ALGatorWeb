@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -25,13 +26,48 @@ def home(request):
 def taskserver(request):
 
     serverStatus = subprocess.check_output("java algator.TaskClient -a status", shell=True)
-    proj = request.GET.get('project', 'defProj')
 
     return render_to_response(
         'taskserver.html',
         {
           'serverStatus': serverStatus,
-          'proj': proj
+        },
+        context_instance=RequestContext(request)
+    )
+
+@login_required
+def project(request):
+
+    project = request.GET.get('project', '')
+    
+    jweROOT=os.environ["JWE_ROOT"];
+    jweURL = subprocess.check_output("cd %s;./getAAA.pl ALGator Project %s" % (jweROOT, project), shell=True)
+
+    return render_to_response(
+        'project.html',
+        {
+          'project': project,
+          'jweURL': jweURL 
+        },
+        context_instance=RequestContext(request)
+    )
+
+
+@login_required
+def algorithm(request):
+
+    project = request.GET.get('project', '')
+    algorithm = request.GET.get('algorithm', '')
+
+    jweROOT=os.environ["JWE_ROOT"];
+    jweURL = subprocess.check_output("cd %s;./getAAA.pl ALGator Algorithm %s PROJ-%s" % (jweROOT, algorithm, project), shell=True)
+
+    return render_to_response(
+        'algorithm.html',
+        {
+          'project': project,
+          'algorithm': algorithm,
+          'jweURL': jweURL
         },
         context_instance=RequestContext(request)
     )
