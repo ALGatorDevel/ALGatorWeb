@@ -1,2 +1,55 @@
-<h3>Algorithm {{ project }} / {{ algorithm }}</h3>
-<a href="{{ jweURL }}">Edit</a>
+<h3>Algorithm {{ projectName }} / {{ algorithmName }} // {{ project.name }}</h3>
+<p><a href="{{ jweURL }}">Edit</a></p><br>
+
+
+{% for testset in project.testsets %}
+<font size="+1">{{ testset.name}}</font>
+
+<table border="1">
+    <tr><td></td><th width="300">result</th><th width="300">log</th></tr>
+    <tr><td align=center>EM</td>
+        <td><div id="runstatus"></div> 
+            {% with algorithmName|concat:"-"|concat:testset.name|concat:".em" as desc %} 
+                &nbsp;
+                {% if results|get_item:desc|length > 0 %} 
+                   <a href="results?project={{ projectName }}&file={{ algorithmName }}-{{ testset.name}}.em">{{ desc }}</a>
+                   ({{ results|get_item:desc }})
+                {% else %}
+                  Missing
+                {% endif %}               
+            {% endwith %}            
+            <input type="button" value="Run" onclick="runTask('{{ projectName }}', '{{ algorithmName }}', '{{ testset.name}}', 'em')">
+            <div id="runstatus-{{projectName}}-{{algorithmName}}-{{testset.name}}-em"></div> 
+        </td>    
+	<td>/</td>
+    </tr>
+    <tr><td align=center>CNT</td>
+        <td> {% with algorithmName|concat:"-"|concat:testset.name|concat:".cnt" as desc %} 
+                &nbsp;
+                {% if results|get_item:desc|length > 0 %} 
+                   <a href="results?project={{ projectName }}&file={{ algorithmName }}-{{ testset.name}}.cnt">{{ desc }}</a>
+                   ({{ results|get_item:desc }})
+                {% else %}
+                  Missing
+                {% endif %}               
+            {% endwith %}
+        </td>    
+	<td>/</td>
+    </tr>
+    <tr><td align=center>JVM</td>
+        <td> {% with algorithmName|concat:"-"|concat:testset.name|concat:".jvm" as desc %} 
+                &nbsp;
+                {% if results|get_item:desc|length > 0 %} 
+                   <a href="results?project={{ projectName }}&file={{ algorithmName }}-{{ testset.name}}.jvm">{{ desc }}</a>
+                   ({{ results|get_item:desc }})
+                {% else %}
+                  Missing
+                {% endif %}               
+            {% endwith %}
+        </td>    
+	<td>/</td>
+    </tr>
+</table>
+{% endfor %}
+
+

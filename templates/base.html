@@ -25,7 +25,20 @@
 
 <script>
 function loadVsebina(url) {
-  $( "#vsebina" ).load(url);
+  $("#vsebina").html("<font color=ff0000>... loading page</font>");  
+  $("#vsebina").load(url);
+}
+
+function runTask(project, algorithm, testset, mtype) {
+  var id = project + "-" + algorithm + "-" + testset + "-" + mtype;   
+  var url = "runTask?project=" + project + "&algorithm=" + algorithm + "&testset=" + testset + "&mtype=" + mtype;   
+  $("#runstatus-" + id).html("...");  
+  //$("#runstatus-" + id).load(url);  
+  var rsp = "1";
+  $.get(url, function( my_var ) {
+      obj = JSON.parse(my_var);
+      $("#runstatus-" + id).html(obj.x); /// x je kljuc v json slovarju ("x":"y")      
+  }, 'html');
 }
 </script>
 </head>

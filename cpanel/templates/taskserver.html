@@ -1,3 +1,23 @@
+{% extends 'base.html' %}
+
+ 
+{% block body_block %}
+
+<meta http-equiv="refresh" content="1" />
+ 
+
+<div id="mybody">
+
 <h3>Taskserver status page</h3>
 
-Current status: {{ serverStatus }}
+<p>Current status: {{ serverStatus }} </p><br>
+
+
+<b>Tasks:</b>
+<pre>
+{{ tasks }}
+</pre>
+
+</div>
+
+{% endblock %}

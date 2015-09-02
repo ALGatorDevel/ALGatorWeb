@@ -16,3 +16,4 @@ class Project(object):
 
         #array of algorithms
         self.algorithms = []
+        self.testsets = []

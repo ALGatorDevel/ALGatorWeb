@@ -3,6 +3,8 @@ import json
 
 from Classes.Project import Project
 from Classes.Algorithm import Algorithm
+from Classes.Testset import Testset
+
 
 
 class FolderScraper(object):
@@ -13,13 +15,18 @@ class FolderScraper(object):
         # Main path used through out the class. This folder contains all the
         # json files of different type
         #-------------------------------------------------------------------#
-        self.path = os.environ["ALGATOR_ROOT"] + "/data_root/projects/"
+        if 'ALGATOR_ROOT' in os.environ.keys():
+          self.path = os.environ["ALGATOR_ROOT"] + "/data_root/projects/"
+        else:
+          # !DEBUG!
+          self.path = "/Users/Tomaz/Dropbox/FRI/ALGOSystem/ALGATOR_ROOT/data_root/projects/"  
 
         #the render(output) lists of objects -> Array of Project objects
         self.projects_list = []
 
         #working dictionaries
         self.project_algorithms = {}
+        self.project_testsets = {}
         self.project_descriptions = {}
 
         #-------------------------------------------------------------------#
@@ -28,8 +35,21 @@ class FolderScraper(object):
         self.scrape_landing_folder()
         self.scrape_algorithms_folder()
         self.scrape_project_descriptions_folder()
+        self.scrape_testsets()
 
         self.create_render_projects_list()
+
+    def readHTMLDesc(self, json_description, htmlDesc, desc, entity, loPath):
+        if htmlDesc in json_description[entity]:
+            html_description_file = json_description[entity][htmlDesc]
+
+            if html_description_file != "":
+                path = loPath + 'doc/' + html_description_file
+
+                if os.path.exists(path):
+                    current_desc = open(path, 'r').read()
+                    json_description[entity][desc] = current_desc
+                    
 
     def scrape_landing_folder(self):
 
@@ -39,11 +59,36 @@ class FolderScraper(object):
             if folder.startswith("PROJ"):
 
                 self.project_algorithms[folder] = \
-                    self.project_descriptions[folder] = None
+                self.project_testsets[folder] = \
+                self.project_descriptions[folder] = None
 
+
+    def scrape_testsets(self):
+        #find all testsets 
+        
+        for folder in self.project_testsets:
+            testset_subfolder = self.path + folder + "/tests/"
+            testset_files = os.listdir(testset_subfolder)
+            
+            testsets = []
+            for testset_file in testset_files:
+                if testset_file.endswith(".atts"):
+                    
+                    description_file = open(testset_subfolder+"/"+testset_file, 'r').read()
+                    json_description = json.loads(description_file)
+                    
+                    #open testset TECH description
+                    self.readHTMLDesc(json_description, 'HTMLDescFile', 'HTMLDesc', 'TestSet', testset_subfolder)
+
+                    testsets.append(json_description)
+
+            self.project_testsets[folder] = testsets
+        
+            
     def scrape_algorithms_folder(self):
         #finds all the json with algorithms in the self.path/PROJ-#/algs/ALG-#
 
+        #folder: PROJ-*
         for folder in self.project_algorithms:
             subfolder_path = self.path + folder + "/algs"
             subfolders = os.listdir(subfolder_path)
@@ -60,16 +105,7 @@ class FolderScraper(object):
 
                     json_description = json.loads(description_file)
 
-                    #open algorithms TECH description
-                    if 'HTMLDescFile' in json_description['Algorithm']:
-                        algorithm_html_description_file = json_description['Algorithm']['HTMLDescFile']
-
-                        if algorithm_html_description_file != "":
-                            path = algorithm_folder + 'doc/' + algorithm_html_description_file
-
-                            if os.path.exists(path):
-                                algorithms_current_tech_desc = open(path, 'r').read()
-                                json_description['Algorithm']['ALGTechDesc'] = algorithms_current_tech_desc
+                    self.readHTMLDesc(json_description, 'HTMLDescFile', 'ALGTechDesc', 'Algorithm', algorithm_folder)
 
                     subfolder_solutions.append(json_description)
 
@@ -88,62 +124,23 @@ class FolderScraper(object):
             description_file = open(self.path+folder + project_folder + proj_name +".atp", 'r').read()
 
             json_description = json.loads(description_file)
+            
+            curFolder = self.path+folder + project_folder
 
             #open html description file
-            if 'HTMLDescFile' in json_description['Project']:
-                html_description_file = json_description['Project']['HTMLDescFile']
-
-                path = self.path+folder + project_folder + 'doc/' + html_description_file
-
-                if os.path.exists(path):
-                    current_description = open(path, 'r').read()
-                    json_description['Project']['HTMLDesc'] = current_description
+            self.readHTMLDesc(json_description, 'HTMLDescFile', 'HTMLDesc', 'Project', curFolder)
 
             #open algorithms description
-            if 'AlgDescHTML' in json_description['Project']:
-                algorithms_html_description_file = json_description['Project']['AlgDescHTML']
-
-                if algorithms_html_description_file != "":
-                    path = self.path+folder + project_folder + 'doc/' + algorithms_html_description_file
-
-                    if os.path.exists(path):
-                        algorithms_current_desc = open(path, 'r').read()
-                        json_description['Project']['ALGDesc'] = algorithms_current_desc
+            self.readHTMLDesc(json_description, 'AlgDescHTML', 'ALGDesc', 'Project', curFolder)
 
             #open algorithms TECH description
-            if 'AlgTechDescHTML' in json_description['Project']:
-                algorithms_html_tech_description_file = json_description['Project']['AlgTechDescHTML']
-
-                if algorithms_html_tech_description_file != "":
-                    path = self.path+folder + project_folder + 'doc/' + algorithms_html_tech_description_file
-
-                    if os.path.exists(path):
-                        algorithms_current_tech_desc = open(path, 'r').read()
-                        json_description['Project']['ALGTechDesc'] = algorithms_current_tech_desc
+            self.readHTMLDesc(json_description, 'AlgTechDescHTML', 'ALGTechDesc', 'Project', curFolder)
 
             #open test sets TECH description
-            if 'TestSetTechDescHTML' in json_description['Project']:
-                test_sets_html_tech_description_file = json_description['Project']['TestSetTechDescHTML']
-
-                if test_sets_html_tech_description_file != "":
-                    path = self.path+folder + project_folder + 'doc/' + test_sets_html_tech_description_file
-
-                    if os.path.exists(path):
-                        test_sets_current_tech_desc = open(path, 'r').read()
-                        json_description['Project']['TestSetTechDesc'] = test_sets_current_tech_desc
+            self.readHTMLDesc(json_description, 'TestSetTechDescHTML', 'TestSetTechDesc', 'Project', curFolder)
 
             #open test sets description
-            if 'TestSetDescHTML' in json_description['Project']:
-                test_sets_html_description_file = json_description['Project']['TestSetDescHTML']
-
-                if test_sets_html_description_file != "":
-                    path = self.path+folder + project_folder + 'doc/' + test_sets_html_description_file
-
-                    if os.path.exists(path):
-                        test_sets_current_desc = open(path, 'r').read()
-                        json_description['Project']['TestSetDesc'] = test_sets_current_desc
-
-
+            self.readHTMLDesc(json_description, 'TestSetDescHTML', 'TestSetDesc', 'Project', curFolder)
 
             self.project_descriptions[folder] = json_description
 
@@ -193,6 +190,31 @@ class FolderScraper(object):
 
                 #append algorithm to project
                 project_instance.algorithms.append(project_algorithm)
+                
+
+            for testset in self.project_testsets[projectKey]:
+
+                #for ease of use
+                current_testset = testset['TestSet']
+
+                ts_name = current_testset['Name'] if 'Name' in current_testset.keys() else ""
+                ts_short_name = current_testset['ShortName'] if 'ShortName' in current_testset.keys() else ""
+                ts_desc = current_testset['Description'] if 'Description' in current_testset.keys() else ""                                
+                ts_html_desc = current_testset['HTMLDesc'] if 'HTMLDesc' in current_testset.keys() else ""
+                ts_n = current_testset['N'] if 'N' in current_testset.keys() else ""
+                ts_test_repeat = current_testset['TestRepeat'] if 'TestRepeat' in current_testset.keys() else ""
+                ts_time_limit = current_testset['TimeLimit'] if 'TimeLimit' in current_testset.keys() else ""
+                ts_quick_test = current_testset['QuickTest'] if 'QuickTest' in current_testset.keys() else ""
+                ts_files = current_testset['TestSetFiles'] if 'TestSetFiles' in current_testset.keys() else ""
+                ts_desc_file = current_testset['DescriptionFile'] if 'DescriptionFile' in current_testset.keys() else ""                
+
+                #create instance
+                project_testset = Testset(ts_name, ts_short_name, ts_desc, ts_html_desc, \
+                    ts_n, ts_test_repeat, ts_time_limit, ts_quick_test, ts_files, ts_desc_file)
+
+                #append testset to project
+                project_instance.testsets.append(project_testset)
+            
 
             #append the project instance to the array
             self.projects_list.append(project_instance)

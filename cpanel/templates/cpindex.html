@@ -9,7 +9,7 @@
 
 <div id="mybody">
 
-<table border="0" width="100%" height=100%>
+<table border="0" width="100%">
   <tbody><tr>
     <td>
       <table id="menu">
@@ -21,7 +21,10 @@
         </tr>
         <tr>
           <td>
-          <span title="Tooltip for section"><a href="#" onclick="loadVsebina('{% url 'cpanel:taskserver' %}')">Task Server</a></span>
+          <span title="Tooltip for section">
+              <!--a href="#" onclick="loadVsebina('{% url 'cpanel:taskserver' %}')">Task Server</a-->
+              <a href="{% url 'cpanel:taskserver' %}">TTask Server</a>
+          </span>
           </td>
         </tr>
         <tr>  
