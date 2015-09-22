@@ -1,0 +1,90 @@
+.clickable-table-row {
+	cursor: pointer;
+}
+
+.table-nonfluid {
+   width: auto;
+}
+
+.query-editor {	
+	overflow: auto;
+	height: 92vh;
+}
+
+.chart-editor {
+	height: 92vh;
+}
+
+.c-panel {
+	overflow: auto;
+	height: 90vh;
+}
+
+#chart {
+	height: 90vh;
+}
+
+.small-panel {
+	max-height: 300px;
+	overflow: auto;
+}
+
+.form-group-sm {
+	margin-bottom: 4px;
+}
+
+label {
+	font-weight: normal;
+}
+
+img.clickable {
+	cursor: pointer;
+}
+
+li.legend-entry {
+	cursor: pointer;
+}
+
+li.legend-entry:hover {
+	background-color: #ededed;
+}
+
+li.clickable {
+	cursor: pointer;
+}
+li.clickable:hover {
+	background-color: #ededed;
+}
+
+li.clickable:active {
+	background-color: #dddddd;
+}
+
+.square {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    border-radius: 3px;
+    border-width: 2px;
+    border-style: solid;
+}
+
+.empty-square {
+	background: white;
+}
+
+span.pad-right {
+	padding-right: 10px;
+}
+
+pre.no-style {
+	border: none;
+	background-color: white;
+}
+
+span.string { color: green; }
+span.number { color: orange; }
+span.boolean { color: blue; }
+span.null { color: magenta; }
+span.key { color: red; }

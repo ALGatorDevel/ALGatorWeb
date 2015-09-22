@@ -6,57 +6,17 @@
 
 <link href="{% static 'css/mpar.css' %}" rel="stylesheet">
 
-
 <div id="mybody">
 
 <table border="0" width="100%">
   <tbody><tr>
     <td>
-      <table id="menu">
-        <tbody>
-        <tr>
-          <td class="selected_section">
-          <span title="Control panel settings">Control panel</span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-          <span title="Tooltip for section">
-              <!--a href="#" onclick="loadVsebina('{% url 'cpanel:taskserver' %}')">Task Server</a-->
-              <a href="{% url 'cpanel:taskserver' %}">TTask Server</a>
-          </span>
-          </td>
-        </tr>
-        <tr>  
-          <td align=left>
-          <span title="Available projects">Projects</span>
-{% if projects_list %}
-  <ul>
-  {% for project in  projects_list %}
-    <li><a href="#" onclick="loadVsebina('{% url 'cpanel:project' %}?project={{ project.name }}')">{{ project.name }} </a>
-    </li>
-    {% if project.algorithms %}
-      <ul>
-        {% for algorithm in project.algorithms %}
-          <li><a href="#" onclick="loadVsebina('{% url 'cpanel:algorithm' %}?project={{ project.name }}&algorithm={{ algorithm.name }}')">{{ algorithm.name }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}    
-  {% empty %}
-    <li>None!</li>
-  {% endfor %}
-  </ul>
-{% endif %}
-          </td>          
-        </tr>
-
-        </tbody>
-    </table>
+      {% include 'cpanelmenu.html' %}
     </td>
     <td width=100%>
 
     <div id="vsebina">
-    Besedilo strani.
+      {% include contentpage %}
     </div>
 
         

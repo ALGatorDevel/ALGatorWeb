@@ -1,0 +1,31 @@
+<script>
+function loadVsebina(url) {
+  //$("#algDesc").html("<font color=ff0000>... loading page</font>");  
+  $("#algDesc").load(url);
+}
+</script>
+
+
+{% if projects_list %}
+
+<div class="container-fluid"><div class="row">
+  <div class="col-md-2"> 
+    <div class="list-group">
+        {% for algorithm in project.algorithms %}
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <a href="#" onclick="loadVsebina('{% url 'problems:algorithm' %}?project={{ project.name }}&algorithm={{ algorithm.name }}')">
+                        <h3 class="panel-title">{{ algorithm.name }}</h3>
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+  </div>
+    <div class="col-md-10" id="algDesc"> 
+        No algorithms selected ...
+    </div>
+</div></div>
+{% else %}
+    <h4><p><strong>No Algorithms found!</strong></p></h4>
+{% endif %}

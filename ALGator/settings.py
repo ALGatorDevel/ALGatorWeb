@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
@@ -28,6 +29,7 @@ ALLOWED_HOSTS = []
 
 #Django custom login url
 import django.contrib.auth
+
 django.contrib.auth.LOGIN_URL = '/'
 
 # Application definition
@@ -40,9 +42,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'login',
-    'polls',
     'problems',
-    'cpanel'
+    'cpanel',
+    'vision',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -105,3 +107,4 @@ BASE = os.path.abspath(os.path.dirname(__name__))
 STATICFILES_DIRS = (os.path.join(BASE, "static"),)
 
 STATIC_URL = '/static/'
+

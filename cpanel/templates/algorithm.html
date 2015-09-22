@@ -1,55 +1,102 @@
+<script language="javascript" type="text/javascript">
+
+var mojaAlert = '<div id="myalert" class="alert alert-success alert-dismissable">  <button type="button" class="close" data-dismiss="alert" aria-hidden="true"> &times; </button> <span id="alertMsg">MMMSSSGGG</span> </div>'
+
+
+var timeout = setInterval(rC, 4000);    
+function rC () {
+  if (document.hidden) {
+      return;
+  }  
+  $.get("{% url 'cpanel:askServer' %}?q=ProjectStatus {{ projectName }} {{ algorithmName }}", function( my_var ) {
+      try {          
+        obj = JSON.parse(my_var);       
+        tab = JSON.parse(obj.answer);
+        {% for testset in project.testsets %}
+            {% with 'em cnt jvm' as list %} {% for mtype in list.split %}  
+              ans   = tab.{{projectName}}_{{algorithmName}}_{{ testset.name}}_{{ mtype }}
+              $("#runstatus{{projectName}}{{algorithmName}}{{ testset.name}}{{ mtype }}").html(ans);               
+              {% endfor %}{% endwith %}
+        {% endfor %}
+      } catch (err) {
+        $("#runstatus{{projectName}}{{algorithmName}}TestSet1em").html(err.message + " -- " + my_var);   
+      }
+  }, 'html');
+}
+
+
+function runTask(project, algorithm, testset, mtype) {
+  var id = project +  algorithm  + testset + mtype;   
+  var url = "/cpanel/runTask?project=" + project + "&algorithm=" + algorithm + "&testset=" + testset + "&mtype=" + mtype;   
+  $("#runstatus" + id).html("...");  
+  //$("#runstatus-" + id).load(url);  
+  var rsp = "1";
+  $.get(url, function( my_var ) {
+      obj = JSON.parse(my_var);
+      $("#myalert").html($("#myalert").html() + mojaAlert.replace("MMMSSSGGG", obj.answer));
+  }, 'html');
+}
+    
+    
+$(document).ready(function() {
+  rC();
+});
+
+</script>
+
+ <style>
+      table {
+            width: 100%;
+            
+     }
+
+#sbadge
+{
+  cursor: help;
+}
+ </style>
+
+ <div id="myalert"></div>
+ 
 <h3>Algorithm {{ projectName }} / {{ algorithmName }} // {{ project.name }}</h3>
 <p><a href="{{ jweURL }}">Edit</a></p><br>
 
-
-{% for testset in project.testsets %}
-<font size="+1">{{ testset.name}}</font>
-
-<table border="1">
-    <tr><td></td><th width="300">result</th><th width="300">log</th></tr>
-    <tr><td align=center>EM</td>
-        <td><div id="runstatus"></div> 
-            {% with algorithmName|concat:"-"|concat:testset.name|concat:".em" as desc %} 
-                &nbsp;
-                {% if results|get_item:desc|length > 0 %} 
-                   <a href="results?project={{ projectName }}&file={{ algorithmName }}-{{ testset.name}}.em">{{ desc }}</a>
-                   ({{ results|get_item:desc }})
-                {% else %}
-                  Missing
-                {% endif %}               
-            {% endwith %}            
-            <input type="button" value="Run" onclick="runTask('{{ projectName }}', '{{ algorithmName }}', '{{ testset.name}}', 'em')">
-            <div id="runstatus-{{projectName}}-{{algorithmName}}-{{testset.name}}-em"></div> 
-        </td>    
-	<td>/</td>
-    </tr>
-    <tr><td align=center>CNT</td>
-        <td> {% with algorithmName|concat:"-"|concat:testset.name|concat:".cnt" as desc %} 
-                &nbsp;
-                {% if results|get_item:desc|length > 0 %} 
-                   <a href="results?project={{ projectName }}&file={{ algorithmName }}-{{ testset.name}}.cnt">{{ desc }}</a>
-                   ({{ results|get_item:desc }})
-                {% else %}
-                  Missing
-                {% endif %}               
-            {% endwith %}
-        </td>    
-	<td>/</td>
-    </tr>
-    <tr><td align=center>JVM</td>
-        <td> {% with algorithmName|concat:"-"|concat:testset.name|concat:".jvm" as desc %} 
-                &nbsp;
-                {% if results|get_item:desc|length > 0 %} 
-                   <a href="results?project={{ projectName }}&file={{ algorithmName }}-{{ testset.name}}.jvm">{{ desc }}</a>
-                   ({{ results|get_item:desc }})
-                {% else %}
-                  Missing
-                {% endif %}               
-            {% endwith %}
-        </td>    
-	<td>/</td>
-    </tr>
+{% with 'em cnt jvm' as list %} {% for mtype in list.split %}  
+<h3>{{ mtype }}</h3>
+<table>  
+    <tr><td colspan="4"></td>  
+  {% for comp in computers %}        
+    <td style="width: 120px; text-align: center;">{{ comp }}</td>
+  {% endfor %}       
+  </tr>
+  
+  {% for testset in project.testsets %}
+  <tr>
+    <td style="width: 100px;">{{ testset.name }}</td>
+    <td style="width: 140px; text-align: center;"><div id="runstatus{{projectName}}{{algorithmName}}{{testset.name}}{{ mtype }}"></div></td>
+    <td style="width: 70px;  text-align: center;"><input type="button" value="Run" onclick="runTask('{{ projectName }}', '{{ algorithmName }}', '{{ testset.name}}', '{{ mtype }}')"></td>              
+    <td style="width: 70px;  text-align: center;"><a href="{% url 'cpanel:history' %}?project={{ projectName }}&algorithm={{ algorithmName }}&testset={{ testset.name }}&mtype={{ mtype }}">Log</a></td>      
+    {% for comp in computers %}        
+      {% with comp|concat:"/"|concat:algorithmName|concat:"-"|concat:testset.name|concat:"."|concat:mtype as desc %}                     
+        <td style="text-align: center;">
+          {% if results|get_item:desc|length > 0 %} 
+            <a href="{% url 'cpanel:results' %}?project={{ projectName }}&comp={{ comp }}&file={{ algorithmName }}-{{ testset.name}}.{{ mtype }}">results {{ results|get_item:desc }}</a>
+          {% else %} 
+            /         
+          {% endif %}               
+        </td>  
+      {% endwith %}
+    {% endfor %}           
+    <td>&nbsp;</td>
+  </tr>
+  </tr>
+  <!--tr>
+    <td></td>    
+    <td colspan="10"><div id="runstatus{{projectName}}{{algorithmName}}{{testset.name}}{{ mtype }}"></div></td>
+  </tr-->  
+  {% endfor %}       
 </table>
-{% endfor %}
+{% endfor %}{% endwith %}
+
 
 

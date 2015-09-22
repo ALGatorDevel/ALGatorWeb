@@ -1,0 +1,135 @@
+{% load static from staticfiles %}
+<div id="bla">???</div>
+    <div class="query-editor panel panel-default">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Algorithms</div>
+                        <div class="panel-body small-panel">
+                        {% for algorithm in config.Algorithms %}
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-addon">
+                                    <input type="checkbox" id="checkbox-Algorithms-{{ algorithm }}" data-type="Algorithms" data-value="{{ algorithm }}">
+                                </span>
+                                <input type="text" class="form-control" placeholder="{{ algorithm }}" id="text-Algorithms-{{ algorithm }}">
+                            </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">TestSets</div>
+                        <div class="panel-body small-panel">
+                        {% for testset in config.TestSets %}
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-addon">
+                                    <input type="checkbox" id="checkbox-TestSets-{{ testset }}" data-type="TestSets" data-value="{{ testset }}">
+                                </span>
+                                <input type="text" class="form-control" data-type="TestSets" data-value="{{ testset }}" placeholder="{{ testset }}" id="text-TestSets-{{ testset }}">
+                            </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Input Fields</div>
+                        <div class="panel-body small-panel">
+                        {% for param in params.TestParameters %}
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-addon">
+                                    <input type="checkbox" id="checkbox-TestParameters-{{ param }}" data-type="TestParameters" data-value="{{ param }}">
+                                </span>
+                                <input type="text" class="form-control" data-type="TestParameters" data-value="{{ param }}" placeholder="{{ param }}" id="text-TestParameters-{{ param }}">
+                            </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Output Fields</div>
+                        <div class="panel-body small-panel">
+                        {% for param in params.ResultParameters %}
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-addon">
+                                    <input type="checkbox" id="checkbox-ResultParameters-{{ param }}" data-type="ResultParameters" data-value="{{ param }}">
+                                </span>
+                                <input type="text" class="form-control" data-type="ResultParameters" data-value="{{ param }}" placeholder="{{ param }}" id="text-ResultParameters-{{ param }}">
+                            </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <form class="form-horizontal" role="form">
+                                <div class="form-group form-group-sm">
+                                    <label for="text-Filter" class="col-sm-2 control-label">Filter:</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="text-Filter">
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label for="text-GroupBy" class="col-sm-2 control-label">GroupBy:</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="text-GroupBy">
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label for="text-SortBy" class="col-sm-2 control-label">SortBy:</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="text-SortBy">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel-group" id="accordion">
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse-query">
+                              Query
+                            </a>
+                            <img class="clickable download-query" src="{% static 'img/save.png' %}">
+                          </h4>
+                        </div>
+                        <div id="collapse-query" class="panel-collapse collapse">
+                          <div class="panel-body small-panel">
+                            <pre class="no-style pre-query-text"></pre>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse-data">
+                              Data
+                            </a>
+                            <img class="clickable download-data" src="{% static 'img/save.png' %}">
+                          </h4>
+                        </div>
+                        <div id="collapse-data" class="panel-collapse collapse in">
+                            <div class="panel-body small-panel">
+                                <table class="table table-hover table-condensed" id="alg-data-table">
+                                </table>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

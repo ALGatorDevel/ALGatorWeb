@@ -4,6 +4,7 @@ import json
 from Classes.Project import Project
 from Classes.Algorithm import Algorithm
 from Classes.Testset import Testset
+from Classes.GlobalConfig import GlobalConfig
 
 
 
@@ -14,12 +15,8 @@ class FolderScraper(object):
         #-------------------------------------------------------------------#
         # Main path used through out the class. This folder contains all the
         # json files of different type
-        #-------------------------------------------------------------------#
-        if 'ALGATOR_ROOT' in os.environ.keys():
-          self.path = os.environ["ALGATOR_ROOT"] + "/data_root/projects/"
-        else:
-          # !DEBUG!
-          self.path = "/Users/Tomaz/Dropbox/FRI/ALGOSystem/ALGATOR_ROOT/data_root/projects/"  
+        #-------------------------------------------------------------------# 
+        self.data_root_path = GlobalConfig().data_root_path
 
         #the render(output) lists of objects -> Array of Project objects
         self.projects_list = []
@@ -53,7 +50,7 @@ class FolderScraper(object):
 
     def scrape_landing_folder(self):
 
-        folder_list = os.listdir(self.path)
+        folder_list = os.listdir(self.data_root_path)
 
         for folder in folder_list:
             if folder.startswith("PROJ"):
@@ -67,7 +64,7 @@ class FolderScraper(object):
         #find all testsets 
         
         for folder in self.project_testsets:
-            testset_subfolder = self.path + folder + "/tests/"
+            testset_subfolder = self.data_root_path + folder + "/tests/"
             testset_files = os.listdir(testset_subfolder)
             
             testsets = []
@@ -90,7 +87,7 @@ class FolderScraper(object):
 
         #folder: PROJ-*
         for folder in self.project_algorithms:
-            subfolder_path = self.path + folder + "/algs"
+            subfolder_path = self.data_root_path + folder + "/algs"
             subfolders = os.listdir(subfolder_path)
 
             subfolder_solutions = []
@@ -99,7 +96,7 @@ class FolderScraper(object):
                 if subfolder.startswith("ALG"):
                     algorithm_name = subfolder.split("-")[1]  # ALG-algorithm_name
 
-                    algorithm_folder = self.path+folder+"/algs/"+subfolder+"/"
+                    algorithm_folder = self.data_root_path+folder+"/algs/"+subfolder+"/"
                     #open the filename
                     description_file = open(algorithm_folder+algorithm_name+".atal", 'r').read()
 
@@ -121,14 +118,14 @@ class FolderScraper(object):
             proj_name = folder.split("-")[1]  # PROJ-proj_name
 
             #open the filename
-            description_file = open(self.path+folder + project_folder + proj_name +".atp", 'r').read()
+            description_file = open(self.data_root_path+folder + project_folder + proj_name +".atp", 'r').read()
 
             json_description = json.loads(description_file)
             
-            curFolder = self.path+folder + project_folder
+            curFolder = self.data_root_path+folder + project_folder
 
             #open html description file
-            self.readHTMLDesc(json_description, 'HTMLDescFile', 'HTMLDesc', 'Project', curFolder)
+            self.readHTMLDesc(json_description, 'HtmlDescFile', 'HTMLDesc', 'Project', curFolder)
 
             #open algorithms description
             self.readHTMLDesc(json_description, 'AlgDescHTML', 'ALGDesc', 'Project', curFolder)
@@ -218,3 +215,8 @@ class FolderScraper(object):
 
             #append the project instance to the array
             self.projects_list.append(project_instance)
+
+
+
+scraper = FolderScraper()
+print scraper.projects_list[0].name

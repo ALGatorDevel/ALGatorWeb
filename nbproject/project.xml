@@ -5,11 +5,12 @@
         <data xmlns="http://nbpython.dev.java.net/ns/php-project/1">
             <name>AWeb</name>
             <sources>
-                <root id="ALGator.dir"/>
-                <root id="Classes.dir"/>
-                <root id="src.ALGatorWeb.dir"/>
-                <root id="cpanel.dir"/>
-                <root id="problems.dir"/>
+                <root id="src.ALGator.dir"/>
+                <root id="src.Classes.dir"/>
+                <root id="src.cpanel.dir"/>
+                <root id="src.vision.dir"/>
+                <root id="src.problems.dir"/>
+                <root id="src.ALGatorWeb.dir" name="ALL"/>
             </sources>
             <tests/>
         </data>

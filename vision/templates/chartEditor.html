@@ -1,0 +1,112 @@
+<div class="chart-editor panel panel-default">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-10">
+                <div class="row">
+                    <div id="chart">
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-2 c-panel"> <!-- right side panel -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">X</div>
+                            <div class="panel-body">
+                                <select class="form-control x-selector"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Y</div>
+                            <div class="panel-body">
+                                <ul class="list-group y-selector">
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Data &amp; Settings</div>
+                            <div class="panel-body">
+                                <ul class="list-group">
+                                    <li class="list-group-item clickable" id="button-chart-data" data-toggle="modal" data-target="#chart-data-modal">Data</li>
+                                    <li class="list-group-item clickable" data-toggle="modal" data-target="#chart-settings-modal">Settings</li>
+                                    <li class="list-group-item clickable" id="button-toggle-editor">Toggle Editor</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>  <!-- right sidepanel -->
+        </div>
+    </div>
+</div>
+
+<div class="row">       <!-- Modal dialogs -->
+    <div class="modal fade" id="chart-settings-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Chart Settings</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" data-value="zoom" checked>Zoom (use mouse wheel)
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" data-value="gridx" checked>Show x grid lines
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" data-value="gridy" checked>Show y grid lines
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" data-value="subchart">Show subchart
+                        </label>
+                    </div>
+                    <hr>
+                    <select class="form-control">
+                        <option value="line">Line chart</option>
+                        <option value="bar">Bar chart</option>
+                        <option value="area">Area chart</option>
+                        <option value="pie">Pie chart</option>
+                        <option value="donut">Donut chart</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>  <!-- end Chart settings modal -->
+    <div class="modal fade" id="chart-data-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Chart Data</h4>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" id="textarea-chart-data" rows="25"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" id="button-save-chart-data" class="btn btn-primary" data-dismiss="modal">Save data</button>
+                </div>
+            </div>
+        </div>
+    </div>  <!-- end Chart data modal -->
+</div>  <!-- end Modals dialogs -->

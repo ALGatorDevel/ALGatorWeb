@@ -5,8 +5,11 @@
 @primary-color: #aacc4e;
 @primary-color-hover: #7f9b32;
 
+@alert-color: #ff9191;
+@msg-color: #6699ff;
+
 body {
-    padding-top: 60px;
+    padding-top: 20px;
     background-color: @main-bg-color;
     font-family: "Roboto-Light";
     font-size: 17px;
@@ -59,7 +62,7 @@ button {
 .padding-left-right-bottom-20 {
     padding: 0 20px 20px 20px;
 }
-.padding-20 {
+.padding-20{ 
     padding: 20px;
 }
 
@@ -67,6 +70,15 @@ button {
 .background-color-primary {
     background-color: @primary-color !important;
 }
+
+.background-color-alert {
+    background-color: @alert-color !important;
+}
+
+.background-color-msg {
+    background-color: @msg-color !important;
+}
+
 
 .primary-color {
     color: @primary-color;
