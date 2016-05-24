@@ -43,9 +43,54 @@ def pdetails(request):
         }
         , context_instance=RequestContext(request)
     )
+
+# technical details about the project
+@login_required
+def tdetails(request):
+    
+    projectName = request.GET.get('project', '')
+    
+    scraper = FolderScraper()
+    project = None
+    for proj in scraper.projects_list:
+        if proj.name == projectName:
+          project = proj
+    if project == None:
+        return HttpResponse('projectName=' + projectName)
+
+    return render_to_response(
+        'tdetails.html',
+        {
+            'project': project,
+        }
+        , context_instance=RequestContext(request)
+    )
+
+# technical details about the project
+@login_required
+def results(request):
+    
+    projectName = request.GET.get('project', '')
+    
+    scraper = FolderScraper()
+    project = None
+    for proj in scraper.projects_list:
+        if proj.name == projectName:
+          project = proj
+    if project == None:
+        return HttpResponse('projectName=' + projectName)
+
+    return render_to_response(
+        'results.html',
+        {
+            'project': project,
+        }
+        , context_instance=RequestContext(request)
+    )
+
     
 @login_required
-def algorithm(request):
+def adetails(request):
     
     projectName   = request.GET.get('project', '')
     algorithmName = request.GET.get('algorithm', '')
@@ -68,9 +113,10 @@ def algorithm(request):
     
 
     return render_to_response(
-        'algorithmDetails.html',
+        'adetails.html',
         {
             'algorithm': algorithm,
+            'project' : project,
 
         }
         , context_instance=RequestContext(request)

@@ -5,21 +5,49 @@
 
 {% block head %}
     <link href="{% static 'css/c3.css' %}" rel="stylesheet">
-
     <script type="text/javascript" src="{% static 'js/d3.js' %}" charset="utf-8"></script>        
     <script type="text/javascript" src="{% static 'js/c3.min.js' %}"></script>        
     <script type="text/javascript" src="{% static 'js/FileSaver.min.js' %}"></script>        
     <script type="text/javascript" src="{% static 'js/algatorweb.js' %}"></script>        
-    
-    
+        
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <!--ol class="breadcrumb">
+            <li><a href="{% url 'vision:index' %}">Projects</a></li>
+            <li class="active">{{ title }}</li>
+        </ol-->   
+
+        <div class="row">
+            <div class="col-md-5">
+             {% include 'queryEditor.html' %}
+            </div>   
+            <div class="col-md-7">
+                <div class="chart-panel panel panel-default"> 
+                  {% include 'chartPanel.html' %}
+                </div>
+                <div class="chartControl-panel panel panel-default"> 
+                  <div class="col-md-9">
+                    {% include 'axesPanel.html' %}
+                  </div>
+                  <div class="col-md-3">
+                    {% include 'settingsPanel.html' %}
+                  </div>
+                </div>                
+            </div>
+        </div>     
+    </div> 
+
     <script>
-        $(document).ready(function() {
+        
+        $(document).ready(function() {                      
             $(window).resize(function () {
                 $("#chart").css("max-height", "");
             });    //on window resize
 
             var projectName = document.title;
-            queryEditor.init(projectName);   //initialize components
+            queryEditor.init("{{ title }}");   //initialize components
             chartEditor.init("#chart");
 
             var hideQueryEditor = util.getParameterFromURL("hideEditor");    //check if hideEditor parameter was used
@@ -33,22 +61,7 @@
             }   
         });
     </script>
+
+
 {% endblock %}
 
-{% block body %}
-    <div class="container-fluid">
-        <ol class="breadcrumb">
-            <li><a href="{% url 'vision:index' %}">Projects</a></li>
-            <li class="active">{{ title }}</li>
-        </ol>   
-
-        <div class="row">
-            <div class="col-md-4">
-             {% include 'queryEditor.html' %}
-            </div>   
-            <div class="col-md-8">
-             {% include 'chartEditor.html' %}
-            </div>
-        </div>     
-    </div>  
-{% endblock %}

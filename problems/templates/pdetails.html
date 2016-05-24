@@ -1,130 +1,123 @@
 {% extends 'base.html' %}
 
+
 {% block body_block %}
 
-
-<!-- My solutions page -->
-<div class="panel-heading" id="heading{{ project.name }}">  
-  <div role="tabpanel" class="tab-pane tabed-content" style="background-color: white; margin-right: 5px" id="mysolutions{{ project.name }}">
-      <div class="primary-color"><h2 style="padding-top: 10px; padding-bottom: 11px">&nbsp; {{ project.name }}</h2></div>
-    <div class="inner-content-information" style="padding-top: 2px">
-
-        <ul class="nav nav-tabs nav-tabs-white-bg" role="tablist">
-            <li role="presentation" class="custom-tab active">
-                <a href="#basicinformation{{ project.name }}" role="tab" data-toggle="tab">
-                    <strong>BASIC INFORMATION</strong>
-                </a>
-            </li>
-            <li role="presentation" class="custom-tab">
-                <a href="#algorithms{{ project.name }}" role="tab" data-toggle="tab" >
-                    <strong>
-                        ALGORITHMS&nbsp; <span class="badge background-color-primary">{{ project.algorithms|length }}</span>
-                    </strong>
-                </a>
-            </li>
-            <li role="presentation" class="custom-tab">
-                <a href="#testsets{{ project.name }}" role="tab" data-toggle="tab">
-                    <strong>TEST SETS</strong>
-                </a>
-            </li>
-            <li role="presentation" class="custom-tab">
-                <a href="#manage{{ project.name }}" role="tab" data-toggle="tab">
-                    <strong>MANAGE!</strong>
-                </a>
-            </li>
-            <li role="presentation" class="custom-tab">
-                <a href="#results{{ project.name }}" role="tab" data-toggle="tab">
-                    <strong>RESULTS</strong>
-                </a>
-            </li>
-        </ul>
-
-        <!-- Tab panes -->
-        <div class="tab-content">
-            
-            <div role="tabpanel" class="tab-pane active padding-20" id="basicinformation{{ project.name }}">
-
-                <div>
-                    <h4 class="primary-color">
-                        Author: &nbsp;
-                        <small>{{ project.author }}</small>
-                        <br><br>
-                        Date of last change: &nbsp;
-                        <small>{{ project.project_date }}</small>
-                        <br><br>
-                    </h4>
-                </div>
+{% load static from staticfiles %}
+<link href="{% static 'css/c3.css' %}"                   rel="stylesheet">
+<script type="text/javascript" src="{% static 'js/d3.js' %}"></script>        
+<script type="text/javascript" src="{% static 'js/c3.min.js' %}"></script> 
+<script type="text/javascript" src="{% static 'js/algatorweb.js' %}"></script> <script type="text/javascript" src="{% static 'js/report.js' %}"></script>  
 
 
-                <div class="panel-group" id="basic-info-accordion{{ project.name }}" role="tablist" aria-multiselectable="true">
-
-                    <div class="panel panel-success">
-                        <div class="panel-heading" role="tab" id="projectDescriptionHeading{{ project.name }}">
-                            <h5 class="">
-                                <a class="expanded" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}"
-                                   href="#projectDescription{{ project.name }}" aria-expanded="true" aria-controls="projectDescription{{ project.name }}">
-                                    <strong>PROJECT DESCRIPTION</strong>
-                                </a>
-                            </h5>
-                        </div>
-                        <div id="projectDescription{{ project.name }}" class="panel-collapse expanded" role="tabpanel"
-                             aria-labelledby="projectDescriptionHeading{{ project.name }}">
-                            <div class="panel-body">
-                                {{ project.html_desc|safe }}
-                            </div>
-                        </div>
-                    </div>
+{% include 'ppasica.html' %}
 
 
-                    <div class="panel panel-success">
-                        <div class="panel-heading" role="tab" id="testSetsHeading{{ project.name }}">
-                            <h5 class="">
-                                <a class="collapsed" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}"
-                                   href="#testSets{{ project.name }}" aria-expanded="false" aria-controls="testSets{{ project.name }}">
-                                    <strong>TEST SETS</strong>
-                                </a>
-                            </h5>
-                        </div>
-                        <div id="testSets{{ project.name }}" class="panel-collapse collapse" role="tabpanel"
-                             aria-labelledby="testSetsHeading{{ project.name }}">
-                            <div class="panel-body">
-                                {{ project.test_sets_html_desc|safe }}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="panel panel-success">
-                        <div class="panel-heading" role="tab" id="algorithmsAccordionHeading{{ project.name }}">
-                            <h5 class="">
-                                <a class="collapsed" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}"
-                                   href="#algorithmsAccordion{{ project.name }}" aria-expanded="false"
-                                   aria-controls="algorithmsAccordion{{ project.name }}">
-                                    <strong>ALGORITHMS</strong>
-                                </a>
-                            </h5>
-                        </div>
-                        <div id="algorithmsAccordion{{ project.name }}" class="panel-collapse collapse" role="tabpanel"
-                             aria-labelledby="algorithmsAccordionHeading{{ project.name }}">
-                            <div class="panel-body">
-                                {{ project.algorithms_html_desc|safe }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div id="wrapper">
+{% with "true" as proj_submenu %}     
+{% include 'problem_menu.html' %}
+{% endwith %}
+
+<div id="page-wrapper" style="border-left: 0px">
+
+<!-- na zacetku prikazem vse MainProjPresenterje -->
+<center><table width=70% height=30%>
+{% for presenter in project.MainProjPresenters %}
+<tr><td>
+  <div>{{ presenter.graphtypes }}</div>
+<div id="graf{{ presenter.name }}{{ forloop.counter }}" class="chart"></div>    
+    <script>
+      var ya = {{ presenter.yaxes|safe }};
+      var gt = {{ presenter.graphtypes|safe }};
+      var settings = {
+        xaxis: "{{ presenter.xaxis }}",
+        yaxes: ya,
+        GraphTypes: gt,
+        params: "*"
+      };
+      fillReportData(
+          "{% url 'cpanel:askServer' %}", "{{ presenter.name }}{{ forloop.counter }}", 
+          '{{ project.name }}', '{{ presenter.query }}', settings);
+    </script>  
+</td></tr>
+{% endfor %}    
+</table></center>
 
 
-            </div>
-            <div role="tabpanel" class="tab-pane padding-20" id="testsets{{ project.name }}">...</div>
-            <div role="tabpanel" class="tab-pane padding-20" id="algorithms{{ project.name }}">
-                {% include 'algorithmList.html' %}
-            </div>
-            <div role="tabpanel" class="tab-pane padding-20" id="manage{{ project.name }}">
-                {% include 'manage.html' %}
-            </div>
-            <div role="tabpanel" class="tab-pane padding-20" id="results{{ project.name }}">...</div>
-        </div>
+<!-- Basic Information -->
+<div role="tabpanel" class="tab-pane active" id="basicinformation{{ project.name }}">
+
+<div class="panel-group" id="basic-info-accordion{{ project.name }}" role="tablist" aria-multiselectable="true">
+
+  <div class="panel panel-success">
+    <div class="panel-heading" role="tab" id="headingOne">
+      <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#projectDescription{{ project.name }}" aria-expanded="true" aria-controls="projectDescription{{ project.name }}">
+          Problem definition
+        </a>
+      </h4>
     </div>
-</div>
-</div>
+    <div id="projectDescription{{ project.name }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+      <div class="panel-body">
+        {{ project.html_desc|safe }}
+      </div>
+    </div>
+  </div>
 
+  <div class="panel panel-success">
+    <div class="panel-heading" role="tab" id="headingTwo">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#testSets{{ project.name }}" aria-expanded="false" aria-controls="testSets{{ project.name }}">
+            Testsets        
+        </a>
+      </h4>
+    </div>
+    <div id="testSets{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+      <div class="panel-body">
+          {{ project.test_sets_html_desc|safe }}
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-success">
+    <div class="panel-heading" role="tab" id="headingThree">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#algorithms{{ project.name }}" aria-expanded="false" aria-controls="algorithms{{ project.name }}">
+          Algorithms
+        </a>
+      </h4>
+    </div>
+    <div id="algorithms{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+      <div class="panel-body">
+        {{ project.algorithms_html_desc|safe }}
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-success">
+    <div class="panel-heading" role="tab" id="headingFour">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#other{{ project.name }}" aria-expanded="false" aria-controls="other{{ project.name }}">
+          Other
+        </a>
+      </h4>
+    </div>
+    <div id="other{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+      <div class="panel-body">
+        <h4 class="primary-color">
+            Author: &nbsp;
+            <small>{{ project.author }}</small>
+            <br><br>
+            Date of last change: &nbsp;
+            <small>{{ project.project_date }}</small>
+            <br><br>
+        </h4>        
+      </div>
+    </div>
+  </div>
+
+</div>
+</div> <!-- Basic Information -->
+
+</div>
+</div>
 {% endblock %}

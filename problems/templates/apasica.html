@@ -1,0 +1,19 @@
+<font size="+1">
+<div class="container-fluid">
+<ul class="breadcrumb">
+  <li>
+  	Problems
+  </li>
+  <li>
+ 	 <a href="{% url 'problems:pdetails' %}?project={{ project.name }}">
+	 	   {{ project.name }}
+ 	 </a> 
+  </li>
+  <li>
+ 	 <a href="{% url 'problems:adetails' %}?project={{ project.name }}&algorithm={{ algorithm.name }}">
+	 	   {{ algorithm.name }}
+ 	 </a> 
+  </li>  
+</ul>
+</div>
+</font>

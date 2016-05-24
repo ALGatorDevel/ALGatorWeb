@@ -8,20 +8,26 @@
 
 .query-editor {	
 	overflow: auto;
-	height: 92vh;
+	height: 90vh;
 }
 
-.chart-editor {
-	height: 92vh;
+.chart-panel {
+	height: 70%;
 }
+
+.chartControl-panel {
+	height: 120px;
+}
+
 
 .c-panel {
 	overflow: auto;
 	height: 90vh;
 }
 
-#chart {
-	height: 90vh;
+.chart {
+	height: 95%;
+        width: 100%;
 }
 
 .small-panel {

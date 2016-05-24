@@ -1,54 +1,14 @@
-<div class="chart-editor panel panel-default">
-    <div class="panel-body">
-        <div class="row">
-            <div class="col-md-10">
-                <div class="row">
-                    <div id="chart">
-                    </div>
-                </div>
-
+<div class="row">
+    <div class="col-md-12">
+            <div class="panel-body">
+                <ul class="list-group">
+                    <li class="list-group-item clickable" id="button-chart-data" data-toggle="modal" data-target="#chart-data-modal">Data</li>
+                    <li class="list-group-item clickable" data-toggle="modal" data-target="#chart-settings-modal">Settings</li>
+                </ul>
             </div>
-            <div class="col-md-2 c-panel"> <!-- right side panel -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">X</div>
-                            <div class="panel-body">
-                                <select class="form-control x-selector"></select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">Y</div>
-                            <div class="panel-body">
-                                <ul class="list-group y-selector">
-
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">Data &amp; Settings</div>
-                            <div class="panel-body">
-                                <ul class="list-group">
-                                    <li class="list-group-item clickable" id="button-chart-data" data-toggle="modal" data-target="#chart-data-modal">Data</li>
-                                    <li class="list-group-item clickable" data-toggle="modal" data-target="#chart-settings-modal">Settings</li>
-                                    <li class="list-group-item clickable" id="button-toggle-editor">Toggle Editor</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>  <!-- right sidepanel -->
-        </div>
-    </div>
 </div>
+
+
 
 <div class="row">       <!-- Modal dialogs -->
     <div class="modal fade" id="chart-settings-modal" tabindex="-1" role="dialog">

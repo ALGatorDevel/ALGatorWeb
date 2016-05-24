@@ -1,0 +1,30 @@
+{% load static from staticfiles %}
+
+<html>
+  <link rel="stylesheet" href="{% static 'css/select2.css' %}">
+  <script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>        
+  <script src="{% static 'js/select2.js' %}"></script>    
+
+<body>
+
+<select id="A" multiple="multiple" style="width:300px">
+  <option value="A">A sdf sf</option>
+  <option value="B">B sdf s</option>
+  <option value="C">Cfsf </option>
+  <option value="A1">Asdf </option>
+  <option value="B1">Bsd fs</option>
+  <option value="C1">Cdf asdf </option>
+  <option value="A2">Aasdfad</option>
+  <option value="B3">Ber5sdf</option>
+  <option value="C3">C354gs</option>
+</select>
+
+  <script>
+      $(function(){
+        $('#A').select2();
+      });
+  </script>
+
+</body>
+
+</html>

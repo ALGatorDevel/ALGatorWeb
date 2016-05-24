@@ -1,0 +1,128 @@
+{% load static from staticfiles %}
+
+<link href="{% static 'css2/metisMenu.min.css' %}" rel="stylesheet">
+<link href="{% static 'css2/sb-admin-2.css' %}" rel="stylesheet">
+<link href="{% static 'css2/font-awesome.min.css' %}" rel="stylesheet">
+<link href="{% static 'css/style.css' %}" rel="stylesheet">
+<style>
+body {
+    background: white;
+}
+.sidebar {
+    margin-top: 1px;  
+    margin-left: 15px;  
+}
+</style>
+
+
+    <div class="navbar-default sidebar" role="navigation">
+        <div class="sidebar-nav navbar-collapse">
+            <ul class="nav" id="side-menu">                
+{% if proj_submenu %}                  
+              <li class='active'><a href="#"><i class="fa fa-sitemap fa-fw">&nbsp;</i>Project description<span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level expanded">                
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#basic-info-accordion{{ project.name }}"
+                     href="#projectDescription{{ project.name }}" aria-expanded="false" aria-controls="projectDescription{{ project.name }}">Problem definition</a>
+                  </li>                
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#basic-info-accordion{{ project.name }}"
+                     href="#testSets{{ project.name }}" aria-expanded="false" aria-controls="testSets{{ project.name }}">Testsets</a>
+                  </li>
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#basic-info-accordion{{ project.name }}"
+                     href="#algorithms{{ project.name }}" aria-expanded="false" aria-controls="algorithms{{ project.name }}">Algorithms</a>
+                  </li>
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#basic-info-accordion{{ project.name }}"
+                     href="#other{{ project.name }}" aria-expanded="false" aria-controls="other{{ project.name }}">Other</a>
+                  </li>
+
+                  </ul>
+{% else %}                   
+              <li class='active'><a href="{% url 'problems:pdetails' %}?project={{ project.name }}"><i class="fa fa-sitemap fa-fw">&nbsp;</i>Project description<span class="fa arrow"></span></a></li>                                               
+{% endif %}
+
+{% if proj_techdetails %}    
+              <li class='active'><a href="{% url 'problems:tdetails' %}?project={{ project.name }}"><i class="fa fa-wrench fa-fw">&nbsp;</i>Implementation<span class="fa arrow"></span></a>
+
+                <ul class="nav nav-second-level expanded">                
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#techdetails-accordion{{ project.name }}"
+                     href="#testCase{{ project.name }}" aria-expanded="false" aria-controls="testCase{{ project.name }}">TestCase</a>
+                  </li>                
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#techdetails-accordion{{ project.name }}"
+                     href="#testsetIterator{{ project.name }}" aria-expanded="false" aria-controls="testsetIterator{{ project.name }}">TestSetIterator</a>
+                  </li>
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#techdetails-accordion{{ project.name }}"
+                     href="#absalgorithm{{ project.name }}" aria-expanded="false" aria-controls="absalgorithm{{ project.name }}">AbsAlgorithm</a>
+                  </li>
+                  </ul>
+{% else %}                                 
+                <li>
+                    <a href="{% url 'problems:tdetails' %}?project={{ project.name }}"><i class="fa fa-wrench fa-fw">&nbsp;</i>Implementation<span class="fa arrow"></span></a>
+                </li>                  
+{% endif %}                                   
+                <li><a href="#"><i class="fa fa-cogs fa-fw">&nbsp;</i>Algorithms<span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level expanded">                
+                  {% for alg in project.algorithms %}
+                  <li>
+                    <a href="{% url 'problems:adetails' %}?project={{ project.name }}&algorithm={{ alg }}" >{{ alg }}</a>
+                  </li>                
+                  {% endfor %}
+                </ul>                
+                </li>
+              
+{% if results_menu %}         
+                <li class='active'><a href="#"><i class="fa fa-bar-chart-o fa-fw">&nbsp;</i>Results<span class="fa arrow"></span></a>
+               
+                <ul class="nav nav-second-level expanded">                
+                  {% for pres in project.ProjPresenters %}
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#PresPanels{{ project.name }}"
+                     href="#presenter-panel-{{ pres.name }}" aria-expanded="false" aria-controls="presenter-panel-{{ pres.name }}">
+                       {{ pres.shorttitle }}
+                    </a>
+                  </li>                
+                  {% endfor %}
+                </ul> 
+                </li> 
+{% else %}
+              <li class='active'><a href="{% url 'problems:results' %}?project={{ project.name }}"><i class="fa fa-bar-chart-o fa-fw">&nbsp;</i>Results<span class="fa arrow"></span></a></li>     
+{% endif %}
+                </li>
+
+                <li>
+                    <a href="#"><i class="fa fa-bar-chart-o fa-fw">&nbsp;</i><span onclick="openQuery('{{ project.name }}')">Query editor</span></a>
+                </li>
+            </ul>
+        </div>
+        <!-- /.sidebar-collapse -->
+    </div>
+    <!-- /.navbar-static-side -->
+
+    <script src="{% static 'js2/metisMenu.min.js' %}"></script>
+    <script src="{% static 'js2/sb-admin-2.js' %}"></script>
+
+    <script>
+       function openQuery(project) {
+          var state = { };
+          var title = 'Hello World';
+          var url   = '/vision/project?projectName={{ project.name }}';
+
+          history.pushState(state, title, url);
+
+         $( "#wrapper" ).load( "/vision/project?projectName={{ project.name }}" );
+       } 
+    </script>
+

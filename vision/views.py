@@ -60,9 +60,6 @@ def project(request):
   except IOError as e:
     return errorResponse(request, "{0}: {1}".format(e.strerror, os.path.basename(e.filename)))
 
-  dict = {'Name': 'Zara', 'Age': 7, 'Class': 'First'};
-
-
   return render_to_response(
     'vProject.html',
     {
@@ -73,6 +70,23 @@ def project(request):
     , context_instance=RequestContext(request)
   )
 
+@login_required
+def chart(request):
+  project_name = request.GET.get('project', '')
+  query        = request.GET.get('query',   '')
+  params       = request.GET.get('params',  '')
+  chartid      = request.GET.get('chartid',  '')
+  
+  return render_to_response(
+    'chart.html',
+    {
+      'project' : project_name,
+      'query'   : query,
+      'chartid' : chartid,
+      'params'  : params,
+    }
+    , context_instance=RequestContext(request)
+  )
 
 
 def errorResponse(request, msg):
@@ -127,23 +141,37 @@ def get_project_params(project):
     data_root = GlobalConfig().data_root_path
     directory = "{0}/PROJ-{1}/proj".format(data_root, project)  
     
+    data = {}
+
     try:
         filepath =  "{0}/{1}-em.atrd".format(directory, project)    # <project>-em.atrd filepath
-        data = json.loads(open(filepath, "r").read(), strict=False)["ResultDescription"]
+        paramOrder = json.loads(open(filepath, "r").read(), strict=False)["Result"]["ParameterOrder"]
+        data["Parameters"] = paramOrder
 
+        data["Indicators"] = []
         for file in os.listdir(directory):
             if file.startswith(project) and file.endswith(".atrd") and not file.endswith("-em.atrd"):
                 filepath = "{0}/{1}".format(directory, file)
-                params = json.loads(open(filepath, "r").read(), strict=False)["ResultDescription"]["ResultParameters"]
+                params = json.loads(open(filepath, "r").read(), strict=False)["Result"]["IndicatorOrder"]
                 for param in params:
-                    if param not in data["ResultParameters"]:
-                        gc.logger.error(param)
-                        data["ResultParameters"].append(param)
+                    if param not in data["Indicators"]:                        
+                        data["Indicators"].append(param)
 
         return data
     except ValueError as e:
         e.filename = filepath
         raise
+
+
+@login_required
+def test(request):
+  return render_to_response(
+    'test.html',
+    {
+        'test'  : 'test'
+    }
+    , context_instance=RequestContext(request)
+  )
 
 
 @register.filter

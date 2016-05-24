@@ -1,8 +1,8 @@
 body {
-  padding-top: 10px;
+  padding-top: 20px;
   background-color: #f1f1f1;
-  font-family: "Roboto-Light";
-  font-size: 17px;
+  font-family: "Verdana";
+  font-size: small;
 }
 a {
   color: #aacc4e;
@@ -12,7 +12,6 @@ a:hover {
 }
 .nav {
   padding-left: 5px;
-  padding-right: 5px;
 }
 button {
   background-color: #aacc4e;
@@ -34,6 +33,10 @@ button {
 .panel-title {
   font-weight: bold;
   font-size: 16px;
+  color: #aacc4e;
+}
+.panel-success > .panel-heading {
+  background-color: #eeeeee;
 }
 .padding-47 {
   padding: 47px;

@@ -1,0 +1,114 @@
+{% load static from staticfiles %}
+
+<link href="{% static 'css2/metisMenu.min.css' %}" rel="stylesheet">
+<link href="{% static 'css2/sb-admin-2.css' %}" rel="stylesheet">
+<link href="{% static 'css2/font-awesome.min.css' %}" rel="stylesheet">
+<link href="{% static 'css/style.css' %}" rel="stylesheet">
+
+<style>
+body {
+    background: white;
+}
+.sidebar {
+    margin-top: 1px;  
+    margin-left: 15px;  
+}
+</style>
+
+
+    <div class="navbar-default sidebar" role="navigation">
+        <div class="sidebar-nav navbar-collapse">
+            <ul class="nav" id="side-menu">                
+{% if alg_submenu %}                  
+              <li class='active'><a href="#"><i class="fa fa-sitemap fa-fw">&nbsp;</i>Algorithm description<span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level expanded">                
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#abasic-info{{ algorithm.name }}"
+                     href="#aboutAlgorithm{{ algorithm.name }}" aria-expanded="false" aria-controls="aboutAlgorithm{{ algorithm.name }}">About the algorithm</a>
+                  </li>                
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#abasic-info{{ algorithm.name }}"
+                     href="#details{{ algorithm.name }}" aria-expanded="false" aria-controls="details{{ algorithm.name }}">Detailed description</a>
+                  </li>
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#abasic-info{{ algorithm.name }}"
+                     href="#aother{{ algorithm.name }}" aria-expanded="false" aria-controls="aother{{ algorithm.name }}">Other</a>
+                  </li>
+                  </ul>
+{% else %}                   
+              <li class='active'><a href="{% url 'problems:adetails' %}?project={{ project.name }}&algorithm={{ algorithm.name }}"><i class="fa fa-sitemap fa-fw">&nbsp;</i>Algorithm description<span class="fa arrow"></span></a></li>                                               
+{% endif %}
+
+{% if proj_techdetails %}    
+              <li class='active'><a href="{% url 'problems:tdetails' %}?project={{ project.name }}"><i class="fa fa-wrench fa-fw">&nbsp;</i>Technical details<span class="fa arrow"></span></a>
+
+                <ul class="nav nav-second-level expanded">                
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#techdetails-accordion{{ project.name }}"
+                     href="#testCase{{ project.name }}" aria-expanded="false" aria-controls="testCase{{ project.name }}">TestCase</a>
+                  </li>                
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#techdetails-accordion{{ project.name }}"
+                     href="#testsetIterator{{ project.name }}" aria-expanded="false" aria-controls="testsetIterator{{ project.name }}">TestSetIterator</a>
+                  </li>
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#techdetails-accordion{{ project.name }}"
+                     href="#absalgorithm{{ project.name }}" aria-expanded="false" aria-controls="absalgorithm{{ project.name }}">AbsAlgorithm</a>
+                  </li>
+                  </ul>
+{% else %}                                 
+                <li>
+                    <a href="{% url 'problems:tdetails' %}?project={{ project.name }}"><i class="fa fa-wrench fa-fw">&nbsp;</i>Technical details<span class="fa arrow"></span></a>
+                </li>                  
+{% endif %}                                   
+              
+{% if results_menu %}         
+                <li class='active'><a href="#"><i class="fa fa-bar-chart-o fa-fw">&nbsp;</i>Results<span class="fa arrow"></span></a>
+               
+                <ul class="nav nav-second-level expanded">                
+                  {% for rep in project.projectReports %}
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#RepPanels{{ project.name }}"
+                     href="#report-panel-{{ rep.name }}" aria-expanded="false" aria-controls="report-panel-{{ rep.name }}">
+                       {{ rep.shorttitle }}
+                    </a>
+                  </li>                
+                  {% endfor %}
+                </ul> 
+                </li> 
+{% else %}
+              <li class='active'><a href="{% url 'problems:results' %}?project={{ project.name }}"><i class="fa fa-bar-chart-o fa-fw">&nbsp;</i>Results<span class="fa arrow"></span></a></li>     
+{% endif %}
+                </li>
+
+                <li>
+                    <a href="#"><i class="fa fa-bar-chart-o fa-fw">&nbsp;</i><span onclick="openQuery('{{ project.name }}')">Query editor</span></a>
+                </li>
+            </ul>
+        </div>
+        <!-- /.sidebar-collapse -->
+    </div>
+    <!-- /.navbar-static-side -->
+
+    <script src="{% static 'js2/metisMenu.min.js' %}"></script>
+    <script src="{% static 'js2/sb-admin-2.js' %}"></script>
+
+    <script>
+       function openQuery(project) {
+          var state = { };
+          var title = 'Query editor';
+          var url   = '/vision/project?projectName={{ project.name }}';
+
+          history.pushState(state, title, url);
+
+         $( "#wrapper" ).load( "/vision/project?projectName={{ project.name }}" );
+       } 
+    </script>
+

@@ -16,7 +16,6 @@ function reloadContent () {
  $(document).ready(function() {
         reloadContent();
     });
-
 </script>
 
 <div id="mybody">
@@ -25,10 +24,30 @@ function reloadContent () {
 
 <p><b>Current status:</b> <span id="status"></span></p><br>
 
-
 <b>Tasks:</b>
 <pre>
 <div id='tasks'></div>
 </pre>
 
+<form id="requestForm">
+  Request to server: <input type="text" id="request" name="request">
+  <input type="submit" value="Send" onclick="getServerResponse();">  
+</form>
+<div id="response"></div>
+
+
 </div>
+
+<script>
+$('#requestForm').submit(function () {
+
+  var request=document.getElementById("request").value;
+
+  $.get("{% url 'cpanel:askServer' %}?q="+request, function( my_var ) {
+      obj = JSON.parse(my_var);
+      $("#response").html(obj.answer); 
+  }, 'html');
+
+ return false;
+});
+</script>

@@ -13,13 +13,13 @@ class GlobalConfig(object):
           self.root_path = os.environ["ALGATOR_ROOT"]
         else:
           # !DEBUG!
-          self.root_path = "/Users/Tomaz/Dropbox/FRI/ALGOSystem/ALGATOR_ROOT"  
+          self.root_path = "/Users/Tomaz/ALGATOR_ROOT"  
         
         self.data_root_path = self.root_path + "/data_root/projects/"
         
         # logging
         self.logger = logging.getLogger(__name__)
-        hdlr = logging.FileHandler(self.root_path + "/../ALGatorWeb/web.log")
+        hdlr = logging.FileHandler(self.root_path + "web.log")
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')  
         hdlr.setFormatter(formatter)
         self.logger.addHandler(hdlr) 

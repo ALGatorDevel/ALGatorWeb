@@ -2,8 +2,15 @@
 @tabs-not-selected-background: #f8f8f8;
 @border-color: #d3d7da;
 
-@primary-color: #aacc4e;
+@panel-bg-color: #eee;
+
+@primary-color: #aacc4e; 
 @primary-color-hover: #7f9b32;
+
+.comment { 
+	@primary-color: #0099ff;
+    @primary-color-hover: #0066ff;
+}
 
 @alert-color: #ff9191;
 @msg-color: #6699ff;
@@ -11,8 +18,8 @@
 body {
     padding-top: 20px;
     background-color: @main-bg-color;
-    font-family: "Roboto-Light";
-    font-size: 17px;
+    font-family: "Verdana";
+    font-size: small;
 }
 
 a {
@@ -53,6 +60,11 @@ button {
 .panel-title {
     font-weight:bold;
     font-size:16px;
+    color: @primary-color;
+}
+
+.panel-success>.panel-heading{
+  	background-color: @panel-bg-color;
 }
 
 //Padings 

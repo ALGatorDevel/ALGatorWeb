@@ -1,94 +1,110 @@
+{% extends "visionBase.html" %}
+
+
 {% load static from staticfiles %}
-<div id="bla">???</div>
+
+
+{% block body %}
+<style>
+    .panel-heading {
+        padding-top: 0;
+        padding-bottom: 0;
+        padding-left: 5px;
+        
+    }
+    
+    .panel {
+        margin-bottom: 10;
+    }
+</style>
     <div class="query-editor panel panel-default">
         <div class="panel-body">
             <div class="row">
-                <div class="col-md-6">
+
+                <div class="col-md-12">
                     <div class="panel panel-default">
-                        <div class="panel-heading">Algorithms</div>
-                        <div class="panel-body small-panel">
-                        {% for algorithm in config.Algorithms %}
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-addon">
-                                    <input type="checkbox" id="checkbox-Algorithms-{{ algorithm }}" data-type="Algorithms" data-value="{{ algorithm }}">
-                                </span>
-                                <input type="text" class="form-control" placeholder="{{ algorithm }}" id="text-Algorithms-{{ algorithm }}">
-                            </div>
-                        {% endfor %}
-                        </div>
+                        <div class="panel-heading">Algorithms</div>                        
+                            <select class="multiselect" id="AlgSelect" multiple="multiple" style="width: 100%;">  
+                              <option value="*" data-value="*">*</option>  
+                              {% for algorithm in config.Algorithms %}
+                                <option value="{{ algorithm }}" data-value="{{ algorithm }}">{{ algorithm }}</option>
+                              {% endfor %}
+                            </select>                        
                     </div>
-                </div>
-                <div class="col-md-6">
+
                     <div class="panel panel-default">
                         <div class="panel-heading">TestSets</div>
-                        <div class="panel-body small-panel">
-                        {% for testset in config.TestSets %}
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-addon">
-                                    <input type="checkbox" id="checkbox-TestSets-{{ testset }}" data-type="TestSets" data-value="{{ testset }}">
-                                </span>
-                                <input type="text" class="form-control" data-type="TestSets" data-value="{{ testset }}" placeholder="{{ testset }}" id="text-TestSets-{{ testset }}">
-                            </div>
-                        {% endfor %}
-                        </div>
+                          <select class="multiselect" id="TSSelect" multiple="multiple" style="width: 100%;">    
+                            <option value="*"  data-value="*">*</option>
+                            {% for testset in config.TestSets %}
+                              <option value="{{ testset }}"  data-value="{{ testset }}">{{ testset }}</option>
+                            {% endfor %}
+                          </select>
+                    </div>
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Parameters</div>
+                          <select class="multiselect" id="InParamSelect" multiple="multiple" style="width: 100%;"> 
+                            <option value="*"  data-value="*">*</option>   
+                            {% for param in params.Parameters %}                              
+                              <option value="{{ param }}"  data-value="{{ param }}">{{ param }}</option>                            
+                            {% endfor %}
+                          </select>                            
+                    </div>
+                    
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Indicators</div>
+                           <select class="multiselect" id="OutParamSelect" multiple="multiple" style="width: 100%;">   
+                           <option value="*EM"  data-value="*EM" >*EM </option>
+                           <option value="*CNT" data-value="*CNT">*CNT</option>
+                           <option value="*JVM" data-value="*JVM">*JVM</option> 
+                             {% for param in params.Indicators %}
+                                <option value="{{ param }}"  data-value="{{ param }}">{{ param }}</option>                            
+                             {% endfor %}
+                           </select>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">Input Fields</div>
-                        <div class="panel-body small-panel">
-                        {% for param in params.TestParameters %}
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-addon">
-                                    <input type="checkbox" id="checkbox-TestParameters-{{ param }}" data-type="TestParameters" data-value="{{ param }}">
-                                </span>
-                                <input type="text" class="form-control" data-type="TestParameters" data-value="{{ param }}" placeholder="{{ param }}" id="text-TestParameters-{{ param }}">
-                            </div>
-                        {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">Output Fields</div>
-                        <div class="panel-body small-panel">
-                        {% for param in params.ResultParameters %}
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-addon">
-                                    <input type="checkbox" id="checkbox-ResultParameters-{{ param }}" data-type="ResultParameters" data-value="{{ param }}">
-                                </span>
-                                <input type="text" class="form-control" data-type="ResultParameters" data-value="{{ param }}" placeholder="{{ param }}" id="text-ResultParameters-{{ param }}">
-                            </div>
-                        {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
             <div class="row">
                 <div class="col-md-12">
                     <div class="panel panel-default">
                         <div class="panel-body">
                             <form class="form-horizontal" role="form">
-                                <div class="form-group form-group-sm">
-                                    <label for="text-Filter" class="col-sm-2 control-label">Filter:</label>
-                                    <div class="col-sm-10">
-                                        <input type="text" class="form-control" id="text-Filter">
-                                    </div>
-                                </div>
-                                <div class="form-group form-group-sm">
-                                    <label for="text-GroupBy" class="col-sm-2 control-label">GroupBy:</label>
-                                    <div class="col-sm-10">
-                                        <input type="text" class="form-control" id="text-GroupBy">
-                                    </div>
-                                </div>
-                                <div class="form-group form-group-sm">
-                                    <label for="text-SortBy" class="col-sm-2 control-label">SortBy:</label>
-                                    <div class="col-sm-10">
-                                        <input type="text" class="form-control" id="text-SortBy">
-                                    </div>
-                                </div>
+<table width=100%>
+<tr><td>
+  <label for="text-Filter" class="control-label">Filter:</label>
+</td>
+<td>
+  <input type="text" class="form-control" id="text-Filter">
+</td>
+<td>
+  <label for="checkbox-count" class="control-label">&nbsp;&nbsp;Count</label>
+</td>
+<td>
+<input type="checkbox" class="form-control" id="checkbox-Count">
+</td>
+</tr>
+<tr><td>
+  <label for="text-GroupBy" class="control-label">GroupBy:</label>
+</td>
+<td>
+  <input type="text" class="form-control" id="text-GroupBy">
+</td>
+<td>
+  <label for="text-compID" class="control-label">&nbsp;&nbsp;ComputerID:</label>
+</td>
+<td>
+  <input type="text" class="form-control" id="text-compID">
+</td>
+</tr>
+<tr><td>
+  <label for="text-SortBy" class="control-label">SortBy:</label>
+</td>
+<td>
+  <input type="text" class="form-control" id="text-SortBy">
+</td></tr>
+</table>
                             </form>
                         </div>
                     </div>
@@ -119,6 +135,7 @@
                               Data
                             </a>
                             <img class="clickable download-data" src="{% static 'img/save.png' %}">
+                            <span style="float:right;" id="tblstatus">[Empty]</span>
                           </h4>
                         </div>
                         <div id="collapse-data" class="panel-collapse collapse in">
@@ -133,3 +150,20 @@
             </div>
         </div>
     </div>
+
+<script>    
+  $(function(){
+    $('.multiselect').select2(
+      {
+        placeholder: "Izberi ...",      
+        tags: true,
+        tokenSeparators: [';']
+      }    
+    );
+  });
+</script>
+
+{% endblock %}
+
+
+

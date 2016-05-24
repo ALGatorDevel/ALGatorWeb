@@ -1,58 +1,94 @@
-{% load static from staticfiles %}
+    {% load static from staticfiles %}
 
-{% url 'problems:index' as problems_url %}
-{% url 'cpanel:index' as cpanel_url %}
+    {% url 'problems:index' as problems_url %}
+    {% url 'cpanel:index' as cpanel_url %}
 
-<header class="container-fluid" style="padding-left: 0px;">
+    <nav class="navbar navbar-default navbar-inverse" style="margin-bottom: 0px;" role="navigation">
+            <div class="container-fluid">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                            data-target="#bs-example-navbar-collapse-1">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <!--a class="navbar-brand" href="/">
+                        <img alt="Brand" src="{% static 'images/logo.png' %}" id="logo"/>
+                    </a-->
+                </div>
 
-    <nav class="navbar navbar-default navbar-inverse" role="navigation">
-        <div class="container-fluid">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                        data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="/">
-                    <img alt="Brand" src="{% static 'images/logo.png' %}" id="logo"/>
-                </a>
-            </div>
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                        <li class="{% ifequal request.path '/' %}active{% endifequal %}">
+                           <a href="/"><img src="{% static 'images/algator_icon.png' %}" height="15px"/>&nbsp;&nbsp;ALGator&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+                        <li class="{% ifequal request.path problems_url %}active{% endifequal %}" >
+                           <a href="{{ problems_url }}"><img src="{% static 'images/problems_icon.png' %}" height="15px"/>&nbsp;&nbsp;Problems &nbsp;&nbsp;&nbsp;
+                              
+                           </a></li>
+                        <li class="{% ifequal request.path cpanel_url %}active{% endifequal %}" >
+                           <a href="{{ cpanel_url }}"><img src="{% static 'images/my_solutions_icon.png' %}" height="25px" style="margin-top: -15px;"/>                     
+                              &nbsp;&nbsp;Control panel&nbsp;
+                           </a></li>
+                    </ul>
 
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    <li class="{% ifequal request.path '/' %}active{% endifequal %}">
-                       <a href="/"><img src="{% static 'images/algator_icon.png' %}" height="15px"/>&nbsp;&nbsp;&nbsp;&nbsp;ALGator</a></li>
-                    <li class="{% ifequal request.path problems_url %}active{% endifequal %}" >
-                       <a href="{{ problems_url }}"><img src="{% static 'images/problems_icon.png' %}" height="15px"/>
-                          &nbsp;&nbsp;&nbsp;&nbsp;Problems &nbsp;
-                          <span class="badge background-color-primary">{{ projects_list|length }}</span>
-                       </a></li>
-                    <li class="{% ifequal request.path cpanel_url %}active{% endifequal %}" >
-                       <a href="{{ cpanel_url }}"><img src="{% static 'images/my_solutions_icon.png' %}" height="15px"/>
-                          &nbsp;&nbsp;&nbsp;&nbsp;Control panel&nbsp;
-                       </a></li>
-                </ul>
 
-                <ul class="nav navbar-nav navbar-right">
+
+                    <ul class="nav navbar-nav navbar-right">
+                    
+                    <!-- / tasks dropdown -->
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                           aria-expanded="false">Hi, {{request.user.username}}<span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="/settings/">My settings</a></li>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-tasks fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-tasks">
+                            <li>
+                                <a href="#">
+                                    <div>
+                                        <p>
+                                            <strong>Task 1</strong>
+                                            <span class="pull-right text-muted">40% Complete</span>
+                                        </p>
+                                        <div class="progress progress-striped active">
+                                            <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%">
+                                                <span class="sr-only">40% Complete (success)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
                             <li class="divider"></li>
-                            <li><a href="/logout/">Logout</a></li>
+                            <li>
+                                <a class="text-center" href="#">
+                                    <strong>See All Tasks</strong>
+                                    <i class="fa fa-angle-right"></i>
+                                </a>
+                            </li>
                         </ul>
+                        <!-- /.dropdown-tasks -->
                     </li>
-                </ul>
-            </div>
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container-fluid -->
-    </nav>
 
-</header>
+                        <li><a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                            </li>
+                            <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                            </li>
+                        </ul>
+                        </li>
+                    </ul>
+                </div>
+                <!-- /.navbar-collapse -->
+            </div>
+            <!-- /.container-fluid -->
+        </nav>
+
+    <!--/header-->
 

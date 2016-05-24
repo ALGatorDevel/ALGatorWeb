@@ -1,6 +1,3 @@
-/*jslint browser: true*/
-/*global $, c3*/
-
 
 var queryEditor = (function () {
     "use strict";
@@ -11,15 +8,20 @@ var queryEditor = (function () {
     var query;      //current query
     var data;       //project data
 
+    var ajaxRequest; // current ajax request
+
     //DOM classes and IDs
     var QUERY_EDITOR = ".query-editor";
     var DATA_TABLE = "#alg-data-table";
     var QUERY_TEXT = ".pre-query-text";
     var FILTER = "#text-Filter";
+    var COUNT  = "#checkbox-Count";
+    var COMPID = "#text-compID";
     var GROUP_BY = "#text-GroupBy";
     var SORT_BY = "#text-SortBy";
     var DOWNLOAD_QUERY = "img.download-query";
     var DOWNLOAD_DATA = "img.download-data";
+    var COUNTID = "#checkbox-Count";
 
     /**
     *   Initializes queryEditor
@@ -40,7 +42,7 @@ var queryEditor = (function () {
         }
 
         Object.keys(q).forEach(function (key) {
-            if (key === "Filter" || key === "GroupBy" || key === "SortBy") {
+            if (key === "Filter" || key === "GroupBy" || key === "SortBy" || key == "ComputerID") {
                 $("#text-" + key).val(q[key]);
             } else {
                 q[key].forEach(function(element, index, array) {
@@ -72,32 +74,35 @@ var queryEditor = (function () {
         var filter = $(FILTER);
         var groupBy = $(GROUP_BY);
         var sortBy = $(SORT_BY);
+        var compID = $(COMPID);
+        var countID = $(COUNTID);
+        
         var newQuery = {};
+        
+        
+        try {          
+          if ($("#AlgSelect").data("select2")) {  
+            newQuery["Algorithms"]=$("#AlgSelect").select2("val");
+            newQuery["TestSets"]=$("#TSSelect").select2("val");
+            newQuery["Parameters"]=$("#InParamSelect").select2("val");
+            newQuery["Indicators"]=$("#OutParamSelect").select2("val");          
+          }
+        } catch (err) {}
+       
+        if (newQuery["Algorithms"]== undefined   || newQuery["Algorithms"] === null) newQuery["Algorithms"]=[];
+        if (newQuery["TestSets"]== undefined     || newQuery["TestSets"]   === null) newQuery["TestSets"]  =[];
+        if (newQuery["Parameters"]== undefined   || newQuery["Parameters"] === null) newQuery["Parameters"]=[];
+        if (newQuery["Indicators"]== undefined   || newQuery["Indicators"] === null) newQuery["Indicators"]=[];
 
-        //loop through checkboxes and if checked push to query object
-        checkboxes.each(function () {
-            if (this.checked) {
-                var element = $(this);
-                var data_type = element.data("type");
-                var data_value = element.data("value");
-                var text = $("#text-" + data_type + "-" + data_value).val();
-
-                if (!newQuery.hasOwnProperty(data_type)) {
-                    newQuery[data_type] = [];
-                }
-
-                if (text === "") {
-                    newQuery[data_type].push(data_value);
-                } else {
-                    newQuery[data_type].push(data_value + " AS " + text);
-                }
-            }
-        });
-
-        //filter, groupby, sortby
+        
+ 
+        //filter, groupby, sortby, COMPID
         newQuery.Filter = [filter.val()];
         newQuery.GroupBy = [groupBy.val()];
         newQuery.SortBy = [sortBy.val()];
+        newQuery.ComputerID = compID.val();
+        newQuery.Count = countID.is(':checked') ? "1" : "0";
+
         return newQuery;
     }
 
@@ -106,7 +111,7 @@ var queryEditor = (function () {
     *   @param {string} response - Algator query response.
     *   @returns {Array} newData
     */
-    function parseResponse(response) {
+    pub.parseResponse = function (response) {
         response = response.trim().replace(/<br>/g, "\n");
         
         var lines = response.split(/\r\n|\r|\n/g); //.splice(3); //split lines
@@ -123,21 +128,40 @@ var queryEditor = (function () {
     /   @param {string} query - Algator query string.
     */
     function requestData(query) {
-        var encoded = encodeURIComponent(query);     //encode request string
-        var url = "http://localhost:8000/cpanel/askServer?q=getQueryResult%20Sorting%20"+encoded;  //request url
+        // pred posiljanjem vse presledke v poizvedbi zamenjam z _!_
+        var encoded = encodeURIComponent(query.replace(/ /g, "_!_"));     //encode request string    
+        var serverName = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port : ""); 
+        var url = serverName + "/cpanel/askServer?q=getQueryResult%20"+project+"%20"+encoded;  //request url
 
-        $.ajax({
+        history.replaceState(null, "", url); 
+        // history.replaceState(null, "", serverName +   "?projectName=" + project +  "&query=" + JSON.stringify(query));  //set url query parameter
+
+        try {
+          // prekličem prejšnji request. 
+          ajaxRequest.abort();
+
+          // POZOR: Server pa kljub temu še vedno procesira. Kako 
+          // bi sporočil serverju, da preneha računati, saj 
+          // odgovora ne bo sprejel nihče?
+
+        } catch(err) {}
+
+        $("#tblstatus").text("[Loading...]");
+        ajaxRequest = $.ajax({
             url: url,
             dataType: 'json',
         }). done(function (response) {  
-           var answer = response.answer;;
-           data = parseResponse(answer);
+           $("#tblstatus").text("[Loaded]"); 
+
+           var answer = response.answer;
+           data = queryEditor.parseResponse(answer);
                     if (data.length > 0) {
-                        populateTable();
+                        queryEditor.populateTable();
                         chartEditor.load(data);
                     } else {
                         $(DATA_TABLE).empty();
                         chartEditor.unload();
+                        $("#tblstatus").text("[Empty]");
                     }
                 //}    
         });
@@ -155,8 +179,8 @@ var queryEditor = (function () {
         if (JSON.stringify(newQuery) !== JSON.stringify(query)) {   //check if there was an actual query change
             $(QUERY_TEXT).html(util.syntaxHighlight(newQuery));          //display query
             requestData(JSON.stringify(newQuery));                  //request new data
-            history.replaceState(null, "", window.location.pathname +   "?projectName=Sorting" + "&query=" + JSON.stringify(newQuery));  //set url query parameter
             query = newQuery;
+            //requestData(query);
         }
     }
 
@@ -175,6 +199,7 @@ var queryEditor = (function () {
             }).join("\n");
 
             var blob = new Blob([csvText], {type: "text/plain;charset=utf-8"});
+            alert(project + "-data.csv");
             saveAs(blob, project + "-data.csv");
         }
     }
@@ -183,23 +208,24 @@ var queryEditor = (function () {
     *   Wires up queryEditor events
     */
     function wireEvents() {
-        $(QUERY_EDITOR).on("click", "input[type=checkbox]", handleQueryChange);  //checkbox click
-        $(QUERY_EDITOR).on("blur", "input[type=text]", handleQueryChange);       //textbox blur (lost focus)
+        $(".multiselect").on("change", handleQueryChange);
+        $(QUERY_EDITOR).on("blur", "input[type=text]", handleQueryChange); 
         $(DOWNLOAD_QUERY).on("click", handleQueryDownload);
         $(DOWNLOAD_DATA).on("click", handleDataDownload);
+        $(COUNTID).on("change", handleQueryChange);
     }
 
     /**
     *   Populates table with algator data
     */
-    function populateTable() {
+    pub.populateTable = function () {
         var table = $(DATA_TABLE); 
         
         var populate_head = function () {
             var head = $('<thead>');
             var head_data = '<tr>';
             for (var i = 0; i < data[0].length; i++) {
-                head_data += '<th>' + data[0][i] + '</th>';
+                head_data += '<th align="center">' + data[0][i] + '</th>';
             }
             head_data += '</tr>';
             head.append(head_data);
@@ -212,7 +238,7 @@ var queryEditor = (function () {
             for (var i = 1; i < data.length; i++) {
                 body_data += '<tr>';
                 for (var j = 0; j < data[i].length; j++) {
-                    body_data += '<td>';
+                    body_data += '<td align="center" style="border-right: solid 1px #CCC; border-left: solid 1px #CCC;">';
                     body_data += data[i][j];
                     body_data += '</td>';
                 }
@@ -244,7 +270,6 @@ var chartEditor = (function() {
         subchart: false,    //don't show subchart
         gridx: true,       //x grid lines
         gridy: true        //y grid lines
-        
     };
 
     var chart;              //c3 chart
@@ -290,9 +315,9 @@ var chartEditor = (function() {
     *   selection panels. 
     */
     pub.reload = function() {
-        generateChart(chartData);
         populateXPanel();
-        populateYPanel();
+        generateChart(chartData);
+        // populateYPanel();
     };
 
     /*
@@ -307,6 +332,11 @@ var chartEditor = (function() {
         $(chartEditorParent).toggleClass("fuck");
         pub.reload();
     };
+
+    pub.drawChart = function(data, xAxis, yAxes, webControl, settings) {
+        drawChart(data, xAxis, yAxes, webControl, settings);
+    }
+
 
     /**
     *   Wires up chartEditor events
@@ -349,16 +379,9 @@ var chartEditor = (function() {
             populateYPanel();
         });
 
-        $(Y_SELECTOR).on("click", "li", function() {    //y panel
-            var id = $(this).data("value");
-            if ($(this).hasClass("disabled-entry")) {
-                $(this).removeClass("disabled-entry");
-                $(this).find(".square").css("background", chart.color(id));
-            } else {
-                $(this).find(".square").css("background", "#fff");
-                $(this).addClass("disabled-entry");
-            }
-            chart.toggle(id);
+        $(Y_SELECTOR).on("change", function() {    //y panel
+            generateChart(chartData);
+            populateYPanel();
         });
 
         $(BUTTON_TOGGLE_EDITOR).click(function() {  //toggle editor button
@@ -392,6 +415,8 @@ var chartEditor = (function() {
     */
     function populateXPanel() {
         var x_selector = $(X_SELECTOR);
+        var sel = x_selector.val();
+
         x_selector.empty();
 
         for (var i = 0; i < chartData[0].length; i++) {
@@ -401,7 +426,8 @@ var chartEditor = (function() {
             entry.text(chartData[0][i]);
             x_selector.append(entry);
         }
-        $(x_selector).val(xAxis);
+        $(x_selector).val(sel);
+        xAxis = sel;
     }
 
     /*
@@ -430,33 +456,138 @@ var chartEditor = (function() {
             y_selector.append(element);
         } 
     }
+    
+    
+//    function generateXColumn(data, x) {
+//        var newData = util.copyArray(data);
+//        var index = newData[0].indexOf(x);
+//        newData[0].push(x + " ");
+//        
+//        for (var i = 1; i < data.length; i++) {
+//            newData[i].push(newData[i][index]);
+//        }
+//
+//        return newData;
+//    }
 
-    function generateXColumn(data, x) {
-        var newData = util.copyArray(data);
-        var index = newData[0].indexOf(x);
-        newData[0].push(x + " ");
-        
-        for (var i = 1; i < data.length; i++) {
-            newData[i].push(newData[i][index]);
-        }
-
-        return newData;
+    
+    // transponirana 2D matrika
+    function transpose(tabela) {
+      return tabela[0].map(function(col, i) { 
+          return tabela.map(function(row) { 
+            return row[i]; 
+          });
+        });    
     }
 
-    /**
-    *   Generates c3.js chart
-    *   @param {Array} data
-    */
-    function generateChart(data) {
-        data = generateXColumn(data, xAxis);  
+    function strStartsWith(str, prefix) {
+      return str.indexOf(prefix) === 0;
+    }
+    function strEndsWith(str, suffix) {
+      return str.match(suffix+"$")==suffix;
+    }
 
+
+    function contains(tab, value) {                
+        for(var i=0; i<tab.length; i++) {
+            var dvaVal = tab[i].split(".");
+            if (tab[i] == value)
+                return true;
+            if (dvaVal.length == 2) {
+                if ((dvaVal[0] == "*") && strEndsWith(value, "."+dvaVal[1]))
+                  return true;
+                if ((dvaVal[1] == "*") && strStartsWith(value, dvaVal[0]+"."))
+                    return true;
+            }
+        }
+        return false;
+    }
+    
+    
+    /**
+     * Iz tabele odstranim vse vrstice, ki nimajo enako  
+     * Iz tabele data odstranim vse stolpce, ki niso navedeni v seznamu yAxes. 
+     * Na koncu doda še stolpec, v katerem je X os.
+     * Vhod: data (tabela, ki jo vrne ALGator: prva vrstica je header, ostale vrstice
+     * so podatki ločeni s podpičjem), x (ime X osi, npr "N"), yAxes (seznam y osi, 
+     * na primer "Java7.TMin, *.TMax"
+     */
+    function generateXColumns(data, x, yAxes) {
+        try {
+          // razsirim vse vrstice, do imajo toliko stolpcev, kot jih ima prva vrstica
+          var prvaVrsticaLen = data[0].length;
+          for (var i=0; i < data.length; i++) {
+            if (data[i].length < prvaVrsticaLen) {
+              var taVrsticaLen = data[i].length;
+              data[i].length = prvaVrsticaLen;  
+              for(var j=taVrsticaLen; j<prvaVrsticaLen; j++) {
+                data[i][j] = "0";
+              }  
+            }
+            
+          }
+
+          // v x je ime x osi (npr. "N");
+          var xIndex = data[0].indexOf(x);
+        
+          // "transponiram" tabelo ...
+          var transData = transpose(data);
+        
+          var resData = [[]];     
+          var novIdx = 0;
+          for (var i=0; i < data[0].length; i++) {
+            if (contains(yAxes, data[0][i])) {
+              resData[novIdx++]  = util.copyArray(transData[i]);
+            }    
+          }
+        
+          resData[novIdx]     = util.copyArray(transData[xIndex]);
+          resData[novIdx][0] += " ";
+
+          var newData = transpose(resData);
+        
+          return newData; 
+        } catch (err) {
+            return data;
+        } 
+    }
+    
+    // prebere podatek o y oseh iz web kontrole "yAxesInput" in klice funkcijo generateXColumns
+    function generateXColumn(data, x) {
+        try {
+          var yAxes = "N";
+          try {
+              yAxes = $("#yAxesInput").val().split(" ");
+          } catch (err) {}
+          
+         return generateXColumns(data, x, yAxes); 
+      } catch (err) {
+          return data;
+      }
+    }
+    
+    /**
+    *  Gets yAxes from web control "yAxesInput" and calls drawChart 
+    */
+    function generateChart(data) {        
+        var yAxes = "N";
+        try {
+            yAxes = $("#yAxesInput").val().split(" ");
+        } catch (err) {}
+        drawChart(data, xAxis, yAxes, "#main_chart", settings);        
+    }
+
+
+    function drawChart(data, xAxis, yAxes, webControl, settings) {
+        data = generateXColumns(data, xAxis, yAxes);          
+        
         chart = c3.generate({
             data: {
                 x: xAxis + " ",
                 rows: data,
                 type: settings.type
             },
-            bindto: settings.bindTo,
+            bindto: webControl,
             zoom: {
                 enabled: settings.zoom
             },
@@ -465,7 +596,7 @@ var chartEditor = (function() {
                 show: settings.subchart
             },
             legend: {
-                show: false
+                show: true
             },
             grid: {
                 x: {
@@ -487,7 +618,6 @@ var chartEditor = (function() {
             }
         });
     }
-
     return pub;
 })();
 
@@ -531,10 +661,13 @@ var util = (function () {
     };
 
     pub.copyArray = function (array) {
-        var newArray = array.map(function (arr) {
+        if (typeof array !== 'undefined') {
+          var newArray = array.map(function (arr) {
             return arr.slice();
-        });
-        return newArray;
+          });
+          return newArray;
+        } else 
+          return null;
     };
 
     return pub;

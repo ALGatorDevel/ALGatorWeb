@@ -5,7 +5,7 @@ from Classes.Project import Project
 from Classes.Algorithm import Algorithm
 from Classes.Testset import Testset
 from Classes.GlobalConfig import GlobalConfig
-
+from Classes.Presenter import Presenter
 
 
 class FolderScraper(object):
@@ -36,6 +36,12 @@ class FolderScraper(object):
 
         self.create_render_projects_list()
 
+    def readFileCont(self, fileName):
+        try:
+            return open(fileName, 'r').read();
+        except:
+            return ""
+
     def readHTMLDesc(self, json_description, htmlDesc, desc, entity, loPath):
         if htmlDesc in json_description[entity]:
             html_description_file = json_description[entity][htmlDesc]
@@ -47,6 +53,16 @@ class FolderScraper(object):
                     current_desc = open(path, 'r').read()
                     json_description[entity][desc] = current_desc
                     
+    def readProjectSourceFiles(self, projectKey):
+        proj_name = projectKey.split("-")[1]    # PROJ-proj_name
+        folder = self.data_root_path + "PROJ-" + proj_name + "/proj/src/"
+
+        sources = {}            
+        sources["testcase"]        = self.readFileCont(folder + proj_name + "TestCase.java")
+        sources["testsetiterator"] = self.readFileCont(folder + proj_name + "TestSetIterator.java")
+        sources["absalgorithm"]    = self.readFileCont(folder + proj_name + "AbsAlgorithm.java")
+
+        return sources
 
     def scrape_landing_folder(self):
 
@@ -62,25 +78,26 @@ class FolderScraper(object):
 
     def scrape_testsets(self):
         #find all testsets 
-        
-        for folder in self.project_testsets:
-            testset_subfolder = self.data_root_path + folder + "/tests/"
-            testset_files = os.listdir(testset_subfolder)
+        try:
+            for folder in self.project_testsets:
+                testset_subfolder = self.data_root_path + folder + "/tests/"
+                testset_files = os.listdir(testset_subfolder)
             
-            testsets = []
-            for testset_file in testset_files:
-                if testset_file.endswith(".atts"):
+                testsets = []
+                for testset_file in testset_files:
+                    if testset_file.endswith(".atts"):
                     
-                    description_file = open(testset_subfolder+"/"+testset_file, 'r').read()
-                    json_description = json.loads(description_file)
+                        description_file = open(testset_subfolder+"/"+testset_file, 'r').read()                    
+                        json_description = json.loads(description_file)
                     
-                    #open testset TECH description
-                    self.readHTMLDesc(json_description, 'HTMLDescFile', 'HTMLDesc', 'TestSet', testset_subfolder)
+                        #open testset TECH description
+                        self.readHTMLDesc(json_description, 'HTMLDescFile', 'HTMLDesc', 'TestSet', testset_subfolder)
 
-                    testsets.append(json_description)
+                        testsets.append(json_description)
 
-            self.project_testsets[folder] = testsets
-        
+                self.project_testsets[folder] = testsets
+        except:
+            pass
             
     def scrape_algorithms_folder(self):
         #finds all the json with algorithms in the self.path/PROJ-#/algs/ALG-#
@@ -152,7 +169,7 @@ class FolderScraper(object):
             project_name = current_project['Name'] if 'Name' in current_project.keys() else ""
             project_desc = current_project['Description'] if 'Description' in current_project.keys() else ""
             project_author = current_project['Author'] if 'Author' in current_project.keys() else ""
-            project_date = current_project['Date'] if 'Date' in current_project.keys() else ""
+            project_date = current_project['Date'] if 'Date' in current_project.keys() else ""              
 
             project_html_desc = current_project['HTMLDesc'] if 'HTMLDesc' in current_project.keys() else ""
             algorithms_html_desc = current_project['ALGDesc'] if 'ALGDesc' in current_project.keys() else ""
@@ -164,10 +181,33 @@ class FolderScraper(object):
             test_sets_html_tech_desc = current_project['TestSetTechDesc'] if 'TestSetTechDesc'\
                 in current_project.keys() else ""
 
+            sources = self.readProjectSourceFiles(projectKey)
+            source_testcase        = sources["testcase"]
+            source_testsetiterator = sources["testsetiterator"]
+            source_algorithm       = sources["absalgorithm"]
+
+
             #Single project instance
             project_instance = Project(project_name, project_desc, project_author, project_date, project_html_desc,
                                        algorithms_html_desc, algorithms_html_tech_desc, test_sets_html_desc,
-                                       test_sets_html_tech_desc)
+                                       test_sets_html_tech_desc, source_testcase, source_testsetiterator, source_algorithm)
+                                        
+            projPresenters = current_project['ProjPresenters'] if 'ProjPresenters' in current_project.keys() else []                        
+            for pPresenter in projPresenters: 
+              project_instance.ProjPresenters.append(self.readPresenterDesc(pPresenter, project_name))   
+
+            mainProjPresenters = current_project['MainProjPresenters'] if 'MainProjPresenters' in current_project.keys() else []                        
+            for mProjPresenter in mainProjPresenters: 
+              project_instance.MainProjPresenters.append(self.readPresenterDesc(mProjPresenter, project_name))   
+
+            algPresenters = current_project['AlgPresenters'] if 'AlgPresenters' in current_project.keys() else []                        
+            for aPresenter in algPresenters: 
+              project_instance.AlgPresenters.append(self.readPresenterDesc(aPresenter, project_name))   
+
+            mainAlgPresenters = current_project['MainAlgPresenters'] if 'MainAlgPresenters' in current_project.keys() else []                        
+            for mAlgPresenter in mainAlgPresenters: 
+              project_instance.MainAlgPresenters.append(self.readPresenterDesc(mAlgPresenter, project_name))   
+
 
             #get algorithms for project name (projectKey)
             for algorithm in self.project_algorithms[projectKey]:
@@ -188,8 +228,8 @@ class FolderScraper(object):
                 #append algorithm to project
                 project_instance.algorithms.append(project_algorithm)
                 
-
-            for testset in self.project_testsets[projectKey]:
+            try:
+              for testset in self.project_testsets[projectKey]:
 
                 #for ease of use
                 current_testset = testset['TestSet']
@@ -212,11 +252,69 @@ class FolderScraper(object):
                 #append testset to project
                 project_instance.testsets.append(project_testset)
             
+            except:
+                pass
 
             #append the project instance to the array
             self.projects_list.append(project_instance)
 
+               
+
+    # presenter is either a filename with JSON description of JSON description itself
+    # projectName is the name of the project; it is used to resolve path for presenter file
+    def readPresenterDesc(self, presenter, projectName):
+        try:
+          if isinstance(presenter,dict):   # graph is dictionary 
+            jsonCont = presenter
+          if presenter.startswith("{"):  # is presenter JSON description            
+            jsonCont = json.loads(presenter)
+          else:  # if not, read JSON from file        
+            if not presenter.endswith(".atpd"):
+                presenter = presenter + ".atpd"
+
+            presenterPath   = self.data_root_path + "/PROJ-" + projectName + "/presenters/" + presenter 
+            fileContJSON = json.loads(open(presenterPath, 'r').read())
+            jsonCont = fileContJSON["Presenter"]
+        except:
+            pass
+        
+        try:
+          name     = jsonCont["Name"]          if ("Name" in jsonCont) else "NoName"            
+          title    = jsonCont["Title"]         if ("Title" in jsonCont) else ""          
+          shtit    = jsonCont["ShortTitle"]    if ("ShortTitle" in jsonCont) else ""          
+          desc     = jsonCont["Description"]   if ("Description" in jsonCont) else ""          
+          query    = jsonCont["Query"]         if ("Query" in jsonCont) else ""
+
+          hasGraph = jsonCont["HasGraph"]      if ("HasGraph" in jsonCont) else ""
+          xaxis    = jsonCont["Xaxis"]         if ("Xaxis" in jsonCont) else ""
+          yaxes    = jsonCont["Yaxes"]         if ("Yaxes" in jsonCont) else ""
+          gtypes   = jsonCont["GraphTypes"]    if ("GraphTypes" in jsonCont) else ""
+          xal      = jsonCont["XaxisLabel"]    if ("XaxisLabel" in jsonCont) else ""
+          yal      = jsonCont["YaxisLabel"]    if ("YaxisLabel" in jsonCont) else ""
+
+          hasTable = jsonCont["HasTable"]      if ("HasTable" in jsonCont) else ""
+          columns  = jsonCont["Columns"]       if ("Columns" in jsonCont) else ""
+          
+          
+          return Presenter(name, title, shtit, desc, query, 
+            hasGraph, xaxis, yaxes, gtypes, xal, yal, hasTable, columns)
+        except Exception as i: # if an error occures during json parsing, return "empty" graph
+          print i
+          return Presenter("NoName", "?", "?",  "?", "", "hasGraph", "xaxis", [], [], "xal", [], "hasTable", [] )                        
+        
 
 
 scraper = FolderScraper()
-print scraper.projects_list[0].name
+
+# pozenes lahko iz lupine: 
+#   localhost:ALGatorWeb tomaz$ python Classes/FolderScraper.py
+#
+# (pozor, nastavi export PYTHONPATH=.)
+
+# g = scraper.readReportDesc('{"Query": "query1", "Type": "Table", "Description": "This table presents minimum time of ...", "Title": "Minimum time of execution!", "Graph" : {"XaxisLabel": "N", "Description": "Average time for best three algorithms", "YaxisLabel": ["Average time"], "Yaxes": ["Java7.Tavg", "Hoare.Tavg"], "GraphTypes": ["Line", "Stair"], "Xaxis": "N"}}', "Sorting")
+# g = scraper.readReportDesc('{"Query": "query1",  "Description": "This table presents minimum time of ...", "Title": "Minimum time of execution!", "Graph" : "graph1", "Table":""}', "Sorting")
+# g = scraper.readPresenterDesc("apresenterx.atpd", "Sorting")
+# print g.title
+# print g.xaxis
+# print g.yaxes
+# print g.query
