@@ -24,7 +24,8 @@ class WSGIEnvironment(WSGIHandler):
 
     def __call__(self, environ, start_response):
 
-        os.environ['ALGATOR_ROOT'] = "/Users/Tomaz/ALGATOR_ROOT/"
+        if not 'ALGATOR_ROOT' in os.environ.keys():
+          os.environ['ALGATOR_ROOT'] = "/Users/Tomaz/ALGATOR_ROOT/"
         os.environ['JWE_ROOT'] = "/Users/Tomaz/Dropbox/FRI/ALGATOR_dev/JWE/prog"
 
         # os.environ['ALGATOR_ROOT'] = environ['ALGATOR_ROOT']
