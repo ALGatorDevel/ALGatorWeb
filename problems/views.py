@@ -20,7 +20,7 @@ def problems(request):
         'index.html',
         {
             'projects_list': projects_list,
-            'canuser' : tc.talkToServer("users userperm " + request.user.username)
+            'userperms' : tc.talkToServer("users userperm " + request.user.username),
         }
         , context_instance=RequestContext(request)
     )
