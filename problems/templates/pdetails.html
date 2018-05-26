@@ -4,14 +4,14 @@
 {% block body_block %}
 
 {% load static from staticfiles %}
-<link href="{% static 'css/c3.css' %}"                   rel="stylesheet">
+<link href="{% static 'css/c3.css' %}" rel="stylesheet">
 <script type="text/javascript" src="{% static 'js/d3.js' %}"></script>        
 <script type="text/javascript" src="{% static 'js/c3.min.js' %}"></script> 
 <script type="text/javascript" src="{% static 'js/algatorweb.js' %}"></script> <script type="text/javascript" src="{% static 'js/report.js' %}"></script>  
 
-
+<div id="pasica">
 {% include 'ppasica.html' %}
-
+</div>
 
 <div id="wrapper">
 {% with "true" as proj_submenu %}     
@@ -20,40 +20,80 @@
 
 <div id="page-wrapper" style="border-left: 0px">
 
-<!-- na zacetku prikazem vse MainProjPresenterje -->
-<center><table width=70% height=30%>
-{% for presenter in project.MainProjPresenters %}
-<tr><td>
-  <div>{{ presenter.graphtypes }}</div>
-<div id="graf{{ presenter.name }}{{ forloop.counter }}" class="chart"></div>    
-    <script>
-      var ya = {{ presenter.yaxes|safe }};
-      var gt = {{ presenter.graphtypes|safe }};
-      var settings = {
-        xaxis: "{{ presenter.xaxis }}",
-        yaxes: ya,
-        GraphTypes: gt,
-        params: "*"
-      };
-      fillReportData(
-          "{% url 'cpanel:askServer' %}", "{{ presenter.name }}{{ forloop.counter }}", 
-          '{{ project.name }}', '{{ presenter.query }}', settings);
-    </script>  
-</td></tr>
-{% endfor %}    
-</table></center>
-
 
 <!-- Basic Information -->
 <div role="tabpanel" class="tab-pane active" id="basicinformation{{ project.name }}">
 
 <div class="panel-group" id="basic-info-accordion{{ project.name }}" role="tablist" aria-multiselectable="true">
 
+  <!-- od tu ...-->
+  <div class="panel panel-success">
+    <div class="panel-heading" role="tab" id="headingZero">
+      <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#quickInfo{{ project.name }}" aria-expanded="true" aria-controls="quickInfo{{ project.name }}">
+          Quick info
+        </a>
+      </h4>
+    </div>
+    <div id="quickInfo{{ project.name }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingZero">
+      <div class="panel-body">
+       <div>         
+           <table width=100%>
+             <tr>
+               <td width=25%><span class="primary-color">Author: &nbsp;     </span>      
+                 {{ project.author }}</td>
+               <td width=25%><span class="primary-color">Date: &nbsp;       </span>     
+                 {{ project.date }}</td>
+               <td width=25%><span class="primary-color">Algorithms: &nbsp; </span>
+                 {{ project.algorithms|length }} </td>
+               <td width=25%><span class="primary-color">Test sets: &nbsp;  </span>
+                 {{ project.testsets|length }}                 
+               </td>
+            </tr>
+          </table>
+      </div>      
+      <hr>
+      <div>
+        <!-- prikazem vse MainProjPresenterje -->
+        <center><table width=70% height=30%>
+        {% for presenter in project.MainProjPresenters %}
+        <tr><td>
+          <span><font size=+1>{{ presenter.title }}</font></span>
+        <!--div>{{ presenter.graphtypes }}</div-->
+        <div id="graf{{ presenter.name }}{{ forloop.counter }}" class="chart"></div>  
+        <div id="html{{ presenter.name }}{{ forloop.counter }}" style="padding-top: 20px;">{{ presenter.html_desc|safe }}</div>  
+            <script>
+              var ya = {{ presenter.yaxes|safe }};
+              var gt = {{ presenter.graphtypes|safe }};
+              var settings = {
+                xaxis: "{{ presenter.xaxis }}",
+                yaxes: ya,
+                XLabel: "{{ presenter.xaxislabel }}",
+                YLabel: "{{ presenter.yaxislabel }}",                
+                GraphTypes: gt,
+                hasGraph: {{ presenter.hasgraph }},
+                hasTable: {{ presenter.hastable }},   
+                params: "*"
+              };
+              fillReportData(
+                  "{% url 'cpanel:askServer' %}", "{{ presenter.name }}{{ forloop.counter }}", 
+                  '{{ project.name }}', '{{ presenter.query }}', settings);
+            </script>  
+        </td></tr>
+        {% endfor %}    
+        </table></center>
+      </div>
+      
+      </div>
+    </div>
+  </div>
+  <!-- .... do tu -->  
+
   <div class="panel panel-success">
     <div class="panel-heading" role="tab" id="headingOne">
       <h4 class="panel-title">
         <a role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#projectDescription{{ project.name }}" aria-expanded="true" aria-controls="projectDescription{{ project.name }}">
-          Problem definition
+          Problem description
         </a>
       </h4>
     </div>
@@ -67,26 +107,70 @@
   <div class="panel panel-success">
     <div class="panel-heading" role="tab" id="headingTwo">
       <h4 class="panel-title">
-        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#testSets{{ project.name }}" aria-expanded="false" aria-controls="testSets{{ project.name }}">
-            Testsets        
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#testCases{{ project.name }}" aria-expanded="false" aria-controls="testCases{{ project.name }}">
+            Test cases        
         </a>
       </h4>
     </div>
-    <div id="testSets{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+    <div id="testCases{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
       <div class="panel-body">
-          {{ project.test_sets_html_desc|safe }}
+          {{ project.test_case_html_desc|safe }}
       </div>
     </div>
   </div>
+
   <div class="panel panel-success">
     <div class="panel-heading" role="tab" id="headingThree">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#testSets{{ project.name }}" aria-expanded="false" aria-controls="testSets{{ project.name }}">
+            Test sets
+        </a>
+      </h4>
+    </div>
+    <div id="testSets{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+      <div class="panel-body">
+          {{ project.test_sets_html_desc|safe }}
+      </div>
+      
+      {% for testset in project.testsets %}
+      <div class="panel-body">
+        <table>
+           <tr><td valign="top" width=200><b>{{ testset.name }}</b><br>
+               <a href="#"><span data-toggle="modal" data-target="#myModal" 
+                  onClick="openModalWindow('{{ project.name }}', '{{ testset.name }}', 'atts')">atts</span></a>, 
+               <a href="#"><span data-toggle="modal" data-target="#myModal" 
+                  onClick="openModalWindow('{{ project.name }}', '{{ testset.name }}', 'txt')">txt</span></a>
+
+               </td>
+                <td>
+                {{ testset.description }}
+                <hr>
+                <table width=100%><tr>
+                  <td width=25%>Short name: {{ testset.short_name }}</td>
+                  <td width=25%>Test repeat: {{ testset.test_repeat }}</td>
+                  <td width=25%>Time limit: {{ testset.time_limit }}</td>
+                  <td width=25%>N: {{ testset.n }}</td>
+                </tr></table>
+                <hr>
+                {{ testset.html_desc|safe }}
+                </td>
+           </tr>
+        </table>
+      </div> 
+      {% endfor %}
+    </div>
+  </div>
+  
+
+  <div class="panel panel-success">
+    <div class="panel-heading" role="tab" id="headingFour">
       <h4 class="panel-title">
         <a class="collapsed" role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#algorithms{{ project.name }}" aria-expanded="false" aria-controls="algorithms{{ project.name }}">
           Algorithms
         </a>
       </h4>
     </div>
-    <div id="algorithms{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+    <div id="algorithms{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
       <div class="panel-body">
         {{ project.algorithms_html_desc|safe }}
       </div>
@@ -94,30 +178,62 @@
   </div>
 
   <div class="panel panel-success">
-    <div class="panel-heading" role="tab" id="headingFour">
+    <div class="panel-heading" role="tab" id="headingFive">
       <h4 class="panel-title">
-        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#other{{ project.name }}" aria-expanded="false" aria-controls="other{{ project.name }}">
-          Other
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#references{{ project.name }}" aria-expanded="false" aria-controls="References{{ project.name }}">
+          References
         </a>
       </h4>
     </div>
-    <div id="other{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+    <div id="references{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFive">
       <div class="panel-body">
-        <h4 class="primary-color">
-            Author: &nbsp;
-            <small>{{ project.author }}</small>
-            <br><br>
-            Date of last change: &nbsp;
-            <small>{{ project.project_date }}</small>
-            <br><br>
-        </h4>        
+        {{ project.project_ref_desc|safe }}        
+      </div>
+    </div>
+  </div>    
+
+  </div>
+
+<!-- MODAL WINDOW -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        <span id="modal-content"></span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <!--button type="button" class="btn btn-primary">Save changes</button-->
       </div>
     </div>
   </div>
+</div>  
+
 
 </div>
 </div> <!-- Basic Information -->
 
 </div>
 </div>
+
+<script>
+  function openModalWindow(project, testset, type) {    
+    var url = "{% url 'cpanel:askServer' %}?q=GetFile%20testset%20"+project+"%20"+testset+"%20"+type;  //request url
+
+    $.ajax({
+      url: url,
+      dataType: 'json',
+    }). done(function (response) {  
+      var answer = response.answer;
+      $( "#modal-content" ) .html("<pre>"+answer+"</pre>");
+      $( "#myModalLabel" )  .html(testset+"."+type);
+      
+    });                          
+  } 
+</script>
+
 {% endblock %}

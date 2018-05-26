@@ -15,7 +15,7 @@ class GlobalConfig(object):
           # !DEBUG!
           self.root_path = "/Users/Tomaz/ALGATOR_ROOT"  
         
-        self.data_root_path = self.root_path + "/data_root/projects/"
+        self.projects_path = self.root_path + "/data_root/projects/"
         
         # logging
         self.logger = logging.getLogger(__name__)

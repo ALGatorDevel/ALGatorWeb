@@ -21,14 +21,18 @@
     <div class="panel-heading" role="tab" id="headingOne">
       <h4 class="panel-title">
         <a role="button" data-toggle="collapse" data-parent="#techdetails-accordion{{ project.name }}" href="#testCase{{ project.name }}" aria-expanded="true" aria-controls="testCase{{ project.name }}">
-            TestCase
+            {{ project.source_testcase_name }}
         </a>
       </h4>
     </div>
     <div id="testCase{{ project.name }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-      <div class="panel-body"><pre><code>
-          {{ project.source_testcase|safe }}
-        </code></pre>
+      <div class="panel-body">
+        {% load pygmentify %}
+        {% pygment %}
+        <pre lang="java">
+{{ project.source_testcase|safe }}
+        </pre>
+        {% endpygment %}
       </div>
     </div>
   </div>
@@ -38,14 +42,18 @@
     <div class="panel-heading" role="tab" id="headingOne">
       <h4 class="panel-title">
         <a class="collapsed" role="button" data-toggle="collapse" data-parent="#techdetails-accordion{{ project.name }}" href="#testsetIterator{{ project.name }}" aria-expanded="false" aria-controls="testsetIterator{{ project.name }}">
-            TestSetIterator
+            {{ project.source_testsetiterator_name }}
         </a>
       </h4>
     </div>
     <div id="testsetIterator{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
-      <div class="panel-body"><pre><code>
-          {{ project.source_testsetiterator|safe }}
-        </code></pre>
+      <div class="panel-body">
+        {% load pygmentify %}
+        {% pygment %}
+        <pre lang="java">        
+{{ project.source_testsetiterator|safe }}
+        </pre>
+        {% endpygment %}
       </div>
     </div>
   </div>
@@ -54,18 +62,21 @@
     <div class="panel-heading" role="tab" id="headingOne">
       <h4 class="panel-title">
         <a class="collapsed" role="button" data-toggle="collapse" data-parent="#techdetails-accordion{{ project.name }}" href="#absalgorithm{{ project.name }}" aria-expanded="false" aria-controls="absalgorithm{{ project.name }}">
-            AbsAlgorithm
+          {{ project.source_algorithm_name }}
         </a>
       </h4>
     </div>
     <div id="absalgorithm{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
-      <div class="panel-body"><pre><code>
-          {{ project.source_algorithm|safe }}
-        </code></pre>
+      <div class="panel-body">
+        {% load pygmentify %}
+        {% pygment %}
+        <pre lang="java">                
+{{ project.source_algorithm|safe }}
+        </pre>
+        {% endpygment %}        
       </div>
     </div>
   </div>
-
 </div>
 </div> 
 

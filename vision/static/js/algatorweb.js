@@ -611,8 +611,19 @@ var chartEditor = (function() {
             },
             axis : {
                 x: {
+                    label: {
+                        text: settings.xlabel,
+                        position: 'outer-center'
+                    },
+
                     tick: {
                         fit: false
+                    }
+                },
+                y: {
+                    label: {
+                        text: settings.ylabel,
+                        position: 'outer-middle'
                     }
                 }
             }

@@ -99,7 +99,7 @@ def errorResponse(request, msg):
   )
 
 def project_exists(project):
-    data_root = GlobalConfig().data_root_path
+    data_root = GlobalConfig().projects_path
     path = "{0}/PROJ-{1}".format(data_root, project)
 
     return os.path.isdir(path)
@@ -110,8 +110,7 @@ def get_project_list():
     Returns algator project list
     """
 
-    data_root = GlobalConfig().data_root_path
-    projects_dir = os.path.join(data_root, "")
+    projects_dir = os.path.join(GlobalConfig().projects_path, "")
     # gc.logger.error(projects_dir)
 
 
@@ -125,7 +124,7 @@ def get_project_config(project):
     """
     Returns dictionary containing project configuration
     """
-    data_root = GlobalConfig().data_root_path
+    data_root = GlobalConfig().projects_path
     path = "{0}/PROJ-{1}/proj/{1}.atp".format(data_root, project)  # <project>.atp filepath
     
     try:
@@ -138,7 +137,7 @@ def get_project_params(project):
     """
     Returns dictionary containing project input/output parameters
     """
-    data_root = GlobalConfig().data_root_path
+    data_root = GlobalConfig().projects_path
     directory = "{0}/PROJ-{1}/proj".format(data_root, project)  
     
     data = {}

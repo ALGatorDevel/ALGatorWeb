@@ -3,14 +3,14 @@
 {% block body_block %}
 
 {% load static from staticfiles %}
-<link href="{% static 'css/c3.css' %}"                   rel="stylesheet">
+<link href="{% static 'css/c3.css' %}" rel="stylesheet">
 <script type="text/javascript" src="{% static 'js/d3.js' %}"></script>        
 <script type="text/javascript" src="{% static 'js/c3.min.js' %}"></script> 
 <script type="text/javascript" src="{% static 'js/algatorweb.js' %}"></script> <script type="text/javascript" src="{% static 'js/report.js' %}"></script>  
 
-
+<div id="pasica">
 {% include 'apasica.html' %}
-
+</div>
 
 <div id="wrapper">
 {% with "true" as alg_submenu %}     
@@ -18,25 +18,6 @@
 {% endwith %}
 
 <div id="page-wrapper" style="border-left: 0px">
-<center><table width=70% height=30%>
-
-{% for presenter in project.MainAlgPresenters %}
-<tr><td>
-<div id="graf{{ presenter.name }}{{ forloop.counter }}" class="chart"></div>    
-    <script>
-      var ya = {{ presenter.yaxes|safe }};
-      var settings = {
-        xaxis: "{{ presenter.xaxis }}",
-        yaxes: ya,
-        params: "{{ algorithm.name }}"
-      };
-      fillReportData(
-          "{% url 'cpanel:askServer' %}", "{{ presenter.name }}{{ forloop.counter }}", 
-          '{{ project.name }}', '{{ presenter.query }}', settings);
-    </script>  
-</td></tr>
-{% endfor %}    
-</table></center>
 
 <!-- Basic Information -->
 <div role="tabpanel" class="tab-pane active" id="basicinformation{{ algorithm.name }}">
@@ -44,52 +25,89 @@
 <div class="panel-group" id="abasic-info{{ algorithm.name }}" role="tablist" aria-multiselectable="true">
 
   <div class="panel panel-success">
-    <div class="panel-heading" role="tab" id="headingOne">
+
+
+    <div class="panel-heading" role="tab" id="headingZero">
       <h4 class="panel-title">
-        <a role="button" data-toggle="collapse" data-parent="#abasic-info{{ algorithm.name }}" href="#aboutAlgorithm{{ algorithm.name }}" aria-expanded="true" aria-controls="aboutAlgorithm{{ algorithm.name }}">
-          About the algorithm
+        <a role="button" data-toggle="collapse" data-parent="#basic-info-accordion{{ project.name }}" href="#quickInfo{{ project.name }}" aria-expanded="true" aria-controls="quickInfo{{ project.name }}">
+          Quick info
         </a>
       </h4>
     </div>
-    <div id="aboutAlgorithm{{ algorithm.name }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+    <div id="quickInfo{{ project.name }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingZero">
       <div class="panel-body">
-        Language: {{ algorithm.language }}
+       <div>         
+           <table width=100%>
+             <tr>
+               <td width=25%><span class="primary-color">Author: &nbsp;     </span>      
+                 {{ algorithm.author }}</td>
+               <td width=25%><span class="primary-color">Date: &nbsp;       </span>     
+                 {{ algorithm.date }}</td>
+               <td width=25%><span class="primary-color">Language: &nbsp; </span>
+                 {{ algorithm.language }} </td>
+               </td>
+            </tr>
+          </table>
+        </div>      
+        <hr>
+        <center><table width=70% height=30%>
+        {% for presenter in project.MainAlgPresenters %}
+        <tr><td>
+          <span><font size=+1>{{ presenter.title }}</font></span>
+
+          <div id="graf{{ presenter.name }}{{ forloop.counter }}" class="chart"></div>  
+          <div id="html{{ presenter.name }}{{ forloop.counter }}" style="padding-top: 20px;">{{ presenter.html_desc|safe }}</div>  
+            <script>
+              var ya = {{ presenter.yaxes|safe }};
+              var settings = {
+                    xaxis: "{{ presenter.xaxis }}",
+                    yaxes: ya,
+                    XLabel: "{{ presenter.xaxislabel }}",
+                    YLabel: "{{ presenter.yaxislabel }}",                
+                    hasGraph: {{ presenter.hasgraph }},
+                    hasTable: {{ presenter.hastable }},
+   
+                    params: "{{ algorithm.name }}"
+                  };
+              fillReportData(
+                "{% url 'cpanel:askServer' %}", "{{ presenter.name }}{{ forloop.counter }}", 
+                '{{ project.name }}', '{{ presenter.query }}', settings
+              );
+            </script>  
+        </td></tr>
+        {% endfor %}    
+        </table></center>
       </div>
     </div>
   </div>
 
   <div class="panel panel-success">
+
     <div class="panel-heading" role="tab" id="headingTwo">
       <h4 class="panel-title">
-        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#abasic-info{{ algorithm.name }}" href="#details{{ algorithm.name }}" aria-expanded="false" aria-controls="details{{ algorithm.name }}">
-            Detailed description        
+        <a role="button" data-toggle="collapse" data-parent="#abasic-info{{ algorithm.name }}" href="#details{{ algorithm.name }}" aria-expanded="true" aria-controls="details{{ algorithm.name }}">
+            Algorithm description        
         </a>
       </h4>
     </div>
-    <div id="details{{ algorithm.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+    <div id="details{{ algorithm.name }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
       <div class="panel-body">
-          Detailed description
+          {{ algorithm.html_desc|safe }}          
       </div>
     </div>
   </div>
+
   <div class="panel panel-success">
-    <div class="panel-heading" role="tab" id="headingThree">
+    <div class="panel-heading" role="tab" id="headingOne">
       <h4 class="panel-title">
-        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#abasic-info{{ algorithm.name }}" href="#aother{{ algorithm.name }}" aria-expanded="false" aria-controls="aother{{ algorithm.name }}">
-          Other
+        <a class="collapsed"  role="button" data-toggle="collapse" data-parent="#abasic-info{{ algorithm.name }}" href="#algorithmReferences{{ algorithm.name }}" aria-expanded="false" aria-controls="algorithmReferences{{ algorithm.name }}">
+          References
         </a>
       </h4>
     </div>
-    <div id="aother{{ algorithm.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+    <div id="algorithmReferences{{ algorithm.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
       <div class="panel-body">
-        <h4 class="primary-color">
-            Author: &nbsp;
-            <small>{{ algorithm.author }}</small>
-            <br><br>
-            Date of last change: &nbsp;
-            <small>{{ algorithm.date }}</small>
-            <br><br>
-        </h4>        
+        {{ algorithm.algorithm_ref_html|safe }}
       </div>
     </div>
   </div>

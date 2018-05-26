@@ -6,17 +6,21 @@ from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.http import HttpResponse
 
-from Classes.FolderScraper import FolderScraper  # scrapes different JSON files and puts them together in objects.
+from Classes.Entities import Entities 
+from ALGator.taskclient import TaskClient
 
 @login_required
 def problems(request):
+    entities = Entities()
+    projects_list = entities.get_projects_list(False)
 
-    scraper = FolderScraper()
+    tc = TaskClient()
 
     return render_to_response(
         'index.html',
         {
-            'projects_list': scraper.projects_list,
+            'projects_list': projects_list,
+            'canuser' : tc.talkToServer("users userperm " + request.user.username)
         }
         , context_instance=RequestContext(request)
     )
@@ -26,19 +30,14 @@ def pdetails(request):
     
     projectName = request.GET.get('project', '')
     
-    scraper = FolderScraper()
-    project = None
-    for proj in scraper.projects_list:
-        if proj.name == projectName:
-          project = proj
-    if project == None:
-        return HttpResponse('projectName=' + projectName)
+    entities = Entities()
+    project = entities.read_project(projectName, True)
 
     return render_to_response(
         'pdetails.html',
         {
             'project': project,
-            'projects_list': scraper.projects_list,
+            'projects_list': entities.projects_list,
 
         }
         , context_instance=RequestContext(request)
@@ -50,13 +49,11 @@ def tdetails(request):
     
     projectName = request.GET.get('project', '')
     
-    scraper = FolderScraper()
-    project = None
-    for proj in scraper.projects_list:
-        if proj.name == projectName:
-          project = proj
+    entities = Entities()
+    project = entities.read_project(projectName, True)
     if project == None:
-        return HttpResponse('projectName=' + projectName)
+      return HttpResponse('Unknown project: "' + projectName + '"')
+
 
     return render_to_response(
         'tdetails.html',
@@ -66,24 +63,39 @@ def tdetails(request):
         , context_instance=RequestContext(request)
     )
 
-# technical details about the project
+
+# results view (presenters) for project or for algorithm 
+# this view might be called to show prsenters of the project (in this case only project is defined)
+# or to show presenters of the algorithm (in this case both, the project and the algorithm are defined)
+# the from_algorithm flag is sent to results.html to show the results properly
 @login_required
 def results(request):
     
-    projectName = request.GET.get('project', '')
-    
-    scraper = FolderScraper()
-    project = None
-    for proj in scraper.projects_list:
-        if proj.name == projectName:
-          project = proj
+    projectName    = request.GET.get('project', '')
+    algorithmName  = request.GET.get('algorithm', '')
+
+    entities   = Entities()
+    project   = entities.read_project(projectName, True)
     if project == None:
-        return HttpResponse('projectName=' + projectName)
+      return HttpResponse('Unknown project: "' + projectName + '"')
+
+    if algorithmName == '':
+      algorithm  = None
+      presenters = project.ProjPresenters
+    else:  
+      algorithm = project.get_algorithm(algorithmName)    
+      if algorithm == None:
+        return HttpResponse('Unknown algorithm: "' + projectName + '/' + algorithmName + '"')
+      presenters = algorithm.presenters + project.AlgPresenters 
+
 
     return render_to_response(
         'results.html',
         {
-            'project': project,
+            'project'    : project,
+            'algorithm'  : algorithm,
+            'presenters' : presenters,
+            'from_algorithm' : False if algorithm==None else True,
         }
         , context_instance=RequestContext(request)
     )
@@ -94,26 +106,27 @@ def adetails(request):
     
     projectName   = request.GET.get('project', '')
     algorithmName = request.GET.get('algorithm', '')
+    showType      = request.GET.get('showType', 'alg')
     
-    scraper = FolderScraper()
-    
-    project = None
-    for proj in scraper.projects_list:
-        if proj.name == projectName:
-          project = proj
+    entities = Entities()
+
+    project   = entities.read_project(projectName, True)
     if project == None:
-        return HttpResponse('Unknown project: "' + projectName + '"')
-    
-    algorithm = None
-    for alg in project.algorithms:
-        if alg.name == algorithmName:
-          algorithm = alg 
+      return HttpResponse('Unknown project: "' + projectName + '"')
+
+    algorithm = project.get_algorithm(algorithmName)    
     if algorithm == None:
-        return HttpResponse('Unknown algorithm: "' + projectName + '/' + algorithmName + '"')
-    
+      return HttpResponse('Unknown algorithm: "' + projectName + '/' + algorithmName + '"')
+
+    if showType == 'alg':
+        showPage = 'adetails.html'
+    elif showType == 'imp':
+        showPage = 'atdetails.html'
+    else:
+        return HttpResponse('Unknown showType: "' + showType + '"')
 
     return render_to_response(
-        'adetails.html',
+        showPage,
         {
             'algorithm': algorithm,
             'project' : project,
@@ -121,6 +134,59 @@ def adetails(request):
         }
         , context_instance=RequestContext(request)
     )
+
+
+@login_required
+def ppasica(request):    
+    projectName = request.GET.get('projectName', '')  
+    
+    entities = Entities()
+    project   = entities.read_project(projectName, True)
+    if project == None:
+        return HttpResponse('Unknown project: "' + projectName + '"')      
+
+    return render_to_response(
+        'ppasica.html',
+        {
+            'project': project,
+    
+        }
+        , context_instance=RequestContext(request)
+    )
+
+# to show the content of the Algorithm-TestSet-*.txt files
+@login_required
+def txtresults(request):
+    
+    projectName   = request.GET.get('project', '')
+    algorithmName = request.GET.get('algorithm', '')
+    
+    entities = Entities()
+    
+    project   = entities.read_project(projectName, True)
+    if project == None:
+      return HttpResponse('Unknown project: "' + projectName + '"')
+
+    algorithm = project.get_algorithm(algorithmName)    
+    if algorithm == None:
+      return HttpResponse('Unknown algorithm: "' + projectName + '/' + algorithmName + '"')
+
+    if len(algorithm.txtResultFiles) > 0:
+        cont = "Select one of the files to be shown."
+    else:
+        cont = "Results for this algorithm do not exit. Please run ALGator first!"
+
+    return render_to_response(
+        'txtresults.html',
+        {
+            'project': project,
+            'algorithm' : algorithm,
+            'firstTitle' : "/",
+            'firstCont' : cont,
+        }
+        , context_instance=RequestContext(request)
+    )
+
 
 
 @register.filter

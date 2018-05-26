@@ -13,6 +13,22 @@
  	 <a href="{% url 'problems:adetails' %}?project={{ project.name }}&algorithm={{ algorithm.name }}">
 	 	   {{ algorithm.name }}
  	 </a> 
+
+ 	 <div class="btn-group">
+       <!--span type="button" class="dropdown-toggle glyphicon glyphicon-circle-arrow-down" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"></span-->
+
+       <span type="button" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
+          <span class="glyphicon glyphicon-chevron-down btn-sm" style="color:#aacc4e;"  aria-hidden="true"></span>
+        </span>
+
+<!--span type="button" class="dropdown-toggle glyphicon glyphicon-circle-arrow-down" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"></span-->
+
+       <div class="dropdown-menu">
+       	 {% for alg in project.algorithms %}
+           <a class="dropdown-item" href="{% url 'problems:adetails' %}?project={{ project.name }}&algorithm={{ alg.name }}">{{ alg.name }}</a><br>
+       	 {% endfor %}
+       </div>
+    </div>
   </li>  
 </ul>
 </div>

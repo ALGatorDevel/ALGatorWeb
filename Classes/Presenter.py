@@ -16,7 +16,9 @@ class Presenter:
         self.xaxislabel = xaxislabel
         self.yaxislabel = yaxislabel
         self.hastable = hastable
-        self.columns = columns        
+        self.columns = columns     
+
+        self.html_desc=""   
 
     def __str__(self):
         return self.name

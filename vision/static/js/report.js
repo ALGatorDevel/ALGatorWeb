@@ -7,6 +7,7 @@
       // URL to run a query by ajax call
       thisUrl = askServer + "?q=getQueryResult%20" + projectName + "%20"+ query + "%20"+ settings["params"];  //request url
 
+
       // clear the content of both table and graph
       $("#table" + divID).html("");$("#graf" + divID).html("");
 
@@ -16,10 +17,9 @@
       }). done(function (response) {  
          answer = response.answer;
          data   = queryEditor.parseResponse(answer);
-
                     
         // Fill table data if div exists
-        if ($("#table" + divID).length){
+        if (settings["hasTable"] && $("#table" + divID).length){
            tag = "<th>"; antiTag="</th>";           
            answer = answer.trim().replace(/<br>/g, "\n");
            
@@ -40,15 +40,17 @@
         }
         
         // Draw a graph if data and if div exists
-        if (data.length > 0 && $("#graf" + divID).length) {
+        if (settings["hasGraph"] && data.length > 0 && $("#graf" + divID).length) {
             chartEditor.drawChart(data, settings["xaxis"], settings["yaxes"], "#graf" + divID, 
                { zoom: true,         //zoom enabled
                  type: settings["GraphTypes"],       //chart type
                  subchart: false,    //don't show subchart
+                 xlabel: settings["XLabel"],
+                 ylabel: settings["YLabel"],
                  gridx: true,       //x grid lines
                  gridy: true        //y grid lines
                });
-           }                   
+        }       
       });
 
       return 1;

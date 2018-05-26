@@ -23,12 +23,24 @@
 }​    
 </style>
 
+<div id="pasica">
+{% if from_algorithm %}         
+  {% include 'apasica.html' %}
+{% else %}
+  {% include 'ppasica.html' %}
+{% endif %}
+</div>
 
-{% include 'ppasica.html' %}
 
 <div id="wrapper">
 {% with "true" as results_menu %}       
-{% include 'problem_menu.html' %}
+
+{% if from_algorithm %}         
+  {% include 'algorithm_menu.html' %}
+{% else %}
+  {% include 'problem_menu.html' %}
+{% endif %}
+
 {% endwith %}     
 
 
@@ -37,7 +49,7 @@
 <div class="view">
     <div class="panel-group" id="RepPanels{{ project.name }}">
 
-  {% for presenter in project.ProjPresenters %}
+  {% for presenter in presenters %}
       <div class="panel panel-default">
         <div class="panel-heading">
           <a class="panel-title" data-toggle="collapse" data-parent="#PresPanels{{ project.name }}" href="#presenter-panel-{{ presenter.name }}" contenteditable="true" aria-expanded="true">
@@ -49,26 +61,40 @@
 
 <!-- presenter content -->
 <div class="panel-body" contenteditable="true">
+
   {{ presenter.description }}<br>
+
+  {% if presenter.hastable %}
   <div class="col-md-6">
+    <span>&nbsp;</span>
     <div class="scroltable" id="table{{ presenter.name }}"></div>        
   </div>       
+  {% endif %}    
+
+{% if presenter.hasgraph %}
   <div class="col-md-6">
     <div id="graf{{ presenter.name }}" class="chart"></div>    
   </div>
-    
-    <script>
-      var ya = {{ presenter.yaxes|safe }};
-      var settings = {
-        xaxis: "{{ presenter.xaxis }}",
-        yaxes: ya,
-        params: "*"
-      };
-      fillReportData(
+{% endif %}    
+
+  <div>&nbsp;</div>
+  <div class="col-md-12" id="html{{ presenter.name }}">{{ presenter.html_desc|safe }}</div>     
+ </div>
+
+ <script>
+   var ya    = {{ presenter.yaxes|safe }};
+   var settings = {
+       xaxis: "{{ presenter.xaxis }}",
+       yaxes: ya,
+       hasGraph: {{ presenter.hasgraph }},
+       hasTable: {{ presenter.hastable }},
+       params: "*",
+   };
+   fillReportData(
           "{% url 'cpanel:askServer' %}", "{{ presenter.name }}", 
           '{{ project.name }}', '{{ presenter.query }}', settings);
-    </script>
-</div>
+ </script>
+
         
   </div>
     </div>

@@ -11,7 +11,7 @@ from django.template.defaulttags import register
 
 from django.http import JsonResponse
 
-from Classes.FolderScraper import FolderScraper  # scrapes different JSON files and puts them together in objects.
+from Classes.Entities import Entities  
 from ALGator.taskclient import TaskClient
 from Classes.GlobalConfig import GlobalConfig
 
@@ -19,13 +19,13 @@ from Classes.GlobalConfig import GlobalConfig
 @login_required
 def home(request):
 
-    scraper = FolderScraper()
+    entities = Entities()
 
     return render_to_response(
         'cpindex.html',
         {
             'contentpage'  : 'cplanding.html',
-            'projects_list': scraper.projects_list,            
+            'projects_list': entities.projects_list,            
         }
         , context_instance=RequestContext(request)
     )
@@ -36,12 +36,12 @@ def taskserver(request):
     serverStatus= TaskClient().talkToServer("status")
     tasks       = TaskClient().talkToServer("LIST")
     
-    scraper = FolderScraper()
+    entities = Entities()
     return render_to_response(
         'cpindex.html',
         {
           'contentpage'  : 'taskserver.html',
-          'projects_list': scraper.projects_list,
+          'projects_list': entities.projects_list,
           
           'serverStatus': serverStatus,
           'tasks': tasks,
@@ -57,12 +57,12 @@ def project(request):
     jweROOT=os.environ["JWE_ROOT"];
     jweURL = subprocess.check_output("cd %s;./getAAA.pl ALGator Project %s" % (jweROOT, project), shell=True)
     
-    scraper = FolderScraper()
+    entities = Entities()
     return render_to_response(
         'cpindex.html',
         {
           'contentpage'  : 'project.html',        
-          'projects_list': scraper.projects_list,
+          'projects_list': entities.projects_list,
           
           'project': project,
           'jweURL': jweURL,
@@ -78,8 +78,8 @@ def algorithm(request):
     algorithmName = request.GET.get('algorithm', '')
     #todo: kaj se zgodi, ce dobim projectName="" ali algorithmName="" 
 
-    scraper = FolderScraper()
-    for proj in scraper.projects_list:
+    entities = Entities()
+    for proj in entities.projects_list:
         if proj.name == projectName:
           project = proj
     # todo: kaj se zgodi, ce po koncu te zanke project ni dolocen??
@@ -111,7 +111,7 @@ def algorithm(request):
         'cpindex.html',
         {
           'contentpage'  : 'algorithm.html',        
-          'projects_list': scraper.projects_list,
+          'projects_list': entities.projects_list,
 
         
           'projectName':   projectName,
@@ -139,13 +139,13 @@ def results(request):
     except:
       cont = "-- empty --"
     
-    scraper = FolderScraper()
+    entities = Entities()
 
     return render_to_response(
         'cpindex.html',
         {
           'contentpage'  : 'showFileCont.html',        
-          'projects_list': scraper.projects_list,
+          'projects_list': entities.projects_list,
 
           'filename':   file + " (%s)" % computer,
           'fileCont': cont,
@@ -168,13 +168,13 @@ def history(request):
     except:
       cont = "-- empty --"
     
-    scraper = FolderScraper()
+    entities = Entities()
 
     return render_to_response(
         'cpindex.html',
         {
           'contentpage'  : 'showFileCont.html',        
-          'projects_list': scraper.projects_list,
+          'projects_list': entities.projects_list,
 
           'filename':   file,
           'fileCont': cont,
