@@ -17,15 +17,57 @@
 
 <div class="panel-group" id="techdetails-accordion{{ project.name }}" role="tablist" aria-multiselectable="true">
 
+
   <div class="panel panel-success">
     <div class="panel-heading" role="tab" id="headingOne">
       <h4 class="panel-title">
-        <a role="button" data-toggle="collapse" data-parent="#techdetails-accordion{{ project.name }}" href="#testCase{{ project.name }}" aria-expanded="true" aria-controls="testCase{{ project.name }}">
+        <a role="button" data-toggle="collapse" data-parent="#techdetails-accordion{{ project.name }}" href="#input{{ project.name }}" aria-expanded="true" aria-controls="input{{ project.name }}">
+            {{ project.source_input_name }}
+        </a>
+      </h4>
+    </div>
+    <div id="input{{ project.name }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+      <div class="panel-body">
+        {% load pygmentify %}
+        {% pygment %}
+        <pre lang="java">
+{{ project.source_input|safe }}
+        </pre>
+        {% endpygment %}
+      </div>
+    </div>
+  </div>
+
+
+<div class="panel panel-success">
+    <div class="panel-heading" role="tab" id="headingOne">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#techdetails-accordion{{ project.name }}" href="#output{{ project.name }}" aria-expanded="false" aria-controls="output{{ project.name }}">
+            {{ project.source_output_name }}
+        </a>
+      </h4>
+    </div>
+    <div id="output{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+      <div class="panel-body">
+        {% load pygmentify %}
+        {% pygment %}
+        <pre lang="java">
+{{ project.source_output|safe }}
+        </pre>
+        {% endpygment %}
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-success">
+    <div class="panel-heading" role="tab" id="headingOne">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#techdetails-accordion{{ project.name }}" href="#testCase{{ project.name }}" aria-expanded="false" aria-controls="testCase{{ project.name }}">
             {{ project.source_testcase_name }}
         </a>
       </h4>
     </div>
-    <div id="testCase{{ project.name }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+    <div id="testCase{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
       <div class="panel-body">
         {% load pygmentify %}
         {% pygment %}
@@ -37,26 +79,6 @@
     </div>
   </div>
 
-
-  <div class="panel panel-success">
-    <div class="panel-heading" role="tab" id="headingOne">
-      <h4 class="panel-title">
-        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#techdetails-accordion{{ project.name }}" href="#testsetIterator{{ project.name }}" aria-expanded="false" aria-controls="testsetIterator{{ project.name }}">
-            {{ project.source_testsetiterator_name }}
-        </a>
-      </h4>
-    </div>
-    <div id="testsetIterator{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
-      <div class="panel-body">
-        {% load pygmentify %}
-        {% pygment %}
-        <pre lang="java">        
-{{ project.source_testsetiterator|safe }}
-        </pre>
-        {% endpygment %}
-      </div>
-    </div>
-  </div>
 
   <div class="panel panel-success">
     <div class="panel-heading" role="tab" id="headingOne">
@@ -77,6 +99,27 @@
       </div>
     </div>
   </div>
+
+  <div class="panel panel-success">
+    <div class="panel-heading" role="tab" id="headingOne">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#techdetails-accordion{{ project.name }}" href="#tools{{ project.name }}" aria-expanded="false" aria-controls="tools{{ project.name }}">
+          {{ project.source_tools_name }}
+        </a>
+      </h4>
+    </div>
+    <div id="tools{{ project.name }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+      <div class="panel-body">
+        {% load pygmentify %}
+        {% pygment %}
+        <pre lang="java">                
+{{ project.source_tools|safe }}
+        </pre>
+        {% endpygment %}        
+      </div>
+    </div>
+  </div>
+
 </div>
 </div> 
 

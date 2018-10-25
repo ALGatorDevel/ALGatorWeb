@@ -55,7 +55,6 @@ def logout_page(request):
     logout(request)
     return HttpResponseRedirect('/')
  
-@login_required
 def home(request):
     return render_to_response(
         'home.html',
@@ -63,7 +62,7 @@ def home(request):
          }, context_instance=RequestContext(request)
     )
 
-@login_required
+#@login_required
 def settings_page(request):
     try:
         profile = UserProfile.objects.get(user=request.user)

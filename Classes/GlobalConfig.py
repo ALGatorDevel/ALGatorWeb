@@ -19,7 +19,7 @@ class GlobalConfig(object):
         
         # logging
         self.logger = logging.getLogger(__name__)
-        hdlr = logging.FileHandler(self.root_path + "web.log")
+        hdlr = logging.FileHandler(self.root_path + "/web.log")
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')  
         hdlr.setFormatter(formatter)
         self.logger.addHandler(hdlr) 

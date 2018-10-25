@@ -9,9 +9,10 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
+    url(r'accounts/', include('django.contrib.auth.urls')),    
     url(r'^$', home),
     url(r'^problems/', include('problems.urls', namespace='problems')),
-    url(r'^logout/$', logout_page),
+    #url(r'^logout/$', home),
     url(r'^accounts/login/$', 'django.contrib.auth.views.login'),  # If user is not logged in, redirect to login
     url(r'^register/$', register),
     url(r'^register/success/$', register_success),

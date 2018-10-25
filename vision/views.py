@@ -12,7 +12,7 @@ from Classes.GlobalConfig import GlobalConfig
 
 gc = GlobalConfig()
 
-@login_required
+#@login_required
 def index(request):
     
     projects = []
@@ -42,7 +42,7 @@ def index(request):
           , context_instance=RequestContext(request)
         )
 
-@login_required
+#@login_required
 def project(request):
   project_name = request.GET.get('projectName', '')
   debug_arg    = request.GET.get('dbg',         '')
@@ -70,7 +70,7 @@ def project(request):
     , context_instance=RequestContext(request)
   )
 
-@login_required
+#@login_required
 def chart(request):
   project_name = request.GET.get('project', '')
   query        = request.GET.get('query',   '')
@@ -162,7 +162,7 @@ def get_project_params(project):
         raise
 
 
-@login_required
+#@login_required
 def test(request):
   return render_to_response(
     'test.html',

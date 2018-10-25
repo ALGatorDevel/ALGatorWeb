@@ -16,7 +16,7 @@ from ALGator.taskclient import TaskClient
 from Classes.GlobalConfig import GlobalConfig
 
 
-@login_required
+#@login_required
 def home(request):
 
     entities = Entities()
@@ -30,7 +30,7 @@ def home(request):
         , context_instance=RequestContext(request)
     )
 
-@login_required
+#@login_required
 def taskserver(request):
 
     serverStatus= TaskClient().talkToServer("status")
@@ -49,7 +49,7 @@ def taskserver(request):
         context_instance=RequestContext(request)
     )
 
-@login_required
+#@login_required
 def project(request):
 
     project = request.GET.get('project', '')
@@ -71,7 +71,7 @@ def project(request):
     )
 
 
-@login_required
+#@login_required
 def algorithm(request):
 
     projectName = request.GET.get('project', '')
@@ -125,7 +125,7 @@ def algorithm(request):
     )
 
 
-@login_required
+#@login_required
 def results(request):
 
     file = request.GET.get('file', '')
@@ -153,7 +153,7 @@ def results(request):
         context_instance=RequestContext(request)
     )
 
-@login_required
+#@login_required
 def history(request):
 
     projectName = request.GET.get('project', '')
@@ -184,7 +184,7 @@ def history(request):
 
 
 
-@login_required
+#@login_required
 def runtask(request):
     projectName = request.GET.get('project', '')
     algorithmName = request.GET.get('algorithm', '')
@@ -201,7 +201,7 @@ def runtask(request):
     rsp['answer']=answer
     return JsonResponse(rsp)
  
-@login_required
+#@login_required
 def askServer(request):
     question = request.GET.get('q', '')
     

@@ -12,6 +12,9 @@ from Classes.TXTResult import TXTResult
 
 from Classes.EntitiesLister import EntitiesLister
 
+from ALGator.taskclient import TaskClient
+
+
 from django.conf import settings
 from shutil import copy2
 
@@ -93,14 +96,21 @@ def readProjectSourceFiles(projects_path, proj_name):
   folder = projects_path + "/proj/src/"
 
   sources = {}            
+  sources["input_name"] = proj_name + "Input.java"
+  sources["input"]      = readFileCont(folder + proj_name + "Input.java")
+
+  sources["output_name"] = proj_name + "Output.java"
+  sources["output"]      = readFileCont(folder + proj_name + "Output.java")
+
   sources["testcase_name"]   = proj_name + "TestCase.java"
   sources["testcase"]        = readFileCont(folder + proj_name + "TestCase.java")
 
-  sources["testsetiterator_name"] = proj_name + "TestSetIterator.java"
-  sources["testsetiterator"]      = readFileCont(folder + proj_name + "TestSetIterator.java")
-
   sources["absalgorithm_name"]  = proj_name + "AbsAlgorithm.java"
   sources["absalgorithm"]       = readFileCont(folder + proj_name + "AbsAlgorithm.java")
+
+  sources["tools_name"] = proj_name + "Tools.java"
+  sources["tools"]      = readFileCont(folder + proj_name + "Tools.java")
+
 
   return sources
 
@@ -264,7 +274,7 @@ class Entities(object):
 
 
       if deep:      
-        project_doc_path      = project_root_path + "/proj/doc";
+        project_doc_path              = project_root_path + "/proj/doc";
         project.html_desc             = readHTMLDesc(project_doc_path, getValue(json_description, 'ProjectDescHTML', "project.html")) 
         project.algorithms_html_desc  = readHTMLDesc(project_doc_path, getValue(json_description, 'AlgorithmDescHTML', "algorithm.html"))       
         project.test_case_html_desc   = readHTMLDesc(project_doc_path, getValue(json_description, 'TestCaseDescHTML', "testcase.html")) 
@@ -272,13 +282,18 @@ class Entities(object):
         project.project_ref_desc      = readHTMLDesc(project_doc_path, getValue(json_description, 'ProjectRefHTML', "references.html")) 
 
         sources = readProjectSourceFiles(project_root_path, project_name)
+        project.source_input_name           = sources["input_name"]
+        project.source_input                = sources["input"]
+        project.source_output_name          = sources["output_name"]
+        project.source_output               = sources["output"]
         project.source_testcase_name        = sources["testcase_name"]
         project.source_testcase             = sources["testcase"]
-        project.source_testsetiterator_name = sources["testsetiterator_name"]
-        project.source_testsetiterator      = sources["testsetiterator"]
         project.source_algorithm_name       = sources["absalgorithm_name"]
         project.source_algorithm            = sources["absalgorithm"]
+        project.source_tools_name           = sources["tools_name"]
+        project.source_tools                = sources["tools"]
 
+        project.jj = TaskClient().talkToServer("admin -i " + project_name)
 
         # add all the presenters to the projetc
         projPresenterNames = getValue(json_description, 'ProjPresenters', [])                        

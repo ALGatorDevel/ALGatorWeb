@@ -28,10 +28,13 @@
                            <a href="{{ problems_url }}"><img src="{% static 'images/problems_icon.png' %}" height="15px"/>&nbsp;&nbsp;Problems &nbsp;&nbsp;&nbsp;
                               
                            </a></li>
+
+                        {% if user.get_username == "admin" %}   
                         <li class="{% ifequal request.path cpanel_url %}active{% endifequal %}" >
                            <a href="{{ cpanel_url }}"><img src="{% static 'images/my_solutions_icon.png' %}" height="25px" style="margin-top: -15px;"/>                     
                               &nbsp;&nbsp;Control panel&nbsp;
                            </a></li>
+                        {% endif %}
                     </ul>
 
 
@@ -74,13 +77,18 @@
                             <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-user">
-                            <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                            {% if user.is_authenticated %}
+
+                            <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile ({{ user.get_username }})</a>
                             </li>
                             <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
                             </li>
                             <li class="divider"></li>
-                            <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
-                            </li>
+                            <li><a href="{% url 'logout' %}?next=/"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                            </li>                            
+                            {% else %}
+                            <li><a href="{% url 'login' %}"><i class="fa fa-gear fa-fw"></i> Login</a>
+                            {% endif %}
                         </ul>
                         </li>
                     </ul>

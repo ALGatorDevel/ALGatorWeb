@@ -49,6 +49,11 @@ body {
                   <li>
                     <a class="collapsed" data-toggle="collapse" 
                      data-parent="#basic-info-accordion{{ project.name }}"
+                     href="#techdet{{ project.name }}" aria-expanded="false" aria-controls="techdet{{ project.name }}">Technical details</a>
+                  </li>                  
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#basic-info-accordion{{ project.name }}"
                      href="#references{{ project.name }}" aria-expanded="false" aria-controls="references{{ project.name }}">References</a>
                   </li>
 
@@ -64,18 +69,31 @@ body {
                   <li>
                     <a class="collapsed" data-toggle="collapse" 
                      data-parent="#techdetails-accordion{{ project.name }}"
-                     href="#testCase{{ project.name }}" aria-expanded="false" aria-controls="testCase{{ project.name }}">TestCase</a>
+                     href="#input{{ project.name }}" aria-expanded="false" aria-controls="input{{ project.name }}">Input</a>
+                  </li>                
+
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#techdetails-accordion{{ project.name }}"
+                     href="#output{{ project.name }}" aria-expanded="false" aria-controls="output{{ project.name }}">Output</a>
                   </li>                
                   <li>
                     <a class="collapsed" data-toggle="collapse" 
                      data-parent="#techdetails-accordion{{ project.name }}"
-                     href="#testsetIterator{{ project.name }}" aria-expanded="false" aria-controls="testsetIterator{{ project.name }}">TestSetIterator</a>
-                  </li>
+                     href="#testCase{{ project.name }}" aria-expanded="false" aria-controls="testCase{{ project.name }}">TestCase</a>
+                  </li>                
+
                   <li>
                     <a class="collapsed" data-toggle="collapse" 
                      data-parent="#techdetails-accordion{{ project.name }}"
                      href="#absalgorithm{{ project.name }}" aria-expanded="false" aria-controls="absalgorithm{{ project.name }}">AbsAlgorithm</a>
                   </li>
+                  <li>
+                    <a class="collapsed" data-toggle="collapse" 
+                     data-parent="#techdetails-accordion{{ project.name }}"
+                     href="#tools{{ project.name }}" aria-expanded="false" aria-controls="tools{{ project.name }}">Tools</a>
+                  </li>
+
                   </ul>
 {% else %}                                 
                 <li>

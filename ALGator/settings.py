@@ -31,6 +31,11 @@ ALLOWED_HOSTS = []
 import django.contrib.auth
 
 django.contrib.auth.LOGIN_URL = '/'
+django.contrib.auth.LOGOUT_URL = '/'
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
 
 # Application definition
 

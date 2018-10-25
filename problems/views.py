@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from Classes.Entities import Entities 
 from ALGator.taskclient import TaskClient
 
-@login_required
+#@login_required
 def problems(request):
     entities = Entities()
     projects_list = entities.get_projects_list(False)
@@ -25,7 +25,7 @@ def problems(request):
         , context_instance=RequestContext(request)
     )
     
-@login_required
+#@login_required
 def pdetails(request):
     
     projectName = request.GET.get('project', '')
@@ -44,7 +44,7 @@ def pdetails(request):
     )
 
 # technical details about the project
-@login_required
+#@login_required
 def tdetails(request):
     
     projectName = request.GET.get('project', '')
@@ -68,7 +68,7 @@ def tdetails(request):
 # this view might be called to show prsenters of the project (in this case only project is defined)
 # or to show presenters of the algorithm (in this case both, the project and the algorithm are defined)
 # the from_algorithm flag is sent to results.html to show the results properly
-@login_required
+#@login_required
 def results(request):
     
     projectName    = request.GET.get('project', '')
@@ -101,7 +101,7 @@ def results(request):
     )
 
     
-@login_required
+#@login_required
 def adetails(request):
     
     projectName   = request.GET.get('project', '')
@@ -136,7 +136,7 @@ def adetails(request):
     )
 
 
-@login_required
+#@login_required
 def ppasica(request):    
     projectName = request.GET.get('projectName', '')  
     
@@ -155,7 +155,7 @@ def ppasica(request):
     )
 
 # to show the content of the Algorithm-TestSet-*.txt files
-@login_required
+#@login_required
 def txtresults(request):
     
     projectName   = request.GET.get('project', '')
