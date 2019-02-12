@@ -1,5 +1,7 @@
 <font size="+1">
 <div class="container-fluid">
+<div class="row">
+<div class="col-sm-12">
 <ul class="breadcrumb">
   <li>
  	 <a href="{% url 'problems:pdetails' %}?project={{ project.name }}">
@@ -7,10 +9,8 @@
  	 </a> 
   </li>
   <li>
- 	 <!--a href="{% url 'problems:adetails' %}?project={{ project.name }}&algorithm={{ algorithm.name }}"-->
-	 	   {{ algorithm.name }}
- 	 </li> 
-
+	 	   {{ presenter.name }}
+  </li>
  	 <div class="btn-group">
        <!--span type="button" class="dropdown-toggle glyphicon glyphicon-circle-arrow-down" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"></span-->
 
@@ -21,12 +21,23 @@
 <!--span type="button" class="dropdown-toggle glyphicon glyphicon-circle-arrow-down" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"></span-->
 
        <div class="dropdown-menu">
-       	 {% for alg in project.algorithms %}
-           <a class="dropdown-item" href="{% url 'problems:adetails' %}?project={{ project.name }}&algorithm={{ alg.name }}">{{ alg.name }}</a><br>
+       	 {% for key,pres in project.presenters.items %}
+           <a class="dropdown-item" href="{% url 'vision:openPresenter' %}?project={{ project.name }}&presenter={{ key }}&param={{ param }}">{{ key }}</a><br>
        	 {% endfor %}
        </div>
-    </div>
-  </li>  
+    </div>  
 </ul>
+</div>
+<!--div class="col-sm-3 breadcrumb" style="padding-left: 0;">  
+    <div class="text-right">
+     <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+
+      <div id="labSave">
+        <font size="-1"><a href="#" onclick="chartEditor.save();">Save</a></font>
+      </div>
+      &nbsp;
+    </div>
+</div-->                  
+</div>
 </div>
 </font>

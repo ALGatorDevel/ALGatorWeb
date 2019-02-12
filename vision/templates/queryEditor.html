@@ -26,7 +26,7 @@
                         <div class="panel-heading">Algorithms</div>                        
                             <select class="multiselect" id="AlgSelect" multiple="multiple" style="width: 100%;">  
                               <option value="*" data-value="*">*</option>  
-                              {% for algorithm in config.Algorithms %}
+                              {% for algorithm in project.algorithms %}
                                 <option value="{{ algorithm }}" data-value="{{ algorithm }}">{{ algorithm }}</option>
                               {% endfor %}
                             </select>                        
@@ -36,7 +36,7 @@
                         <div class="panel-heading">TestSets</div>
                           <select class="multiselect" id="TSSelect" multiple="multiple" style="width: 100%;">    
                             <option value="*"  data-value="*">*</option>
-                            {% for testset in config.TestSets %}
+                            {% for testset in project.testsets %}
                               <option value="{{ testset }}"  data-value="{{ testset }}">{{ testset }}</option>
                             {% endfor %}
                           </select>
@@ -134,7 +134,8 @@
                             <a data-toggle="collapse" data-parent="#accordion" href="#collapse-data">
                               Data
                             </a>
-                            <img class="clickable download-data" src="{% static 'img/save.png' %}">
+                            <img class="clickable download-data" src="{% static 'img/save.png' %}"/>  
+                            <img class="clickable dispatch-data" src="{% static 'img/dispatch.png' %}"/>
                             <span style="float:right;" id="tblstatus">[Empty]</span>
                           </h4>
                         </div>

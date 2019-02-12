@@ -13,4 +13,6 @@ urlpatterns = [
     url(r'^history', views.history, name='history'),
     url(r'^runTask', views.runtask, name='runtask'),
     url(r'^askServer', views.askServer, name='askServer'),
+    url(r'^pAskServer', views.pAskServer, name='pAskServer'),
+    url(r'^savePresenter', views.savePresenter, name='savePresenter'),    
 ]

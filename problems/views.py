@@ -154,6 +154,24 @@ def ppasica(request):
         , context_instance=RequestContext(request)
     )
 
+def prepasica(request):    
+    projectName = request.GET.get('projectName', '')  
+    
+    entities = Entities()
+    project   = entities.read_project(projectName, True)
+    if project == None:
+        return HttpResponse('Unknown project: "' + projectName + '"')      
+
+    return render_to_response(
+        'prepasica.html',
+        {
+            'project': project,
+    
+        }
+        , context_instance=RequestContext(request)
+    )
+
+
 # to show the content of the Algorithm-TestSet-*.txt files
 #@login_required
 def txtresults(request):

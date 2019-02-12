@@ -2,15 +2,22 @@
     <div class="col-md-12 c-panel"> <!-- right side panel -->
         <div class="row">
             <div class="col-md-12">
-                    X: <select class="form-control x-selector"></select>
+                    X: <select id ="xAxis" class="form-control x-selector"></select>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
                 Y: <br>                
-                  <input type="text" id="yAxesInput" style="width: 100% !important;" class="y-selector">                                  
-                </ul-->
-            </div>
+                <!--input type="text" id="yAxes" style="width: 100% !important;" class="y-selector"-->            
+                <select class="multiselect y-selector" id="yAxes" multiple="multiple" style="width: 100%;">  <option value="*" data-value="*">*</option>  
+                  <!--<option value="*" data-value="*">*</option>  
+                  {% for algorithm in project.algorithms %}
+                    <option value="{{ algorithm }}" data-value="{{ algorithm }}">{{ algorithm }}</option>
+                  {% endfor %}-->
+                </select>                        
+            </div>                            
+
         </div>
+
     </div>
 </div>

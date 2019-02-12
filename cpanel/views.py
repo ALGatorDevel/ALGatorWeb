@@ -2,6 +2,8 @@
 
 import subprocess
 import os
+import json
+import base64
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -10,6 +12,8 @@ from django.template.context import RequestContext
 from django.template.defaulttags import register
 
 from django.http import JsonResponse
+
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from Classes.Entities import Entities  
 from ALGator.taskclient import TaskClient
@@ -206,8 +210,56 @@ def askServer(request):
     question = request.GET.get('q', '')
     
     return JsonResponse({"answer" : TaskClient().talkToServer(question).replace("\n", " ")})
- 
- 
+
+def pAskServer(request):
+    question     = request.POST.get('q', {})
+
+    return JsonResponse({"answer" : TaskClient().talkToServer(question).replace("\n", " ")})
+
+
+@ensure_csrf_cookie
+def savePresenter(request):
+    try:
+      projName  = request.POST.get('projName', "")
+      queryS    = request.POST.get('query', {})
+      settingsS = request.POST.get('settings', {})
+
+      query     = json.loads(queryS)
+      settings  = json.loads(settingsS)
+
+      try:
+        settings["manData"] = json.loads(base64.b64decode(settings["manData"]))
+      except:
+        settings["manData"] = []
+
+      path      = settings["path"]
+
+      htmlDesc  = base64.b64decode(settings["htmlDesc"])
+      htmlPath  = os.path.splitext(path)[0] + ".html"
+
+      del settings["projName"]
+      del settings["path"]
+      del settings["presenterType"]
+      del settings["bindTo"]
+      del settings["htmlDesc"]
+
+
+      settings["Query"]=query
+
+      presenter = {}
+      presenter["Presenter"] = settings
+
+      with open(path, 'w') as file:
+        file.write(json.dumps(presenter, indent=2, sort_keys=True))
+
+      with open(htmlPath, 'w') as file:
+        file.write(htmlDesc)
+
+      msg="Presenter saved to " + path
+    except e as Error:
+      msg=e
+    return JsonResponse({"answer": msg})
+
 
 @register.filter
 def get_item(dictionary, key):

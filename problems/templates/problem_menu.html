@@ -4,6 +4,9 @@
 <link href="{% static 'css2/sb-admin-2.css' %}" rel="stylesheet">
 <link href="{% static 'css2/font-awesome.min.css' %}" rel="stylesheet">
 <link href="{% static 'css/style.css' %}" rel="stylesheet">
+
+<script type="text/javascript" src="{% static 'js/report.js' %}"></script>    
+
 <style>
 body {
     background: white;
@@ -123,12 +126,15 @@ body {
                     </a>
                   </li>                
                   {% endfor %}
+                  <script>window.CSRF_TOKEN = "{{ csrf_token }}";</script>
+                  <a href=javascriptX:window.location.href=window.location.href 
+                     onclick="newPresenter('{{ project.name }}', 1);">New...</a>
                 </ul> 
                 </li> 
 {% else %}
               <li class='active'><a href="{% url 'problems:results' %}?project={{ project.name }}"><i class="fa fa-bar-chart-o fa-fw">&nbsp;</i>Results<span class="fa arrow"></span></a></li>     
 {% endif %}
-                </li>
+              </li>
 
                 <li>
                     <a href="#"><i class="fa fa-bar-chart-o fa-fw">&nbsp;</i><span onclick="openQuery('{{ project.name }}')">Query editor</span></a>
@@ -148,7 +154,7 @@ body {
           var title = 'Query editor';
           var url   = '/vision/project?projectName={{ project.name }}';
 
-          history.pushState(state, title, url);
+          //history.pushState(state, title, url);
 
          $( "#pasica" ) .load("{% url 'problems:ppasica' %}?projectName={{ project.name }}")
          $( "#wrapper" ).load( "/vision/project?projectName={{ project.name }}" );

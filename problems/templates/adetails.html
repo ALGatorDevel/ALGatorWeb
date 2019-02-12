@@ -8,6 +8,13 @@
 <script type="text/javascript" src="{% static 'js/c3.min.js' %}"></script> 
 <script type="text/javascript" src="{% static 'js/algatorweb.js' %}"></script> <script type="text/javascript" src="{% static 'js/report.js' %}"></script>  
 
+<style>
+.flg:hover {
+    color: #009933;
+}
+</style>
+
+
 <div id="pasica">
 {% include 'apasica.html' %}
 </div>
@@ -49,37 +56,67 @@
             </tr>
           </table>
         </div>      
-        <hr>
-        <center><table width=70% height=30%>
+        <hr>        
+        <center><table width=90% height=30%>
         {% for presenter in project.MainAlgPresenters %}
         <tr><td>
-          <span><font size=+1>{{ presenter.title }}</font></span>
 
+          <a id="{{ presenter.name }}"></a>
+
+          <div class="row">
+              <div class="col-xs-12">
+                  <div class="text-right">
+                      <span class="flg glyphicon glyphicon-edit primary-color" 
+                            onclick="openPresenter
+                              ('{{ project.name }}','{{ presenter.name }}',
+                               '{{ algorithm.name }}'
+                              );">                              
+                      </span>
+                      <a href=javascriptX:window.location.href=window.location.href>
+                      <span class="flg glyphicon glyphicon-remove primary-color"
+                            onclick="removePresenter
+                              ('{{ project.name }}','{{ presenter.name }}');"
+                      ></span></a>                      
+                  </div>
+              </div>
+          </div>
+
+          <span><font size=+1>{{ presenter.title }}</font></span>
           <div id="graf{{ presenter.name }}{{ forloop.counter }}" class="chart"></div>  
           <div id="html{{ presenter.name }}{{ forloop.counter }}" style="padding-top: 20px;">{{ presenter.html_desc|safe }}</div>  
             <script>
-              var ya = {{ presenter.yaxes|safe }};
-              var settings = {
-                    xaxis: "{{ presenter.xaxis }}",
-                    yaxes: ya,
-                    XLabel: "{{ presenter.xaxislabel }}",
-                    YLabel: "{{ presenter.yaxislabel }}",                
-                    hasGraph: {{ presenter.hasgraph }},
-                    hasTable: {{ presenter.hastable }},
-   
-                    params: "{{ algorithm.name }}"
-                  };
+              var stsSafe = '{{ presenter.settingsCont | safe }}';
+              if (stsSafe == '') stsSafe = '{}';
+              var settings=JSON.parse(stsSafe.replace(/_!!_/g, '"').replace(/_!_/g, "'"));
+              settings.params="{{ algorithm.name }}";
+              settings.manData = atob(settings.manData);
+
+              window.CSRF_TOKEN = "{{ csrf_token }}"; 
               fillReportData(
-                "{% url 'cpanel:askServer' %}", "{{ presenter.name }}{{ forloop.counter }}", 
+                "{% url 'cpanel:pAskServer' %}", "{{ presenter.name }}{{ forloop.counter }}", 
                 '{{ project.name }}', '{{ presenter.query }}', settings
               );
             </script>  
         </td></tr>
         {% endfor %}    
+
+        <tr><td>
+          <script>window.CSRF_TOKEN = "{{ csrf_token }}";</script>
+          <a href=javascriptX:window.location.href=window.location.href 
+             onclick="newPresenter('{{ project.name }}', 2);">New...</a>
+        </td></tr>
+
         </table></center>
       </div>
     </div>
   </div>
+<script>
+openPresenter = function(project, presenter, paramsCnt) {
+  window.location = "{% url 'vision:openPresenter' %}?project="   + project   + 
+                                                    "&presenter=" + presenter + 
+                                                    "&param="     + paramsCnt;  
+}
+</script>  
 
   <div class="panel panel-success">
 

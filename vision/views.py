@@ -8,52 +8,27 @@ from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.template.defaulttags import register
 
+from django.http import JsonResponse
+from ALGator.taskclient import TaskClient
+
 from Classes.GlobalConfig import GlobalConfig
+from Classes.Entities import Entities 
 
 gc = GlobalConfig()
 
-#@login_required
-def index(request):
-    
-    projects = []
-    project_list = get_project_list()
-    for p in project_list:
-        try:
-            projectConfig = get_project_config(p)
-            projects.append(projectConfig["Name"])
-        except:
-            pass
-
-    if len(projects) == 0:
-        return render_to_response(
-          'error.html',
-          {
-            'error'  : "No projects found. Make sure algator_data_root is set correctly."
-          }
-          , context_instance=RequestContext(request)
-        )
-    else:
-        return render_to_response(
-          'project_index.html',
-          {
-            'projects':  projects, 
-            'title'   :  "Projects"
-          }
-          , context_instance=RequestContext(request)
-        )
-
-#@login_required
 def project(request):
   project_name = request.GET.get('projectName', '')
   debug_arg    = request.GET.get('dbg',         '')
+  pid          = request.GET.get('pid',         '')  
   
   if not project_exists(project_name):
     return errorResponse(request, "Missing project directory: " + "PROJ-" + project_name + "...")   
 
-  project_config = {}
+  entities = Entities()
+  project = entities.read_project(project_name, True)
+
   project_params = {}  
   try:
-    project_config = get_project_config(project_name)
     project_params = get_project_params(project_name)
   except ValueError as e:    # JSON parsing error
     return errorResponse(request, "Syntax error in JSON ({0}): {1}".format(os.path.basename(e.filename), e.message)) 
@@ -63,12 +38,56 @@ def project(request):
   return render_to_response(
     'vProject.html',
     {
-      'title'  : project_name,
-      'config' : project_config, 
-      'params' : project_params,
+      'title'   : project_name,
+      'project' : project, 
+      'params'  : project_params,
+      'pid'     : pid,
     }
     , context_instance=RequestContext(request)
   )
+
+def openPresenter(request):
+  project_name   = request.GET.get('project',   '')
+  presenter_name = request.GET.get('presenter', '')
+  param          = request.GET.get('param', '')
+  
+  if not project_exists(project_name):
+    return errorResponse(request, "Missing project directory: " + "PROJ-" + project_name + "...")   
+
+  entities  = Entities()
+  project   = entities.read_project(project_name, True)
+  
+  presenter = ""  
+  try:
+    presenter = project.presenters[presenter_name]
+  except:
+    None
+
+  project_params = {}  
+  try:
+    project_params = get_project_params(project_name)
+  except IOError as e:
+    None
+
+  return render_to_response(
+    'openPresenter.html',
+    {
+      'project'        : project,
+      'presenter'      : presenter,
+      'params'         : project_params,
+      'param'          : param,
+    }
+    , context_instance=RequestContext(request)
+  ) 
+
+def newPresenter(request):
+  project_name  = request.POST.get('project',   '')
+  tip           = request.POST.get('type',      '0')
+
+  answer = TaskClient().talkToServer("admin -cdp " + project_name + " -pt " + tip)
+  
+  return JsonResponse({"answer": answer.split("<br>")[-1]})
+
 
 #@login_required
 def chart(request):
@@ -120,19 +139,6 @@ def get_project_list():
     else:
         return []  # return empty list if <algator_data_root> directory is missing
 
-def get_project_config(project):
-    """
-    Returns dictionary containing project configuration
-    """
-    data_root = GlobalConfig().projects_path
-    path = "{0}/PROJ-{1}/proj/{1}.atp".format(data_root, project)  # <project>.atp filepath
-    
-    try:
-        return json.loads(open(path, "r").read(), strict=False)["Project"] 
-    except ValueError as e:     # error parsing json
-        e.filename = path       # save path and raise
-        raise
-
 def get_project_params(project):
     """
     Returns dictionary containing project input/output parameters
@@ -160,17 +166,6 @@ def get_project_params(project):
     except ValueError as e:
         e.filename = filepath
         raise
-
-
-#@login_required
-def test(request):
-  return render_to_response(
-    'test.html',
-    {
-        'test'  : 'test'
-    }
-    , context_instance=RequestContext(request)
-  )
 
 
 @register.filter

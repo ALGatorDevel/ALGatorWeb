@@ -85,6 +85,9 @@ body {
                     </a>
                   </li>                
                   {% endfor %}
+                  <script>window.CSRF_TOKEN = "{{ csrf_token }}";</script>
+                  <a href=javascriptX:window.location.href=window.location.href 
+                     onclick="newPresenter('{{ project.name }}', 3);">New...</a>                  
                 </ul> 
                 </li> 
 {% else %}

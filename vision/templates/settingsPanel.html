@@ -4,6 +4,8 @@
                 <ul class="list-group">
                     <li class="list-group-item clickable" id="button-chart-data" data-toggle="modal" data-target="#chart-data-modal">Data</li>
                     <li class="list-group-item clickable" data-toggle="modal" data-target="#chart-settings-modal">Settings</li>
+                    <!--script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+                    <li class="list-group-item clickable" onclick="chartEditor.save();">Save</li-->
                 </ul>
             </div>
 </div>
@@ -11,7 +13,7 @@
 
 
 <div class="row">       <!-- Modal dialogs -->
-    <div class="modal fade" id="chart-settings-modal" tabindex="-1" role="dialog">
+    <div class="modal fade" id="chart-settings-modal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -20,32 +22,103 @@
                 <div class="modal-body">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" data-value="zoom" checked>Zoom (use mouse wheel)
+                            <input type="checkbox" id = "zoom" data-value="zoom" checked>Zoom (use mouse wheel)
                         </label>
                     </div>
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" data-value="gridx" checked>Show x grid lines
+                            <input type="checkbox" id = "subchart" data-value="subchart">Show subchart
+                        </label>
+                    </div>                    
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id = "gridX" data-value="gridX" checked>Show x grid lines
                         </label>
                     </div>
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" data-value="gridy" checked>Show y grid lines
+                            <input type="checkbox" id = "gridY" data-value="gridY" checked>Show y grid lines
                         </label>
                     </div>
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" data-value="subchart">Show subchart
+                            <input type="checkbox" id = "logScale" data-value="logScale">Logarithmic scale
+                        </label>
+                    </div>                    
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id = "categoryLabels" data-value="categoryLabels">Use category labels
+                        </label>
+                    </div>           
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id = "HasGraph" data-value="HasGraph">Presenter has graph
+                        </label>
+                    </div>           
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id = "HasTable" data-value="HasTable">Presenter has table
+                        </label>
+                    </div>           
+
+                    <div>
+                       Graph type
+                        <select class="form-control" id="graphType" name="graphType">
+                          <option id="line"  value="line">Line chart</option>
+                          <option id="bar"   value="bar">Bar chart</option>
+                          <option id="area"  value="area">Area chart</option>
+                          <option id="pie"   value="pie">Pie chart</option>
+                          <option id="donut" value="donut">Donut chart</option>
+                        </select>
+                    </div>
+
+
+                    <div class="text">
+                        <label>
+                            Graph title &nbsp;&nbsp;<input type="text" name="Title" id="Title" data-value="Title" />
                         </label>
                     </div>
-                    <hr>
-                    <select class="form-control">
-                        <option value="line">Line chart</option>
-                        <option value="bar">Bar chart</option>
-                        <option value="area">Area chart</option>
-                        <option value="pie">Pie chart</option>
-                        <option value="donut">Donut chart</option>
-                    </select>
+                    <div class="text">
+                        <label>
+                            Graph short title &nbsp;&nbsp;<input type="text" name="ShortTitle" id="ShortTitle" data-value="ShortTitle" />
+                        </label>
+                    </div>
+                    <div class="text">
+                        <label>
+                            Display columns &nbsp;&nbsp;<input type="text" name="Columns" id="Columns" data-value="Columns" />
+                        </label>
+                    </div>
+
+
+                    <div class="text">
+                        <label>
+                            X axis label &nbsp;&nbsp;<input type="text" name="xAxisTitle" id="xAxisTitle" data-value="xAxisTitle" />
+                        </label>
+                    </div>            
+                    <div class="text">
+                        <label>
+                            Y axis label &nbsp;&nbsp;<input type="text" name="yAxisTitle" id="yAxisTitle" data-value="yAxisTitle" />
+                        </label>
+                    </div>
+
+                    <div>
+                        Manual data <br>
+                        <div style="padding:3px;">
+                          <textarea style="width: 100%;" 
+                              name="manData" id="manData" data-value="manData">
+                              [{"Type":"Column", "Meta":{"Name":"ID", "Values":[3, 4, 5]}}]
+                          </textarea>
+                        </div>
+                    </div>            
+                    <div>
+                        HTML description <br>
+                        <div style="padding:3px;">
+                          <textarea style="width: 100%; height: 300px;" 
+                              name="htmlDesc" id="htmlDesc" data-value="htmlDesc">
+                              to je html besedilo
+                          </textarea>
+                        </div>
+                    </div>                                
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -53,7 +126,7 @@
             </div>
         </div>
     </div>  <!-- end Chart settings modal -->
-    <div class="modal fade" id="chart-data-modal" tabindex="-1" role="dialog">
+    <div class="modal fade" id="chart-data-modal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">

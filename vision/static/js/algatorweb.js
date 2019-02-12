@@ -10,6 +10,8 @@ var queryEditor = (function () {
 
     var ajaxRequest; // current ajax request
 
+    var innerChange = false; // true, wher a change in a query is due to inner rearangement of data
+
     //DOM classes and IDs
     var QUERY_EDITOR = ".query-editor";
     var DATA_TABLE = "#alg-data-table";
@@ -21,6 +23,7 @@ var queryEditor = (function () {
     var SORT_BY = "#text-SortBy";
     var DOWNLOAD_QUERY = "img.download-query";
     var DOWNLOAD_DATA = "img.download-data";
+    var DISPATCH_DATA = "img.dispatch-data";
     var COUNTID = "#checkbox-Count";
 
     /**
@@ -34,27 +37,61 @@ var queryEditor = (function () {
 
     /**
     *   
-    *   @param {string} q - Query string.
+    *   @param {string} q    - Query string.
+    *   @param {string} repl - parameter to be inserted to where $0 is placed
     */
-    pub.setQuery = function(q) {
-        if (typeof q === "string") {    
+    pub.setQuery = function(q, repl) {
+        innerChange = true;
+        try {
+          if (typeof q === "string") {    
             q = JSON.parse(q);
-        }
+          }
 
-        Object.keys(q).forEach(function (key) {
-            if (key === "Filter" || key === "GroupBy" || key === "SortBy" || key == "ComputerID") {
+          Object.keys(q).forEach(function (key) {
+            try {
+              if (key === "Filter" || key === "GroupBy" || key === "SortBy" || key == "ComputerID") {
                 $("#text-" + key).val(q[key]);
-            } else {
-                q[key].forEach(function(element, index, array) {
+              } else {
+                var selector = "";                
+                var nKey = key.toString().toUpperCase();
+                switch (nKey) {
+                    case "ALGORITHMS": selector="#AlgSelect"; break;
+                    case "TESTSETS": selector="#TSSelect"; break;
+                    case "PARAMETERS": selector="#InParamSelect"; break;
+                    case "INDICATORS": selector="#OutParamSelect"; break;
+                }
+                if (selector != "") {
+                  var curValue = [];  
+/*                  q[key].forEach(function(element, index, array) {
                     var split = element.split(" AS ");
-                    $("#checkbox-" + key + "-" + split[0]).prop("checked", true);
-                    if (split.length == 2) {
-                        $("#text-" + key + "-" + split[0]).val(split[1]); 
-                    }       
-                });
-            }
-        });
-        handleQueryChange();
+                    curValue.push(split[0].replace("$0", repl));
+                  });
+                  try {
+                    $(selector).val(curValue).trigger('change');
+                  } catch(e) {}
+*/
+                  q[key].forEach(function(element, index, array) {
+                    element = element.replace("$0", repl);
+                    if (!$(selector).find("option[value='" + element + "']").length) {
+                      var newOption = new Option(element, element, true, true);
+                      $(selector).append(newOption);
+                    } 
+                    curValue.push(element);
+                  });
+                  try {
+                    $(selector).val(curValue).trigger('change');
+                  } catch(e) {}                  
+                }
+              }
+            } catch (e) {}              
+          });
+        } catch (e) {}
+
+        innerChange=false;        
+        handleQueryChange(); 
+
+        util.hideSave(); 
+
     };
 
     pub.getQuery = function() {
@@ -133,7 +170,7 @@ var queryEditor = (function () {
         var serverName = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port : ""); 
         var url = serverName + "/cpanel/askServer?q=getQueryResult%20"+project+"%20"+encoded;  //request url
 
-        history.replaceState(null, "", url); 
+        // history.replaceState(null, "", url); 
         // history.replaceState(null, "", serverName +   "?projectName=" + project +  "&query=" + JSON.stringify(query));  //set url query parameter
 
         try {
@@ -151,7 +188,7 @@ var queryEditor = (function () {
             url: url,
             dataType: 'json',
         }). done(function (response) {  
-           $("#tblstatus").text("[Loaded]"); 
+           $("#tblstatus").text("[Loaded]");            
 
            var answer = response.answer;
            data = queryEditor.parseResponse(answer);
@@ -174,13 +211,16 @@ var queryEditor = (function () {
     *   Callback for events in query editor
     */
     function handleQueryChange() {
+        if (innerChange) return;
+
         var newQuery = generateQuery();
 
         if (JSON.stringify(newQuery) !== JSON.stringify(query)) {   //check if there was an actual query change
             $(QUERY_TEXT).html(util.syntaxHighlight(newQuery));          //display query
             requestData(JSON.stringify(newQuery));                  //request new data
             query = newQuery;
-            //requestData(query);
+
+            util.showSave();
         }
     }
 
@@ -204,6 +244,61 @@ var queryEditor = (function () {
         }
     }
 
+    // method finds changes in table (places where values in table differ from values in data)
+    // and prepars a mapping; this mapping will be used to change values of array in the same
+    // manner (when array will change due to reload, this mapping will be used to retain
+    // used defined changes)
+    function handleDispatchDownload() {        
+      if (data !== undefined) {
+
+        var curData = [];
+        var curChanges = {};
+
+        var i=0;
+        var table = $("#alg-data-table");
+        if (table) {
+            table.find('tr').each(function (rowIndex, r) {
+                var curRow = []; var j=0;
+
+                $(this).find('th').each(function (colIndex, c) {    
+                    curRow.push(c.textContent); j++;
+                });
+
+                $(this).find('td').each(function (colIndex, c) {    
+                    curRow.push(c.textContent); 
+                    if (data[i][j] != c.textContent) {
+                        curChanges[j] = [];   // the j-th column has changed!
+                    }                    
+                    j++;
+                });
+                curData.push(curRow);
+                i++;
+            });
+        }     
+
+        var manData = {};
+        var manDatas = [];
+        Object.keys(curChanges).forEach(function(col) {
+          var manSet={};
+          manSet.Type="Column";
+          manSet.Meta={};
+          manSet.Meta.Name=curData[0][col];  
+          manSet.Meta.Values=[];
+          for (var k=1; k<curData.length; k++)
+            manSet.Meta.Values.push(curData[k][col]);
+
+          manDatas.push(manSet);
+        });
+        manData.Data=manDatas;
+
+        chartEditor.setSettings({"manData" : JSON.stringify(manDatas)}); //'[{"Type":"Column", "Meta":{"Name":"ID", "Values":["A", "B", "C"]}}]'
+
+        chartEditor.reload();
+        util.showSave();
+      }
+
+    }    
+
     /**
     *   Wires up queryEditor events
     */
@@ -212,6 +307,7 @@ var queryEditor = (function () {
         $(QUERY_EDITOR).on("blur", "input[type=text]", handleQueryChange); 
         $(DOWNLOAD_QUERY).on("click", handleQueryDownload);
         $(DOWNLOAD_DATA).on("click", handleDataDownload);
+        $(DISPATCH_DATA).on("click", handleDispatchDownload);
         $(COUNTID).on("change", handleQueryChange);
     }
 
@@ -232,15 +328,20 @@ var queryEditor = (function () {
             return head;
         };
 
+
         var populate_body = function () {
             var body = $('<tbody>');
             var body_data = '';
             for (var i = 1; i < data.length; i++) {
                 body_data += '<tr>';
                 for (var j = 0; j < data[i].length; j++) {
+                    var curID = 'edi'+i+'x'+j;
                     body_data += '<td align="center" style="border-right: solid 1px #CCC; border-left: solid 1px #CCC;">';
-                    body_data += data[i][j];
+                    body_data +=   '<div id="'+curID+'" contenteditable="true">'
+                    body_data +=     data[i][j];
+                    body_data +=   '</div>'
                     body_data += '</td>';
+                 
                 }
                 body_data += '</tr>';
             }
@@ -263,18 +364,30 @@ var chartEditor = (function() {
     var pub = {};   //public 
 
     // chart settings
-    var settings = {
-        bindTo: "#chart",   //div id
-        zoom: true,         //zoom enabled
-        type: "line",       //chart type
-        subchart: false,    //don't show subchart
-        gridx: true,       //x grid lines
-        gridy: true        //y grid lines
+    var settings = { 
+        bindTo: "#chart",   //div id        
+
+        xAxis:          "N",
+        yAxes:          "ID",        
+        zoom:           true,     //zoom enabled
+        subchart:       false,    //don't show subchart                
+        gridX:          true,     //x grid lines
+        gridY:          true,     //y grid lines
+        graphType:      "line",   //chart type
+        xAxisTitle:     '',       // title above the x axis
+        yAxisTitle:     '',       // title left to the y axis
+        categoryLabels: false,    // Use category labels
+        manData:        "",       // manual data sets (see applyManual)
+        htmlDesc:       "",
+        Title:          "",
+        ShortTitle:     "",
+        HasGraph:       true,
+        HasTable:       true,
+        Columns:        "",        
     };
 
     var chart;              //c3 chart
     var chartData = [[]];   //chart data
-    var xAxis;              //column used as x axis
 
     //DOM classes and IDs
     var CHART_EDITOR = ".chart-editor";
@@ -286,6 +399,30 @@ var chartEditor = (function() {
     var BUTTON_SAVE_CHART_DATA = "#button-save-chart-data";
     var TEXTAREA_CHART_DATA = "#textarea-chart-data";
 
+    pub.save = function() {
+      settings.htmlDesc = btoa(settings.htmlDesc);
+      settings.manData  = btoa(settings.manData);
+
+      var data = {
+        csrfmiddlewaretoken: window.CSRF_TOKEN,
+        settings  : JSON.stringify(settings),
+        query     : JSON.stringify(queryEditor.getQuery()),
+      };
+      var url = "/cpanel/savePresenter";
+
+      $.post(
+        url,
+        data,
+        function(response) {
+          // alert(response.answer);
+          util.hideSave();
+        }
+      ).always(function() {
+        settings.htmlDesc = atob(settings.htmlDesc);
+        settings.manData  = atob(settings.manData);
+      });              
+    };
+
     /** 
     *   Initializes chartEditor
     *   @param {string} div - Bind chart to div
@@ -293,20 +430,77 @@ var chartEditor = (function() {
     pub.init = function(div) {
         settings.bindTo = div;
         wireEvents();
+        pub.reloadSettings();
         pub.reload();
     };
+
+    pub.setSettings = function(sts) {
+        if (typeof sts === "string") {    
+            try {sts = JSON.parse(sts);} catch (e) {}
+        }
+
+        if (sts != null) {
+          Object.keys(sts).forEach(function (key) {
+            try {              
+              settings[key]=sts[key];
+
+              if (key == "htmlDesc" || key == "manData")
+                settings[key] = atob(settings[key])
+            } catch (e) {}              
+          });        
+          pub.reloadSettings();
+
+          util.hideSave(); 
+        }
+    };
+    pub.reloadSettings = function() {        
+        $("#zoom").           prop('checked', settings.zoom);        
+        $("#subchart").       prop('checked', settings.subchart);        
+        $("#gridX").          prop('checked', settings.gridX);        
+        $("#gridY").          prop('checked', settings.gridY);        
+        $("#categoryLabels"). prop('checked', settings.categoryLabels);        
+        $("#logScale").       prop('checked', settings.logScale);  
+        $("#HasGraph").       prop('checked', settings.HasGraph);  
+        $("#HasTable").       prop('checked', settings.HasTable);  
+
+        $("#graphType").val(settings.graphType);      
+
+        $("#xAxisTitle").val(settings.xAxisTitle);        
+        $("#yAxisTitle").val(settings.yAxisTitle);        
+        $("#xAxis").val(settings.xAxis);        
+        $("#Title").val(settings.Title);
+        $("#ShortTitle").val(settings.ShortTitle);
+        $("#Columns").val(settings.Columns);
+        
+        $("#manData").val(settings.manData);                
+        $("#htmlDesc").val(settings.htmlDesc);        
+          
+        //$("#yAxes").val(settings.yAxes);  
+        try {
+          var ySelector = $(Y_SELECTOR);
+          var curValue = [];  
+          for (var i = 0; i < settings.yAxes.length; i++ ) {
+            let element = settings.yAxes[i];
+            if (!$(ySelector).find("option[value='" + element + "']").length) {
+               var newOption = new Option(element, element, true, true);
+               $(ySelector).append(newOption);
+             }  
+             curValue.push(element);
+          };        
+          ySelector.val(curValue).trigger('change');
+        } catch(e) {alert(e);}                          
+
+        pub.reload();
+    }
+
 
     /**
     *   Loads new chart data
     */
     pub.load = function(data) {
-        chartData = data;
-        xAxis = data[0][0];
-        pub.reload();
-    };
-
-    pub.unload = function() {
-        chartData = [[]];
+        chartData = util.copyArray(data);
+        if (!settings.xAxis)
+          settings.xAxis = data[0][0];
         pub.reload();
     };
 
@@ -315,9 +509,18 @@ var chartEditor = (function() {
     *   selection panels. 
     */
     pub.reload = function() {
+      if (chartData != null && chartData.length > 1) {
         populateXPanel();
-        generateChart(chartData);
-        // populateYPanel();
+        populateYPanel();
+        drawChart(chartData, "#main_chart", settings);        
+      } else {
+        drawChart([[]], "#main_chart", {});        
+      }
+    };    
+
+    pub.unload = function() {
+        chartData = [[]];
+        pub.reload();
     };
 
     /*
@@ -333,10 +536,9 @@ var chartEditor = (function() {
         pub.reload();
     };
 
-    pub.drawChart = function(data, xAxis, yAxes, webControl, settings) {
-        drawChart(data, xAxis, yAxes, webControl, settings);
+    pub.drawChart = function(data, webControl, settings) {
+        drawChart(data, webControl, settings);
     }
-
 
     /**
     *   Wires up chartEditor events
@@ -353,19 +555,17 @@ var chartEditor = (function() {
     function wireChartSettingsEvents() {
         $(CHART_SETTINGS_MODAL).on("change", "input[type=checkbox]", function() {   //chart settings 
             var key = $(this).data("value");
-            if ($(this).prop("checked")) {
-                settings[key] = true;
-
-            } else {
-                settings[key] = false;
-            }
+            settings[key] = $(this).prop("checked");
             pub.reload();
+            util.showSave();
         });
 
-        $(CHART_SETTINGS_MODAL).on("change", "select", function() {     //chart type
-            var val = $(this).val();
-            settings.type = val;
+        $(CHART_SETTINGS_MODAL).on("change", "input[type=text], textarea, select", function() {     //chart type
+            var name = $(this).attr('name'); 
+            var val  = $(this).val();
+            settings[name]=val;
             pub.reload();
+            util.showSave();            
         });
     }
 
@@ -374,14 +574,15 @@ var chartEditor = (function() {
     */
     function wireXYPanelEvents() {
         $(X_SELECTOR).on("change", function() {         //x panel
-            xAxis = $(this).val();            
-            generateChart(chartData);
-            populateYPanel();
+            settings.xAxis = $(this).val();            
+            drawChart(chartData, "#main_chart", settings);        
+            util.showSave();            
         });
 
         $(Y_SELECTOR).on("change", function() {    //y panel
-            generateChart(chartData);
-            populateYPanel();
+            settings.yAxes = $(this).val();
+            drawChart(chartData, "#main_chart", settings);        
+            util.showSave();            
         });
 
         $(BUTTON_TOGGLE_EDITOR).click(function() {  //toggle editor button
@@ -416,6 +617,7 @@ var chartEditor = (function() {
     function populateXPanel() {
         var x_selector = $(X_SELECTOR);
         var sel = x_selector.val();
+        var xAxisSet = false;
 
         x_selector.empty();
 
@@ -425,36 +627,52 @@ var chartEditor = (function() {
             });
             entry.text(chartData[0][i]);
             x_selector.append(entry);
+            if (sel==null) sel=chartData[0][i];
+
+            if (chartData[0][i] == settings.xAxis) xAxisSet=true;
         }
-        $(x_selector).val(sel);
-        xAxis = sel;
+        if (xAxisSet)
+          $(x_selector).val(settings.xAxis);  
+        else if (sel != null) {
+          $(x_selector).val(sel);
+          settings.xAxis=sel;
+        }
     }
 
     /*
     *   Populates the y axis selection panel
     */
     function populateYPanel() {
-        var y_selector = $(Y_SELECTOR);
-        y_selector.empty();
+        let y_selector = $(Y_SELECTOR);
+        y_selector.empty();        
 
-        for (var i = 0; i < chartData[0].length; i++) {
-            var entry = chartData[0][i];
-            var element = $("<li>", {
-                "class": "list-group-item legend-entry",
-                "data-value": entry
+        let suffixes = new Set();
+
+        for (let i = 0; i < chartData[0].length; i++) {
+
+            if (chartData[0][i].includes(".")) {
+                let pieces = chartData[0][i].split(/[.]/);
+                let suffix = pieces[pieces.length-1];
+                suffixes.add(suffix);
+            }
+
+            let entry = $("<option>", {
+                "value": chartData[0][i],
+                "data-value": chartData[0][i]
             });
+            entry.text(chartData[0][i]);
+            y_selector.append(entry);
+        }
 
-            var sq = $("<div>", {
-                "class": "square",
-                "data-value": entry
+        suffixes.forEach(suffix => {
+            let sufVal = "*."+suffix;
+            let entry = $("<option>", {
+                "value": sufVal,
+                "data-value": sufVal
             });
-            $(sq).css("background", chart.color(entry));
-            $(sq).css("border-color", chart.color(entry));
-
-            element.text(entry);
-            element.prepend(sq);
-            y_selector.append(element);
-        } 
+            entry.text(sufVal);
+            y_selector.prepend(entry);
+        });
     }
     
     
@@ -528,6 +746,7 @@ var chartEditor = (function() {
           }
 
           // v x je ime x osi (npr. "N");
+          if (!x) x="ID";
           var xIndex = data[0].indexOf(x);
         
           // "transponiram" tabelo ...
@@ -555,7 +774,7 @@ var chartEditor = (function() {
     // prebere podatek o y oseh iz web kontrole "yAxesInput" in klice funkcijo generateXColumns
     function generateXColumn(data, x) {
         try {
-          var yAxes = "N";
+          var yAxes = "ID";
           try {
               yAxes = $("#yAxesInput").val().split(" ");
           } catch (err) {}
@@ -566,27 +785,73 @@ var chartEditor = (function() {
       }
     }
     
-    /**
-    *  Gets yAxes from web control "yAxesInput" and calls drawChart 
-    */
-    function generateChart(data) {        
-        var yAxes = "N";
+
+    // manData gives instruction about how to change the data before creating a graph
+    // manData is a JSON string that contains an array of manual sets.
+    // A manual set can be of several type (like "Column" or "Formula"), 
+    // currently only "Column" is supported.
+    // A "Column" manual set changes values in a given column and requires the following Meta data:
+    //    - Name ... the name of the column the changes apply to
+    //    - Values ... an array of values for this column
+    //    Example: {"Type":"Column", "Meta":{"Name":"ID", "Values":["10MB", 500, "30MB"]}}
+    function applyManual(curData, manData) {
         try {
-            yAxes = $("#yAxesInput").val().split(" ");
+          var jMan = JSON.parse(manData);
+          for (var i = 0; i < jMan.length; i++) {
+            switch (jMan[i].Type) {
+                case "Column":
+                  var colName = jMan[i].Meta.Name;
+                  var values  = jMan[i].Meta.Values;
+
+                  //find column
+                  var col = 0;
+                  while(col < curData[0].length && curData[0][col] != colName) col++;
+                  if (col < curData[0].length) {  // column exists
+                    for (var j=0; j < values.length; j++) {
+                        if (j < curData.length)
+                          curData[j+1][col] = values[j].toString();
+                    }
+                  }
+                  break;
+            }            
+          }
         } catch (err) {}
-        drawChart(data, xAxis, yAxes, "#main_chart", settings);        
+        return curData;
     }
 
 
-    function drawChart(data, xAxis, yAxes, webControl, settings) {
-        data = generateXColumns(data, xAxis, yAxes);          
+    function drawChart(data, webControl, settings) {
+        var curData = applyManual(util.copyArray(data), settings.manData);
+
+        if (!settings.xAxis) settings.xAxis = "ID";
+        curData = generateXColumns(curData, settings.xAxis, settings.yAxes);          
+        //if (data.length < 1) return;        
         
+        var xAxisType = '';
+        if (settings.categoryLabels) xAxisType = 'category';
+
+        if (settings.logScale) {
+          var val = 0;
+          for(var i=1; i<curData.length; i++) {
+            for(var j=0; j<curData[i].length; j++) {
+                try {
+                  val = Math.log(curData[i][j]);                  
+                } catch (e) {
+                  val = "0";
+                }  
+                curData[i][j] = val.toFixed(2);
+            }
+          }
+        }
+        
+
         chart = c3.generate({
             data: {
-                x: xAxis + " ",
-                rows: data,
-                type: settings.type
+                x: settings.xAxis + " ",                          
+                rows: curData,
+                type: settings.graphType
             },
+
             bindto: webControl,
             zoom: {
                 enabled: settings.zoom
@@ -600,29 +865,29 @@ var chartEditor = (function() {
             },
             grid: {
                 x: {
-                    show: settings.gridx
+                    show: settings.gridX
                 },
                 y: {
-                    show: settings.gridy
+                    show: settings.gridY
                 }
             },
             transition : {
                 duration: 500
             },
-            axis : {
+            axis : {                
                 x: {
                     label: {
-                        text: settings.xlabel,
+                        text: settings.xAxisTitle,
                         position: 'outer-center'
                     },
-
+                    type: xAxisType,
                     tick: {
-                        fit: false
+                        fit: settings.categoryLabels
                     }
                 },
                 y: {
                     label: {
-                        text: settings.ylabel,
+                        text: settings.yAxisTitle,
                         position: 'outer-middle'
                     }
                 }
@@ -636,6 +901,16 @@ var chartEditor = (function() {
 var util = (function () {
 
     var pub = {};
+
+    pub.showSave = function() {
+      $("#labSaved").hide();
+      $("#labSave").show();
+    };
+    pub.hideSave = function() {
+      $("#labSaved").show(1000,function() {$("#labSaved").hide();});
+      $("#labSave").hide();      
+    };
+
 
     /**
     *   Return parameter value from the current URL

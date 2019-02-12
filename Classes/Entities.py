@@ -8,6 +8,7 @@ from Classes.Algorithm import Algorithm
 from Classes.Testset import Testset
 from Classes.GlobalConfig import GlobalConfig
 from Classes.Presenter import Presenter
+from Classes.Query import Query
 from Classes.TXTResult import TXTResult
 
 from Classes.EntitiesLister import EntitiesLister
@@ -154,6 +155,7 @@ def get_TXTResults(projects_path, algorithm_name):
 # presenter is either a filename with JSON description of JSON description itself
 # projectName is the name of the project; it is used to resolve path for presenter file
 def readPresenterDesc(projects_path, presenter_name):
+  presenterPath   = projects_path + "/presenters/"
   try:
     pname="NoName"
     if isinstance(presenter_name,dict):   # graph is dictionary 
@@ -168,36 +170,91 @@ def readPresenterDesc(projects_path, presenter_name):
       else:
           pname = pname[:-5]
 
-      presenterPath   = projects_path + "/presenters/" + presenter 
+      presenterPath   +=  presenter 
       fileContJSON = json.loads(readFileCont(presenterPath))
       jsonCont = fileContJSON["Presenter"]
-  except:
+  except Exception as e:
+      print e
       jsonCont=[]
 
   try:
-    name     = getValue(jsonCont, "Name", pname)
+    name     = getValue(jsonCont,"Name", pname)
     title    = getValue(jsonCont,"Title")
     shtit    = getValue(jsonCont,"ShortTitle")
     desc     = getValue(jsonCont,"Description")
     query    = getValue(jsonCont,"Query")
 
     hasGraph = getValue(jsonCont,"HasGraph", True)
-    xaxis    = getValue(jsonCont,"Xaxis")
-    yaxes    = getValue(jsonCont,"Yaxes")
-    gtypes   = getValue(jsonCont,"GraphTypes")
-    xal      = getValue(jsonCont,"XaxisLabel")
-    yal      = getValue(jsonCont,"YaxisLabel")
+    xaxis    = getValue(jsonCont,"xAxis")
+    yaxes    = getValue(jsonCont,"yAxes")
+    gtypes   = getValue(jsonCont,"graphType")
+    xal      = getValue(jsonCont,"xAxisTitle")
+    yal      = getValue(jsonCont,"yAxisTitle")
 
     hasTable = getValue(jsonCont,"HasTable", True)
     columns  = getValue(jsonCont,"Columns")
-    
-    presenterObj = Presenter(name, title, shtit, desc, query, hasGraph, xaxis, yaxes, gtypes, xal, yal, hasTable, columns)
 
-    presenterObj.html_desc = readHTMLDesc(projects_path + "/presenters/", presenter_name.replace(".atpd", "") + ".html" )
+    zoom     = getValue(jsonCont,"zoom", True)
+    subchart = getValue(jsonCont,"subchart", False)
+    gridx    = getValue(jsonCont,"gridX", True)
+    gridy    = getValue(jsonCont,"gridY", True)
+    category = getValue(jsonCont,"categoryLabels", False)
+    logscale = getValue(jsonCont,"logScale", False)
+    mandata  = getValue(jsonCont,"manData", [])
+
+    
+    presenterObj = Presenter(presenterPath, name, title, shtit, desc, query, hasGraph, xaxis, yaxes, gtypes, xal, yal, hasTable, columns,zoom, subchart, gridx, gridy, category, logscale, mandata)
+
+    presenterObj.html_desc = readHTMLDesc (projects_path + "/presenters/", presenter_name.replace(".atpd", "") + ".html" )
+
+    presenterObj.settingsCont = presenterObj.settingsJSON()
+    presenterObj.queryCont    = readQueryDesc(projects_path, query).getJSONString()
 
     return presenterObj
-  except: # if an error occures during json parsing, return "empty" graph
-    return Presenter("NoName", "?", "?",  "?", "", False, "xaxis", [], [], "xal", "yal", False, [] )                        
+  except: # if an error occures during json parsing, return "empty" Presenter
+    return Presenter(presenterPath, "NoName", "?", "?",  "?", "", False, "xaxis", [], [], "xal", "yal", False, [],  True, False, True, True, False, False, "")
+
+
+def readQueryDesc(project_path, query):
+  try:
+    qname=pname="NoName" 
+    if isinstance(query,dict):   # is query a dictionary?
+      jsonCont = query      
+    elif query.startswith("{"):  # is query a JSON description?           
+      jsonCont = json.loads(query)
+    else:  # if not, read JSON from file     
+      qname=query
+      qpath=query
+      if not qpath.endswith(".atqd"):          
+          qpath     = qpath + ".atqd"
+      else:
+          qname = qname[:-5]
+      qpath   = project_path + "/queries/" + qpath 
+      fileContJSON = json.loads(readFileCont(qpath))      
+      jsonCont = fileContJSON["Query"]
+  except:
+      jsonCont={}
+
+  try:
+    name       = getValue(jsonCont,"Name", qname)
+    desc       = getValue(jsonCont,"Description")
+
+    algorithms = getValue(jsonCont,"Algorithms", [])
+    testsets   = getValue(jsonCont,"TestSets",   [])
+    parameters = getValue(jsonCont,"Parameters", [])
+    indicators = getValue(jsonCont,"Indicators", [])
+
+    groupby    = getValue(jsonCont,"GroupBy", "")
+    filter     = getValue(jsonCont,"Filter",  "")
+    sortby     = getValue(jsonCont,"SortBy",  "")
+    count      = getValue(jsonCont,"Count",   False)
+    compid     = getValue(jsonCont,"ComputerID", "")
+
+    queryObj   = Query(name, desc, algorithms, testsets, parameters, indicators, groupby, filter, sortby, count, compid)
+
+    return queryObj
+  except: # if an error occures during json parsing, return "empty" Query
+    return Query("NoName", "?", [],  [], [], [], "", "", "", False, "")
 
 
 
@@ -296,21 +353,39 @@ class Entities(object):
         project.jj = TaskClient().talkToServer("admin -i " + project_name)
 
         # add all the presenters to the projetc
+        project.presenters = {}
+
         projPresenterNames = getValue(json_description, 'ProjPresenters', [])                        
         for pPresenter in sorted(projPresenterNames): 
-          project.ProjPresenters.append(readPresenterDesc(project_root_path,pPresenter))  
+          thisPresenter = readPresenterDesc(project_root_path,pPresenter)
+          thisPresenter.tip=1
+          pPresenterN = os.path.splitext(os.path.basename(pPresenter))[0]
+          project.presenters[pPresenterN] = thisPresenter
+          project.ProjPresenters.append(thisPresenter)
 
         mainProjPresenters = getValue(json_description, 'MainProjPresenters', [])
         for mProjPresenter in mainProjPresenters: 
-          project.MainProjPresenters.append(readPresenterDesc(project_root_path, mProjPresenter))   
+          thisPresenter = readPresenterDesc(project_root_path, mProjPresenter)
+          thisPresenter.tip=0
+          mProjPresenterN = os.path.splitext(os.path.basename(mProjPresenter))[0]
+          project.presenters[mProjPresenterN] = thisPresenter
+          project.MainProjPresenters.append(thisPresenter)   
 
         algPresenters = getValue(json_description, 'AlgPresenters', [])                        
         for aPresenter in algPresenters: 
-          project.AlgPresenters.append(readPresenterDesc(project_root_path, aPresenter))   
+          thisPresenter = readPresenterDesc(project_root_path, aPresenter)
+          thisPresenter.tip=3
+          aPresenterN = os.path.splitext(os.path.basename(aPresenter))[0]          
+          project.presenters[aPresenterN] = thisPresenter
+          project.AlgPresenters.append(thisPresenter)   
 
         mainAlgPresenters = getValue(json_description, 'MainAlgPresenters', [])
         for mAlgPresenter in mainAlgPresenters: 
-          project.MainAlgPresenters.append(readPresenterDesc(project_root_path, mAlgPresenter))   
+          thisPresenter = readPresenterDesc(project_root_path, mAlgPresenter)
+          thisPresenter.tip=2
+          mAlgPresenterN = os.path.splitext(os.path.basename(mAlgPresenter))[0]          
+          project.presenters[mAlgPresenterN] = thisPresenter
+          project.MainAlgPresenters.append(thisPresenter)   
 
       return project
 
@@ -347,7 +422,7 @@ class Entities(object):
 
         algorithm.txtResultFiles = get_TXTResults(project_root_path, algorithm_name)
 
-        # add all the presenters to the projetc
+        # add all the presenters to the algorithm
         algPresenterNames = getValue(json_description, 'Presenters', [])                        
         for aPresenter in algPresenterNames: 
           algorithm.presenters.append(readPresenterDesc(algorithm_root_path, aPresenter))  
