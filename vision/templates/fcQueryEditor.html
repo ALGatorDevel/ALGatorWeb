@@ -1,0 +1,194 @@
+{% extends "visionBase.html" %}
+
+
+{% load static from staticfiles %}
+
+
+{% block body %}
+<style>
+.panel-heading {padding-top: 0;padding-bottom: 0;padding-left: 5px;}
+.panel {margin-bottom: 10;}
+</style>
+
+<script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+
+
+<div class="query-editor panel panel-default">
+    <div class="panel-body">
+        <div class="row">
+
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Algorithms</div>                        
+                        <select class="multiselect" id="AlgSelect" multiple="multiple" style="width: 100%;">  
+                          <option value="*" data-value="*">*</option>  
+                          {% for algorithm in project.algorithms %}
+                            <option value="{{ algorithm }}" data-value="{{ algorithm }}">{{ algorithm }}</option>
+                          {% endfor %}
+                        </select>                        
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">TestSets</div>
+                      <select class="multiselect" id="TSSelect" multiple="multiple" style="width: 100%;">    
+                        <option value="*"  data-value="*">*</option>
+                        {% for testset in project.testsets %}
+                          <option value="{{ testset }}"  data-value="{{ testset }}">{{ testset }}</option>
+                        {% endfor %}
+                      </select>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">Parameters</div>
+                      <select class="multiselect" id="InParamSelect" multiple="multiple" style="width: 100%;"> 
+                        <option value="*"  data-value="*">*</option>   
+                        {% for param in params.Parameters %}                              
+                          <option value="{{ param }}"  data-value="{{ param }}">{{ param }}</option>                            
+                        {% endfor %}
+                      </select>                            
+                </div>
+                
+                <div class="panel panel-default">
+                    <div class="panel-heading">Indicators</div>
+                       <select class="multiselect" id="OutParamSelect" multiple="multiple" style="width: 100%;">   
+                       <option value="*EM"  data-value="*EM" >*EM </option>
+                       <option value="*CNT" data-value="*CNT">*CNT</option>
+                       <option value="*JVM" data-value="*JVM">*JVM</option> 
+                         {% for param in params.Indicators %}
+                            <option value="{{ param }}"  data-value="{{ param }}">{{ param }}</option>                            
+                         {% endfor %}
+                       </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <form class="form-horizontal" role="form">
+                           <table width=100%>
+                           <tr><td>
+                             <label for="text-Filter" class="control-label">Filter:</label>
+                           </td>
+                           <td>
+                             <input type="text" class="form-control" id="text-Filter">
+                           </td>
+                           <td>
+                             <label for="checkbox-count" class="control-label">&nbsp;&nbsp;Count</label>
+                           </td>
+                           <td>
+                           <input type="checkbox" class="form-control" id="checkbox-Count">
+                           </td>
+                           </tr>
+                           <tr><td>
+                             <label for="text-GroupBy" class="control-label">GroupBy:</label>
+                           </td>
+                           <td>
+                             <input type="text" class="form-control" id="text-GroupBy">
+                           </td>
+                           <td>
+                             <label for="text-compID" class="control-label">&nbsp;&nbsp;ComputerID:</label>
+                           </td>
+                           <td>
+                             <input type="text" class="form-control" id="text-compID">
+                           </td>
+                           </tr>
+                           <tr><td>
+                             <label for="text-SortBy" class="control-label">SortBy:</label>
+                           </td>
+                           <td>
+                             <input type="text" class="form-control" id="text-SortBy">
+                           </td></tr>
+                           </table>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+<div id="result"></div>
+    </div>
+</div>
+
+<script>    
+$(function(){
+  $('.multiselect').select2({
+    placeholder: "Izberi ...",      
+    tags: true,
+    tokenSeparators: [';']
+  });
+});
+
+function generateQuery() {
+  var filter = $("#text-Filter");
+  var groupBy = $("#text-GroupBy");
+  var sortBy = $("#text-SortBy");
+  var compID = $("#text-compID");
+  var countID = $("#checkbox-Count");
+  
+  var newQuery = {};
+  
+  try {          
+    if ($("#AlgSelect").data("select2")) {  
+      newQuery["Algorithms"]=$("#AlgSelect").select2("val");
+      newQuery["TestSets"]=$("#TSSelect").select2("val");
+      newQuery["Parameters"]=$("#InParamSelect").select2("val");
+      newQuery["Indicators"]=$("#OutParamSelect").select2("val");          
+    }
+  } catch (err) {}
+ 
+  if (newQuery["Algorithms"]== undefined   || newQuery["Algorithms"] === null) newQuery["Algorithms"]=[];
+  if (newQuery["TestSets"]== undefined     || newQuery["TestSets"]   === null) newQuery["TestSets"]  =[];
+  if (newQuery["Parameters"]== undefined   || newQuery["Parameters"] === null) newQuery["Parameters"]=[];
+  if (newQuery["Indicators"]== undefined   || newQuery["Indicators"] === null) newQuery["Indicators"]=[];
+
+  //filter, groupby, sortby, COMPID
+  newQuery.Filter = [filter.val()];
+  newQuery.GroupBy = [groupBy.val()];
+  newQuery.SortBy = [sortBy.val()];
+  newQuery.ComputerID = compID.val();
+  newQuery.Count = countID.is(':checked') ? "1" : "0";
+
+  return newQuery;
+}
+
+function reloadQuery() {
+  var query=JSON.stringify(generateQuery());
+  query = query.replace(/u&#39;/g, "'").replace(/&#39;/g, "'")
+               .replace(/ /g, "_!_")   .replace(/&lt;/g, "<")
+               .replace(/&gt;/g, ">");
+
+  thisUrl = "{% url 'cpanel:pAskServer' %}";
+      
+  var data = {
+    csrfmiddlewaretoken: window.CSRF_TOKEN,
+    q : "getQueryResult {{ project.name }} " + query
+  };
+  $.post(
+    thisUrl,
+    data,          
+    function (response) {  
+      answer = response.answer;
+      $( "#result" ).html( answer );      
+    }
+  );
+  return 1;  
+}
+
+$(document).ready(function() { 
+  $( "#AlgSelect" ).change(function() {reloadQuery();});
+  $( "#TSSelect" ).change(function() {reloadQuery();});
+  $( "#InParamSelect" ).change(function() {reloadQuery();});
+  $( "#OutParamSelect" ).change(function() {reloadQuery();});
+  $( "#text-Filter" ).change(function() {reloadQuery();});
+  $( "#checkbox-Count" ).change(function() {reloadQuery();});
+  $( "#text-GroupBy" ).change(function() {reloadQuery();});
+  $( "#text-compID" ).change(function() {reloadQuery();});
+  $( "#text-SortBy" ).change(function() {reloadQuery();});
+}); 
+</script>
+
+{% endblock %}
+
+
+

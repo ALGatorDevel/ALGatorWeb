@@ -168,6 +168,31 @@ def get_project_params(project):
         raise
 
 
+def fcQueryEditor(request):
+  project_name   = request.GET.get('project',   '')
+
+  if not project_exists(project_name):
+    return errorResponse(request, "Missing project directory: " + "PROJ-" + project_name + "...")   
+
+  entities  = Entities()
+  project   = entities.read_project(project_name, True)
+  
+  project_params = {}  
+  try:
+    project_params = get_project_params(project_name)
+  except IOError as e:
+    None
+
+  return render_to_response(
+    'fcQueryEditor.html',
+    {
+      'project'        : project,
+      'params'         : project_params,
+    }
+    , context_instance=RequestContext(request)
+  ) 
+
+
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)

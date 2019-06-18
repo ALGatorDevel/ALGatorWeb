@@ -72,7 +72,8 @@
                                '{{ algorithm.name }}'
                               );">                              
                       </span>
-                      <a href=javascriptX:window.location.href=window.location.href>
+                      <!--a href=javascript:window.location.href=window.location.href> -->
+                      <a  
                       <span class="flg glyphicon glyphicon-remove primary-color"
                             onclick="removePresenter
                               ('{{ project.name }}','{{ presenter.name }}');"
@@ -102,8 +103,8 @@
 
         <tr><td>
           <script>window.CSRF_TOKEN = "{{ csrf_token }}";</script>
-          <a href=javascriptX:window.location.href=window.location.href 
-             onclick="newPresenter('{{ project.name }}', 2);">New...</a>
+          <!--a href=javascript:window.location.href=window.location.href -->
+             <a onclick="newPresenter('{{ project.name }}', 2);">New...</a>
         </td></tr>
 
         </table></center>
