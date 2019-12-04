@@ -1,0 +1,13 @@
+- Za pravilno delovanje spletne strani potrebuješ python 2.7 in Django 1.8.
+
+- Inštalacija Django in paketa pygments:
+
+sudo pip install Django==1.8
+sudo pip install django_pygments
+
+
+- Zagon serverja za prikaz spletne strani:
+
+python manage.py runserver
+
+(stran je potem dosegljiva na http://127.0.0.1:8000)

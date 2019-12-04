@@ -149,23 +149,24 @@ def get_project_params(project):
     data = {}
 
     try:
-        filepath =  "{0}/{1}-em.atrd".format(directory, project)    # <project>-em.atrd filepath
-        paramOrder = json.loads(open(filepath, "r").read(), strict=False)["Result"]["ParameterOrder"]
+        filepath =  "{0}/{1}.attc".format(directory, project)    # <project>-em.atrd filepath
+        paramOrder = json.loads(open(filepath, "r").read(), strict=False)["TestCase"]["TestCaseParameters"]
         data["Parameters"] = paramOrder
-
+        
         data["Indicators"] = []
         for file in os.listdir(directory):
             if file.startswith(project) and file.endswith(".atrd") and not file.endswith("-em.atrd"):
                 filepath = "{0}/{1}".format(directory, file)
-                params = json.loads(open(filepath, "r").read(), strict=False)["Result"]["IndicatorOrder"]
+                params = json.loads(open(filepath, "r").read(), strict=False)["Result"]["IndicatorsOrder"]
                 for param in params:
                     if param not in data["Indicators"]:                        
-                        data["Indicators"].append(param)
-
-        return data
+                        data["Indicators"].append(param)        
     except ValueError as e:
-        e.filename = filepath
-        raise
+        None
+        # e.filename = filepath
+        # raise
+        
+    return data
 
 
 def fcQueryEditor(request):
