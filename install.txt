@@ -10,4 +10,4 @@ sudo pip install django_pygments
 
 python manage.py runserver
 
-(stran je potem dosegljiva na http://127.0.0.1:8000)
+(stran je potem dosegljiva na http://127.0.0.1:8000).
