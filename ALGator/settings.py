@@ -81,14 +81,13 @@ WSGI_APPLICATION = 'ALGator.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'algator',
 
-        # The following settings are not used with sqlite3:
-        #'USER': '',
-        #'PASSWORD': '',
-        #'HOST': '',   # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-       # 'PORT': '',   # Set to empty string for default.
+        'USER': 'algator',
+        'PASSWORD': 'algator',
+        'HOST': 'localhost',   # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': '3306',   # Set to empty string for default.
     }
 }
 
