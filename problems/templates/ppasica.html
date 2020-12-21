@@ -2,7 +2,8 @@
 <div class="container-fluid">
 <ul class="breadcrumb">
   <li><a href="{% url 'problems:pdetails' %}?project={{ project.name }}">
-    {{ project.name }}    
+        {{ project.name }}  
+      </a> <span class="glyphicon glyphicon-asterisk" onclick="openQuery('BasicSort')" style="position:absolute; right:20px;"></span>
   </li>
 </ul>
 </div>

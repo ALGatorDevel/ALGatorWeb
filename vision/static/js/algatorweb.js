@@ -49,16 +49,18 @@ var queryEditor = (function () {
 
           Object.keys(q).forEach(function (key) {
             try {
-              if (key === "Filter" || key === "GroupBy" || key === "SortBy" || key == "ComputerID") {
-                $("#text-" + key).val(q[key]);
+              if (key === "Filter"  || key === "SortBy" || key == "ComputerID") {
+                var cont = q[key].toString().replaceAll(","," & ");
+                $("#text-" + key).val(cont);
               } else {
                 var selector = "";                
                 var nKey = key.toString().toUpperCase();
                 switch (nKey) {
                     case "ALGORITHMS": selector="#AlgSelect"; break;
-                    case "TESTSETS": selector="#TSSelect"; break;
+                    case "TESTSETS":   selector="#TSSelect"; break;
                     case "PARAMETERS": selector="#InParamSelect"; break;
                     case "INDICATORS": selector="#OutParamSelect"; break;
+                    case "GROUPBY":    selector="#text-GroupBy"; break;
                 }
                 if (selector != "") {
                   var curValue = [];  
@@ -123,6 +125,7 @@ var queryEditor = (function () {
             newQuery["TestSets"]=$("#TSSelect").select2("val");
             newQuery["Parameters"]=$("#InParamSelect").select2("val");
             newQuery["Indicators"]=$("#OutParamSelect").select2("val");          
+            newQuery["GroupBy"]=$("#text-GroupBy").select2("val");          
           }
         } catch (err) {}
        
@@ -130,12 +133,12 @@ var queryEditor = (function () {
         if (newQuery["TestSets"]== undefined     || newQuery["TestSets"]   === null) newQuery["TestSets"]  =[];
         if (newQuery["Parameters"]== undefined   || newQuery["Parameters"] === null) newQuery["Parameters"]=[];
         if (newQuery["Indicators"]== undefined   || newQuery["Indicators"] === null) newQuery["Indicators"]=[];
+        if (newQuery["GroupBy"]   == undefined   || newQuery["GroupBy"]    === null) newQuery["GroupBy"]=[];
 
         
  
         //filter, groupby, sortby, COMPID
-        newQuery.Filter = [filter.val()];
-        newQuery.GroupBy = [groupBy.val()];
+        newQuery.Filter = filter.val().split("&").map(Function.prototype.call, String.prototype.trim);        
         newQuery.SortBy = [sortBy.val()];
         newQuery.ComputerID = compID.val();
         newQuery.Count = countID.is(':checked') ? "1" : "0";
@@ -235,7 +238,7 @@ var queryEditor = (function () {
     function handleDataDownload() {
         if (data !== undefined) {
             var csvText = data.map(function(line) { 
-                return line.join(",");
+                return line.join(";");
             }).join("\n");
 
             var blob = new Blob([csvText], {type: "text/plain;charset=utf-8"});
@@ -316,27 +319,29 @@ var queryEditor = (function () {
     */
     pub.populateTable = function () {
         var table = $(DATA_TABLE); 
+        table.empty();
+        if (data.length != 0)  {
         
-        var populate_head = function () {
+          var populate_head = function () {
             var head = $('<thead>');
             var head_data = '<tr>';
             for (var i = 0; i < data[0].length; i++) {
-                head_data += '<th align="center">' + data[0][i] + '</th>';
+                head_data += '<th style="text-align:center;">' + data[0][i] + '</th>';
             }
             head_data += '</tr>';
             head.append(head_data);
             return head;
-        };
+          };
 
 
-        var populate_body = function () {
+          var populate_body = function () {
             var body = $('<tbody>');
             var body_data = '';
             for (var i = 1; i < data.length; i++) {
                 body_data += '<tr>';
                 for (var j = 0; j < data[i].length; j++) {
                     var curID = 'edi'+i+'x'+j;
-                    body_data += '<td align="center" style="border-right: solid 1px #CCC; border-left: solid 1px #CCC;">';
+                    body_data += '<td align="center" style="border-right: solid 1px #CCC; border-left: solid 1px #CCC; max-width:300px; height:20px; overflow-x:scroll; white-space: nowrap;">';
                     body_data +=   '<div id="'+curID+'" contenteditable="true">'
                     body_data +=     data[i][j];
                     body_data +=   '</div>'
@@ -347,11 +352,11 @@ var queryEditor = (function () {
             }
             body.append(body_data);
             return body;
-        };
-        
-        table.empty();
-        table.append(populate_head());
-        table.append(populate_body());
+          };
+                
+          table.append(populate_head());
+          table.append(populate_body());
+        }
     }
 
     return pub;
@@ -367,8 +372,8 @@ var chartEditor = (function() {
     var settings = { 
         bindTo: "#chart",   //div id        
 
-        xAxis:          "N",
-        yAxes:          "ID",        
+        xAxis:          "", // N?
+        yAxes:          [],        
         zoom:           true,     //zoom enabled
         subchart:       false,    //don't show subchart                
         gridX:          true,     //x grid lines
@@ -386,6 +391,8 @@ var chartEditor = (function() {
         Columns:        "",        
     };
 
+    pub.getDefaultSettings = function() { return settings;};
+
     var chart;              //c3 chart
     var chartData = [[]];   //chart data
 
@@ -398,6 +405,8 @@ var chartEditor = (function() {
     var BUTTON_TOGGLE_EDITOR = "#button-toggle-editor";
     var BUTTON_SAVE_CHART_DATA = "#button-save-chart-data";
     var TEXTAREA_CHART_DATA = "#textarea-chart-data";
+
+    var innerYAxisChange = false;
 
     pub.save = function() {
       settings.htmlDesc = btoa(settings.htmlDesc);
@@ -433,6 +442,14 @@ var chartEditor = (function() {
         pub.reloadSettings();
         pub.reload();
     };
+
+    pub.getGraphData = function() {
+      var curData = applyManual(util.copyArray(chartData), settings.manData);
+
+      if (!settings.xAxis) settings.xAxis = "ID";
+      curData = generateXColumns(curData, settings.xAxis, settings.yAxes); 
+      return curData;
+    }
 
     pub.setSettings = function(sts) {
         if (typeof sts === "string") {    
@@ -475,21 +492,26 @@ var chartEditor = (function() {
         $("#manData").val(settings.manData);                
         $("#htmlDesc").val(settings.htmlDesc);        
           
-        //$("#yAxes").val(settings.yAxes);  
-        try {
-          var ySelector = $(Y_SELECTOR);
-          var curValue = [];  
-          for (var i = 0; i < settings.yAxes.length; i++ ) {
-            let element = settings.yAxes[i];
-            if (!$(ySelector).find("option[value='" + element + "']").length) {
-               var newOption = new Option(element, element, true, true);
-               $(ySelector).append(newOption);
-             }  
-             curValue.push(element);
-          };        
-          ySelector.val(curValue).trigger('change');
-        } catch(e) {alert(e);}                          
-
+        //$("#yAxes").val(settings.yAxes);
+        
+        var ySelector = $(Y_SELECTOR);
+        var curValue = [];  
+        if (settings.yAxes != null) {
+          innerYAxisChange=true;
+          try {
+            for (var i = 0; i < settings.yAxes.length; i++ ) {
+              let element = settings.yAxes[i];
+              if (!$(ySelector).find("option[value='" + element + "']").length) {
+                 var newOption = new Option(element, element, true, true);
+                 $(ySelector).append(newOption);
+               }  
+               curValue.push(element);
+            };
+          } catch(e) {alert(e);}
+          innerYAxisChange=false;                           
+          ySelector.val(curValue).trigger('change');          
+        }        
+          
         pub.reload();
     }
 
@@ -580,9 +602,11 @@ var chartEditor = (function() {
         });
 
         $(Y_SELECTOR).on("change", function() {    //y panel
-            settings.yAxes = $(this).val();
-            drawChart(chartData, "#main_chart", settings);        
-            util.showSave();            
+            if (!innerYAxisChange) {
+              settings.yAxes = $(this).val();
+              drawChart(chartData, "#main_chart", settings);        
+              util.showSave();            
+            }
         });
 
         $(BUTTON_TOGGLE_EDITOR).click(function() {  //toggle editor button

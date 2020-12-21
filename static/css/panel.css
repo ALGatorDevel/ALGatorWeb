@@ -1,0 +1,27 @@
+.panel{
+    font-family: "Courier New", Courier, monospace; 
+    font-size: 14px; 
+    margin-bottom: 0px;  
+}
+
+div.elt {
+  margin: 1px;
+  background-color: lightblue;
+} 
+
+.vpis {
+	border: 0;
+}
+.vpis:focus{
+   outline: 1px solid rgba(255,255,255,1);
+}
+
+.myBtn {    
+    width:25px;
+    height:15px;
+    margin:0px;
+    border-radius:2px;
+    -webkit-border-radius:7px;
+    text-align: center;  
+    line-height: 3px;   
+}

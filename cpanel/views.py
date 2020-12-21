@@ -206,6 +206,16 @@ def runtask(request):
     return JsonResponse(rsp)
  
 #@login_required
+def panel(request):
+  return render_to_response(
+    'panel.html',
+    {
+      'test'  : 'test',      
+    },
+    context_instance=RequestContext(request)
+  )
+
+#@login_required
 def askServer(request):
     question = request.GET.get('q', '')
     

@@ -13,12 +13,12 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
+    <div style="background-color: yellowgreen;position: absolute;top: 110px;bottom: 0;left: 0;right: 0; margin: 15px; overflow:scroll;">
         <div class="row">
             <div class="col-md-5">
              {% include 'queryEditor.html' %}
             </div>   
-            <div class="col-md-7" id="graphsCopy">
+            <div class="col-md-7" >
                 <div class="chart-panel panel panel-default"> 
                   {% include 'chartPanel.html' %}
                 </div>
@@ -33,10 +33,15 @@
             </div>               
         </div>
     </div>
+    <div class="col-md-12" id="graphsCopy">
+      sdfsdfsdf 
+    </div>
 
     <script>
         
-        $(document).ready(function() {                      
+        $(document).ready(function() {  
+            $("html").css("min-height", "100%");
+                    
             $(window).resize(function () {
                 $("#chart").css("max-height", "");
             });    //on window resize
@@ -81,4 +86,3 @@
 
 
 {% endblock %}
-

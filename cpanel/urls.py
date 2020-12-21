@@ -15,4 +15,5 @@ urlpatterns = [
     url(r'^askServer', views.askServer, name='askServer'),
     url(r'^pAskServer', views.pAskServer, name='pAskServer'),
     url(r'^savePresenter', views.savePresenter, name='savePresenter'),    
+    url(r'^panel/', views.panel, name='panel'),    
 ]

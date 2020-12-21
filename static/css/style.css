@@ -16,6 +16,28 @@ a:hover {
 button {
   background-color: #aacc4e;
 }
+
+
+/* Za okno, ki pokrije vso drugo vsebino */
+.overlay {
+  height: 100%;
+  width: 100%;
+  display: none;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: rgba(240,240,240, 1);
+}
+.overlay-content {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  margin-top: 30px;
+}
+
+
+
 .panel-title {
   font-size: 16px;
 }
