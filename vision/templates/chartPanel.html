@@ -158,6 +158,7 @@ class Graph {
   }    
 
   function drawGraph(divID, settings, curData) {
+/*    
     var xAxisType = '';
     if (settings.categoryLabels) xAxisType = 'category';
 
@@ -210,6 +211,8 @@ class Graph {
         }
     });
     return chart;
+*/
+    return chartEditor.drawChart(curData, divID, settings).chart;
   }
 
   function addColumns(chart, settings, data) {

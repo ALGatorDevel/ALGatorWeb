@@ -161,7 +161,7 @@ def get_project_params(project):
                 for param in params:
                     if param not in data["Indicators"]:                        
                         data["Indicators"].append(param)        
-    except ValueError as e:
+    except:  # ValueError as e:
         None
         # e.filename = filepath
         # raise

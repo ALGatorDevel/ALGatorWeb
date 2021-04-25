@@ -867,9 +867,23 @@ var chartEditor = (function() {
             }
           }
         }
-        
 
-        chart = c3.generate({
+        if (settings.graphType=="other") {
+          // implementacija "posebnih tipov" grafov
+          chart = c3.generate({
+            bindto: webControl,
+            
+            data: {
+              columns: [
+                ['data1', 30, 200, 100, 400, 150, 250],
+                ['data2', 130, 100, 140, 200, 150, 50]
+              ],
+              type: 'spline'
+            }
+          });
+        } else {
+
+          chart = c3.generate({
             data: {
                 x: settings.xAxis + " ",                          
                 rows: curData,
@@ -916,7 +930,8 @@ var chartEditor = (function() {
                     }
                 }
             }
-        });
+          });
+        }
     }
     return pub;
 })();
