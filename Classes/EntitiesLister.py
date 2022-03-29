@@ -11,14 +11,11 @@ class EntitiesLister(object):
     # In the future: the list will be obtained by asking the ALGator for the projects that
     #            are available to the current user according to user's rights
     def get_projects_names(self):
-        print "ppxp="+self.projects_path
-
         try: 
           projects_names = []  
           folder_list = os.listdir(self.projects_path)
 
           for folder in folder_list:   
-            print folder         
             fullPath = self.projects_path + "/" + folder
 
             if os.path.isdir(fullPath) and folder.startswith("PROJ-"):            
@@ -45,7 +42,7 @@ class EntitiesLister(object):
             if os.path.isdir(fullPath) and folder.startswith("ALG-"):            
               algorithms_names.append(folder[4:])              
         except Exception as exp:
-            print exp
+            print(str(exp))
 
         return algorithms_names
 

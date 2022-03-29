@@ -1,6 +1,6 @@
 {% extends 'base.html' %} 
 
-{% load static from staticfiles %}
+{% load static %}
 
 {% block body_block %}
 
@@ -8,6 +8,7 @@
 <link href="{% static 'css/panel.css' %}" rel="stylesheet">
 <link href="{% static 'css/style.css' %}"        rel="stylesheet">
 <link href="{% static 'css/algatorweb.css' %}"        rel="stylesheet">
+
 
 <script type="text/javascript" src="{% static 'js/d3.js' %}"></script>        
 <script type="text/javascript" src="{% static 'js/c3.min.js' %}"></script> 
@@ -25,7 +26,8 @@
 <body>
 
 <div class="inner-content"> 
-<h1>#ALGator shell</h1>
+<div style="text-align:right; font-size: 8px;">(za navodila glej "Panel (ALGator shell).txt")</div>
+<h1>#ALGator shell </h1>
 <hr>
 <div id="vsebina"></div>
 <input type="button" style="background-color: ligthyellow; width:28px" value="+" class="myBtn" onclick="novElement();">

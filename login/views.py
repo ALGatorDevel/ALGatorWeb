@@ -3,7 +3,7 @@ from login.forms import *
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.views.decorators.csrf import csrf_protect
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.template.defaulttags import register
@@ -39,16 +39,12 @@ def register(request):
     'form': form
     })
  
-    return render_to_response(
-    'registration/register.html',
-    variables,
-    )
+    return render(request, 'registration/register.html',variables)
 
 
 def register_success(request):
-    return render_to_response(
-    'registration/success.html',
-    )
+    return render(request,
+    'registration/success.html', {})
 
 
 def logout_page(request):
@@ -56,10 +52,9 @@ def logout_page(request):
     return HttpResponseRedirect('/')
  
 def home(request):
-    return render_to_response(
+    return render(request, 
         'home.html',
-        {'user': request.user,
-         }, context_instance=RequestContext(request)
+        {'user': request.user}
     )
 
 #@login_required
@@ -75,10 +70,9 @@ def settings_page(request):
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('/settings/')
-    return render_to_response(
+    return render(request, 
         'profile.html',
-        {'form': form,
-         }, context_instance=RequestContext(request)
+        {'form': form}
     )
 
 

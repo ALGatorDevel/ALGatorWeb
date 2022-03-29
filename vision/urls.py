@@ -1,13 +1,13 @@
 # vision
 
-from django.conf.urls import url
+from django.urls import path
 
 from vision import views
 
 urlpatterns = [
-    url(r'^chart',     views.chart,   name='chart'),
-    url(r'^openPresenter',   views.openPresenter, name='openPresenter'),    
-    url(r'^newPresenter',   views.newPresenter, name='newPresenter'),    
-    url(r'^project',   views.project, name='project'), 
-    url(r'^fcQueryEditor',   views.fcQueryEditor, name='fcQueryEditor'),    
+    path('chart',     views.chart,   name='chart'),
+    path('openPresenter',   views.openPresenter, name='openPresenter'),    
+    path('newPresenter',   views.newPresenter, name='newPresenter'),    
+    path('project',   views.project, name='project'), 
+    path('fcQueryEditor',   views.fcQueryEditor, name='fcQueryEditor'),    
 ]

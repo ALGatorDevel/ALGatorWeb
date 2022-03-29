@@ -31,7 +31,6 @@ class Presenter:
         self.html_desc=""   
         self.tip=0
 
-
     # this method is used to create a JSON representation of settings used
     # to show presenter on web page; instead of creating javascript hashtable
     # for settings on several html pages, we create JSON string containing 
@@ -58,8 +57,8 @@ class Presenter:
           "HasGraph"       : self.hasgraph,
           "HasTable"       : self.hastable,
           "Columns"        : self.columns,
-          "htmlDesc"       : base64.b64encode(self.html_desc),
-          "manData"        : base64.b64encode(json.dumps(self.mandata))
+          "htmlDesc"       : base64.b64encode(self.html_desc.encode()).decode(),
+          "manData"        : base64.b64encode(json.dumps(self.mandata).encode()).decode()
         }
         # the replacement of quotes (with _!_) was used to avoid problems in html;
         return json.dumps(jsonArray).replace("\"", "_!!_").replace("'", "_!_")

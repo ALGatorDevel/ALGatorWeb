@@ -4,10 +4,10 @@ import subprocess
 import os
 import json
 import base64
-
+ 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template.context import RequestContext
 from django.template.defaulttags import register
 
@@ -25,13 +25,12 @@ def home(request):
 
     entities = Entities()
 
-    return render_to_response(
+    return render(request,
         'cpindex.html',
         {
             'contentpage'  : 'cplanding.html',
             'projects_list': entities.projects_list,            
         }
-        , context_instance=RequestContext(request)
     )
 
 #@login_required
@@ -41,7 +40,7 @@ def taskserver(request):
     tasks       = TaskClient().talkToServer("LIST")
     
     entities = Entities()
-    return render_to_response(
+    return render(request,
         'cpindex.html',
         {
           'contentpage'  : 'taskserver.html',
@@ -49,8 +48,7 @@ def taskserver(request):
           
           'serverStatus': serverStatus,
           'tasks': tasks,
-        },
-        context_instance=RequestContext(request)
+        }
     )
 
 #@login_required
@@ -62,7 +60,7 @@ def project(request):
     jweURL = subprocess.check_output("cd %s;./getAAA.pl ALGator Project %s" % (jweROOT, project), shell=True)
     
     entities = Entities()
-    return render_to_response(
+    return render(request,
         'cpindex.html',
         {
           'contentpage'  : 'project.html',        
@@ -70,8 +68,7 @@ def project(request):
           
           'project': project,
           'jweURL': jweURL,
-        },
-        context_instance=RequestContext(request)
+        }
     )
 
 
@@ -111,7 +108,7 @@ def algorithm(request):
                    desc = ""
                results[key] = desc
 
-    return render_to_response(
+    return render(request,
         'cpindex.html',
         {
           'contentpage'  : 'algorithm.html',        
@@ -124,8 +121,7 @@ def algorithm(request):
           'jweURL': jweURL,
           'results': results,
           'computers': computers
-        },
-        context_instance=RequestContext(request)
+        }
     )
 
 
@@ -145,7 +141,7 @@ def results(request):
     
     entities = Entities()
 
-    return render_to_response(
+    return render(request,
         'cpindex.html',
         {
           'contentpage'  : 'showFileCont.html',        
@@ -153,8 +149,7 @@ def results(request):
 
           'filename':   file + " (%s)" % computer,
           'fileCont': cont,
-        },
-        context_instance=RequestContext(request)
+        }
     )
 
 #@login_required
@@ -174,7 +169,7 @@ def history(request):
     
     entities = Entities()
 
-    return render_to_response(
+    return render(request,
         'cpindex.html',
         {
           'contentpage'  : 'showFileCont.html',        
@@ -182,8 +177,7 @@ def history(request):
 
           'filename':   file,
           'fileCont': cont,
-        },
-        context_instance=RequestContext(request)
+        }
     )
 
 
@@ -207,12 +201,11 @@ def runtask(request):
  
 #@login_required
 def panel(request):
-  return render_to_response(
+  return render(request,
     'panel.html',
     {
       'test'  : 'test',      
-    },
-    context_instance=RequestContext(request)
+    }
   )
 
 #@login_required

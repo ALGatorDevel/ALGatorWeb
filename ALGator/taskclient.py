@@ -12,8 +12,8 @@ class TaskClient(object):
     chunks = []
     bytes_recd = 0
     while bytes_recd < MAX_MSG_LEN:
-      chunk = sock.recv(1024)
-      print "chunk=" + chunk
+      chunk = sock.recv(1024).decode()
+      # print("chunk=" + chunk)
       chunks.append(chunk)
       bytes_recd = bytes_recd + len(chunk)
       if len(chunk) < 1024:
@@ -25,11 +25,10 @@ class TaskClient(object):
     try:  
       s = socket.socket()
       s.connect((__hostname__, __port__))
-    
-      s.send(request + "\n")
-      # answer = s.recv(10240)
+      s.send((request + "\n").encode())
       answer = self.readAnswer(s)
+      s.close()
     
       return answer
-    except:
+    except Exception as ex:
       return "?"  

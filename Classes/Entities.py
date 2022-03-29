@@ -19,14 +19,17 @@ from ALGator.taskclient import TaskClient
 from django.conf import settings
 from shutil import copy2
 
-
 ############# HELPER methods ####################
 
 gc = GlobalConfig()
 
 def readFileCont(fileName):
   try:
-    return open(fileName, 'r').read()
+    file = open(fileName, 'r')
+    content = file.read()
+    file.close()
+
+    return content
   except:
     return ""
 
@@ -174,7 +177,7 @@ def readPresenterDesc(projects_path, presenter_name):
       fileContJSON = json.loads(readFileCont(presenterPath))
       jsonCont = fileContJSON["Presenter"]
   except Exception as e:
-      print e
+      print(str(e))
       jsonCont=[]
 
   try:
@@ -211,7 +214,8 @@ def readPresenterDesc(projects_path, presenter_name):
     presenterObj.queryCont    = readQueryDesc(projects_path, query).getJSONString()
 
     return presenterObj
-  except: # if an error occures during json parsing, return "empty" Presenter
+  except Exception as ex: # if an error occures during json parsing, return "empty" Presenter
+    print(str(ex))
     return Presenter(presenterPath, "NoName", "?", "?",  "?", "", False, "xaxis", [], [], "xal", "yal", False, [],  True, False, True, True, False, False, "")
 
 

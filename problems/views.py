@@ -2,7 +2,7 @@
 
 from django.template.defaulttags import register
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template.context import RequestContext
 from django.http import HttpResponse
 
@@ -16,13 +16,12 @@ def problems(request):
 
     tc = TaskClient()
 
-    return render_to_response(
+    return render(request,
         'index.html',
         {
             'projects_list': projects_list,
             'userperms' : tc.talkToServer("users userperm " + request.user.username),
         }
-        , context_instance=RequestContext(request)
     )
     
 #@login_required
@@ -33,14 +32,13 @@ def pdetails(request):
     entities = Entities()
     project = entities.read_project(projectName, True)
 
-    return render_to_response(
+    return render(request,
         'pdetails.html',
         {
             'project': project,
             'projects_list': entities.projects_list,
 
         }
-        , context_instance=RequestContext(request)
     )
 
 # technical details about the project
@@ -55,12 +53,11 @@ def tdetails(request):
       return HttpResponse('Unknown project: "' + projectName + '"')
 
 
-    return render_to_response(
+    return render(request,
         'tdetails.html',
         {
             'project': project,
         }
-        , context_instance=RequestContext(request)
     )
 
 
@@ -89,7 +86,7 @@ def results(request):
       presenters = algorithm.presenters + project.AlgPresenters 
 
 
-    return render_to_response(
+    return render(request,
         'results.html',
         {
             'project'    : project,
@@ -97,7 +94,6 @@ def results(request):
             'presenters' : presenters,
             'from_algorithm' : False if algorithm==None else True,
         }
-        , context_instance=RequestContext(request)
     )
 
     
@@ -125,14 +121,13 @@ def adetails(request):
     else:
         return HttpResponse('Unknown showType: "' + showType + '"')
 
-    return render_to_response(
+    return render(request,
         showPage,
         {
             'algorithm': algorithm,
             'project' : project,
 
         }
-        , context_instance=RequestContext(request)
     )
 
 
@@ -145,13 +140,12 @@ def ppasica(request):
     if project == None:
         return HttpResponse('Unknown project: "' + projectName + '"')      
 
-    return render_to_response(
+    return render(request,
         'ppasica.html',
         {
             'project': project,
     
         }
-        , context_instance=RequestContext(request)
     )
 
 def prepasica(request):    
@@ -162,13 +156,12 @@ def prepasica(request):
     if project == None:
         return HttpResponse('Unknown project: "' + projectName + '"')      
 
-    return render_to_response(
+    return render(request,
         'prepasica.html',
         {
             'project': project,
     
         }
-        , context_instance=RequestContext(request)
     )
 
 
@@ -194,7 +187,7 @@ def txtresults(request):
     else:
         cont = "Results for this algorithm do not exit. Please run ALGator first!"
 
-    return render_to_response(
+    return render(request,
         'txtresults.html',
         {
             'project': project,
@@ -202,7 +195,6 @@ def txtresults(request):
             'firstTitle' : "/",
             'firstCont' : cont,
         }
-        , context_instance=RequestContext(request)
     )
 
 

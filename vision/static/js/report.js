@@ -7,7 +7,7 @@
       // URL to run a query by ajax call
       query = query.replace(/u&#39;/g, "'").replace(/&#39;/g, "'")
                    .replace(/ /g, "_!_")   .replace(/&lt;/g, "<")
-                   .replace(/&gt;/g, ">");
+                   .replace(/&gt;/g, ">").replace(/&#x27;/g, "'");
 
       thisUrl = askServer;  //request url
       

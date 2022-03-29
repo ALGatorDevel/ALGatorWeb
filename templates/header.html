@@ -1,4 +1,4 @@
-    {% load static from staticfiles %}
+    {% load static %}
 
     {% url 'problems:index' as problems_url %}
     {% url 'cpanel:index' as cpanel_url %}
@@ -22,15 +22,15 @@
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                     <ul class="nav navbar-nav">
-                        <li class="{% ifequal request.path '/' %}active{% endifequal %}">
+                        <li class="{% if request.path == '/' %}active{% endif %}">
                            <a href="/"><img src="{% static 'images/algator_icon.png' %}" height="15px"/>&nbsp;&nbsp;ALGator&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
-                        <li class="{% ifequal request.path problems_url %}active{% endifequal %}" >
+                        <li class="{% if request.path == problems_url %}active{% endif %}" >
                            <a href="{{ problems_url }}"><img src="{% static 'images/problems_icon.png' %}" height="15px"/>&nbsp;&nbsp;Problems &nbsp;&nbsp;&nbsp;
                               
                            </a></li>
 
                         {% if user.get_username == "admin" %}   
-                        <li class="{% ifequal request.path cpanel_url %}active{% endifequal %}" >
+                        <li class="{% if request.path == cpanel_url %}active{% endif %}" >
                            <a href="{{ cpanel_url }}"><img src="{% static 'images/my_solutions_icon.png' %}" height="25px" style="margin-top: -15px;"/>                     
                               &nbsp;&nbsp;Control panel&nbsp;
                            </a></li>

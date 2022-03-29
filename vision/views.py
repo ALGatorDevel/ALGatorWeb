@@ -4,7 +4,7 @@ import json
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template.context import RequestContext
 from django.template.defaulttags import register
 
@@ -35,7 +35,7 @@ def project(request):
   except IOError as e:
     return errorResponse(request, "{0}: {1}".format(e.strerror, os.path.basename(e.filename)))
 
-  return render_to_response(
+  return render(request,
     'vProject.html',
     {
       'title'   : project_name,
@@ -43,7 +43,6 @@ def project(request):
       'params'  : project_params,
       'pid'     : pid,
     }
-    , context_instance=RequestContext(request)
   )
 
 def openPresenter(request):
@@ -69,7 +68,7 @@ def openPresenter(request):
   except IOError as e:
     None
 
-  return render_to_response(
+  return render(request,
     'openPresenter.html',
     {
       'project'        : project,
@@ -77,7 +76,6 @@ def openPresenter(request):
       'params'         : project_params,
       'param'          : param,
     }
-    , context_instance=RequestContext(request)
   ) 
 
 def newPresenter(request):
@@ -96,7 +94,7 @@ def chart(request):
   params       = request.GET.get('params',  '')
   chartid      = request.GET.get('chartid',  '')
   
-  return render_to_response(
+  return render(request,
     'chart.html',
     {
       'project' : project_name,
@@ -104,17 +102,15 @@ def chart(request):
       'chartid' : chartid,
       'params'  : params,
     }
-    , context_instance=RequestContext(request)
   )
 
 
 def errorResponse(request, msg):
-  return render_to_response(
+  return render(request,
            'error.html',
            {
              'error'  : msg
            }
-           , context_instance=RequestContext(request)
   )
 
 def project_exists(project):
@@ -184,13 +180,12 @@ def fcQueryEditor(request):
   except IOError as e:
     None
 
-  return render_to_response(
+  return render(request,
     'fcQueryEditor.html',
     {
       'project'        : project,
       'params'         : project_params,
     }
-    , context_instance=RequestContext(request)
   ) 
 
 

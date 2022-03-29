@@ -89,7 +89,7 @@ class TableData extends Data {
   }
 
   // iz sebe naredi novo tabelo s stolpci, ki so nasteti v tabeli params
-  rows(params) {
+  cols(params) {
     var i, j, newRaw = "";
     var vrstice = this.rawData.split("\n");
     for(i=0; i<vrstice.length; i++) {
@@ -375,12 +375,12 @@ function processPercent(blockID, vpr) {
         }
         break;
 
-      case "rows":
+      case "cols":
         if (data.type === Data.TABLE_DATA) { 
-          data = data.rows(params);         
+          data = data.cols(params);         
           params = [];   
         } else {
-          data = new ErrorData("Invalid argument to 'rows': " + data.type); 
+          data = new ErrorData("Invalid argument to 'cols': " + data.type); 
         }
         break;
 

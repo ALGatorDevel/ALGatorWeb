@@ -40,8 +40,7 @@ class Project(object):
         self.MainProjPresenters = []
         self.AlgPresenters = []
         self.MainAlgPresenters = []
-        self.algorithmReports = []     
-
+        self.algorithmReports = []    
 
     def get_algorithm(self, algorithm_name):
       for algorithm in self.algorithms:

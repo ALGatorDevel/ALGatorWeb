@@ -172,7 +172,7 @@ var queryEditor = (function () {
         var encoded = encodeURIComponent(query.replace(/ /g, "_!_"));     //encode request string    
         var serverName = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port : ""); 
         var url = serverName + "/cpanel/askServer?q=getQueryResult%20"+project+"%20"+encoded;  //request url
-
+        
         // history.replaceState(null, "", url); 
         // history.replaceState(null, "", serverName +   "?projectName=" + project +  "&query=" + JSON.stringify(query));  //set url query parameter
 

@@ -1,19 +1,19 @@
 # cpanel
 
-from django.conf.urls import url
+from django.urls import path
 
 from cpanel import views
 
 urlpatterns = [
-    url(r'^$', views.home, name='index'),
-    url(r'^taskserver/', views.taskserver, name='taskserver'),
-    url(r'^project/', views.project, name='project'),
-    url(r'^algorithm/', views.algorithm, name='algorithm'),
-    url(r'^results', views.results, name='results'),
-    url(r'^history', views.history, name='history'),
-    url(r'^runTask', views.runtask, name='runtask'),
-    url(r'^askServer', views.askServer, name='askServer'),
-    url(r'^pAskServer', views.pAskServer, name='pAskServer'),
-    url(r'^savePresenter', views.savePresenter, name='savePresenter'),    
-    url(r'^panel/', views.panel, name='panel'),    
+    path('', views.home, name='index'),
+    path('taskserver/', views.taskserver, name='taskserver'),
+    path('project/', views.project, name='project'),
+    path('algorithm/', views.algorithm, name='algorithm'),
+    path('results', views.results, name='results'),
+    path('history', views.history, name='history'),
+    path('runTask', views.runtask, name='runtask'),
+    path('askServer', views.askServer, name='askServer'),
+    path('pAskServer', views.pAskServer, name='pAskServer'),
+    path('savePresenter', views.savePresenter, name='savePresenter'),    
+    path('panel/', views.panel, name='panel'),    
 ]
