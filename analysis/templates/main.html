@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block imports_block %}
+<link href="{% static 'css/c3.css' %}" rel="stylesheet">
+<script type="text/javascript" src="{% static 'js/d3.js' %}"></script>        
+<script type="text/javascript" src="{% static 'js/c3.min.js' %}"></script> 
+<script type="text/javascript" src="{% static 'js/algatorweb.js' %}"></script> 
+<script type="text/javascript" src="{% static 'js/report.js' %}"></script>  
+
+<link href="{% static 'css/analysis.css' %}"           rel="stylesheet">
+<script type="text/javascript" src="{% static 'js/analysis.js' %}"></script>        
+
+
+<style type="text/css">
+
+</style>
+
+{% endblock %}
+
+
+
+{% block body_block %}
+
+<div id="main" class="container-fluid">
+<div class="panel" style="height:calc(100vh - 92px);">
+  <div class="panel" style="background:#EEEEEE; margin-bottom:0px;">
+    <span>
+      <a href="{% url 'problems:pdetails' %}?project={{ project.name }}">&nbsp;&nbsp;P:{{ project.name }}</a>
+    </span>
+    <span style="float:right; margin-right:5px;">
+      +
+    </span>        
+  </div>
+  <div class="panel-body" style="height:auto; calc(100vh - 92px - 1em - 2px); 
+       background:#3e4a2b;position:relative; display:flex;">
+    <div   id="leftBox"       class="mbox"       style="top:10px; left:10px;">
+      <div id="leftBoxHeader" class="mboxheader">Click here to move - 1 </div>
+      <div>Div 1 content</div>
+    </div>
+    <div   id="rightBox"       class="mbox"       style="top:30px; left:30px;">
+      <div id="rightBoxHeader" class="mboxheader">Click here to move - 2 </div>
+      <div>Div 2 content</div>
+    </div>
+  </div>  
+</div>
+</div>
+
+<script type="text/javascript">
+ 
+  let o = new Okna();
+  o.addWindow("lBox");
+
+  dragElement(document.getElementById("leftBox"));
+  dragElement(document.getElementById("rightBox"));
+</script>
+{% endblock %}
