@@ -87,7 +87,8 @@
             <script>
               var stsSafe = '{{ presenter.settingsCont | safe }}';
               if (stsSafe == '') stsSafe = '{}';
-              var settings=JSON.parse(stsSafe.replace(/_!!_/g, '"').replace(/_!_/g, "'"));
+              strSafe = stsSafe.replace(/_!!_/g, '"').replace(/_!_/g, "'");
+              var settings=JSON.parse(strSafe);
               settings.manData = atob(settings.manData);
               settings.params="*";
 

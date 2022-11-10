@@ -17,6 +17,7 @@ urlpatterns = [
     path('home/', home),
     path('settings/', settings_page),
     path('cpanel/', include(('cpanel.urls', 'cpanel'), namespace='cpanel')),
-    path('vision/', include(('vision.urls', 'vision'), namespace='vision'))
+    path('vision/', include(('vision.urls', 'vision'), namespace='vision')),
+    path('analysis/', include(('analysis.urls', 'analysis'), namespace='analysis')),
 ]
 

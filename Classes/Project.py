@@ -1,6 +1,6 @@
 class Project(object):
 
-    def __init__(self, name, description, author, date, 
+    def __init__(self, name="-noname-", description="", author="", date="", 
                  html_desc="", algorithms_html_desc="", test_case_html_desc="", 
                  test_sets_html_desc="", project_ref_desc="",
                  source_input="", source_output="", source_testcase="", 

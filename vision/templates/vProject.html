@@ -8,7 +8,8 @@
     <script type="text/javascript" src="{% static 'js/d3.js' %}" charset="utf-8"></script>        
     <script type="text/javascript" src="{% static 'js/c3.min.js' %}"></script>        
     <script type="text/javascript" src="{% static 'js/FileSaver.min.js' %}"></script>        
-    <script type="text/javascript" src="{% static 'js/algatorweb.js' %}"></script>        
+    <script type="text/javascript" src="{% static 'js/algatorweb.js' %}"></script>      
+    <script type="text/javascript" src="{% static 'js/plotly-2.12.1.min.js' %}"></script>  
         
 {% endblock %}
 
@@ -19,10 +20,10 @@
              {% include 'queryEditor.html' %}
             </div>   
             <div class="col-md-7" id="graphsCopy">
-                <div class="chart-panel panel panel-default">
+                <div class="chart-panel panel panel-default" id="the-chart-panel">
                   {% include 'chartPanel.html' %}
                 </div>
-                <div class="chartControl-panel panel panel-default"> 
+                <div class="chartControl-panel panel panel-default" style="height:170px;"> 
                   <div class="col-md-9">
                     {% include 'axesPanel.html' %}
                   </div>

@@ -13,9 +13,12 @@ class GlobalConfig(object):
           self.root_path = os.environ["ALGATOR_ROOT"]
         else:
           # !DEBUG!
-          self.root_path = "/Users/Tomaz/ALGATOR_ROOT"  
-        
-        self.projects_path = self.root_path + "/data_root/projects/"
+          self.root_path = "/mnt/d/Users/tomaz/OneDrive/ULFRI/ALGATOR_ROOT"  
+
+        if 'ALGATOR_SERVER_MODE' in os.environ.keys():
+          self.projects_path = self.root_path + "/server_root/projects/"
+        else:
+          self.projects_path = self.root_path + "/data_root/projects/"
         
         # logging
         self.logger = logging.getLogger(__name__)

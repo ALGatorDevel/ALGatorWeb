@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'problems',
     'cpanel',
     'vision',
+    'analysis',
 ]
 
 MIDDLEWARE = [

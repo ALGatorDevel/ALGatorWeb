@@ -515,6 +515,8 @@ var chartEditor = (function() {
         pub.reload();
     }
 
+    pub.getCurrentSettings = function() {return settings;};
+    pub.setGraphType = function(gType) {settings.graphType=gType; pub.reload(); return gType;};
 
     /**
     *   Loads new chart data
@@ -788,6 +790,14 @@ var chartEditor = (function() {
           resData[novIdx][0] += " ";
 
           var newData = transpose(resData);
+
+          // vse celice, ki vsebujejo podatke, ločene z vejico pretvorim v tabelo ("1,2,3" -> [1,2,3])
+          for (var i = 0; i < newData.length; i++) {
+              for(var j=0; j < newData[i].length; j++) {
+                if (newData[i][j].includes(","))
+                    newData[i][j] = newData[i][j].split(",");
+              }
+          }
         
           return newData; 
         } catch (err) {
@@ -881,8 +891,91 @@ var chartEditor = (function() {
               type: 'spline'
             }
           });
-        } else {
+        } else if (settings.graphType=="3d") {
+          // implementacija "posebnih tipov" grafov
 
+          var x = [];
+          var y = [];
+          var z = [];
+          var c = [];
+          for(var i=1; i<curData.length;i++) {
+            for(var j=0; j<curData[i][0].length; j++) {
+                x.push(i);
+                c.push(j);
+                y.push(j);
+                var d = curData[i][0][j]; //if (d>14000) d=14000;
+                z.push(d);
+            }
+          }
+          
+          var wc = webControl.replaceAll("#","");
+          document.getElementById(wc).innerHTML = '';
+          document.getElementById("the-chart-panel").style.height = "640px";
+ 
+          var layout = {
+            height: 640,
+            scene: {
+              xaxis:{title: 'Test ID'},
+              yaxis:{title: 'Repetition ID'},
+              zaxis:{title: 'Time [µs]'},
+
+/*  To hide axis, uncomment these lines and comment the upper three
+    xaxis: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+    },
+    yaxis: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+    },
+    zaxis: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+    }
+*/
+
+            },
+            title: "Tall"
+          };
+
+          Plotly.newPlot(wc, 
+            [{
+               type: 'scatter3d',
+               mode: 'lines',
+               x: x,
+               y: y,
+               z: z,
+               transforms: [{
+                  type: 'groupby',
+                  groups: x
+               }],
+               opacity: 1,
+               line: {
+                 width: 4,
+                 color: c,
+                 reversescale: false
+               },
+               
+            }], 
+            layout
+          );
+        } else {
+          document.getElementById("the-chart-panel").style.height = "350px";
           chart = c3.generate({
             data: {
                 x: settings.xAxis + " ",                          
@@ -899,7 +992,8 @@ var chartEditor = (function() {
                 show: settings.subchart
             },
             legend: {
-                show: true
+              show: true,
+              position: 'right'
             },
             grid: {
                 x: {
@@ -931,6 +1025,7 @@ var chartEditor = (function() {
                 }
             }
           });
+          d3.select(".c3-axis-x-label").attr("transform", "translate(0,-7)"); // premik labele gor (da se cela vidi)
         }
     }
     return pub;

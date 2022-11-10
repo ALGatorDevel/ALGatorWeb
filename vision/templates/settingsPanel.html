@@ -4,6 +4,12 @@
                 <ul class="list-group">
                     <li class="list-group-item clickable" id="button-chart-data" data-toggle="modal" data-target="#chart-data-modal">Data</li>
                     <li class="list-group-item clickable" data-toggle="modal" data-target="#chart-settings-modal">Settings</li>
+                    <li class="list-group-item"> 
+                        <button type="button" class="btn btn-primary px-3" onclick="chartEditor.setGraphType('line');"><i class="fab fa-android" aria-hidden="true"></i></button>                           
+                            <button type="button" class="btn btn-success px-3" onclick="chartEditor.setGraphType('bar');"><i class="far fa-thumbs-up" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-info px-3" onclick="chartEditor.setGraphType('area');"><i class="fas fa-tint" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-warning px-3" onclick="chartEditor.setGraphType('3d');"><i class="fas fa-bolt" aria-hidden="true"></i></button>
+                    </li>
                     <!--script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
                     <li class="list-group-item clickable" onclick="chartEditor.save();">Save</li-->
                 </ul>

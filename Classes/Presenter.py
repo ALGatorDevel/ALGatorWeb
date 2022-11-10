@@ -61,7 +61,7 @@ class Presenter:
           "manData"        : base64.b64encode(json.dumps(self.mandata).encode()).decode()
         }
         # the replacement of quotes (with _!_) was used to avoid problems in html;
-        return json.dumps(jsonArray).replace("\"", "_!!_").replace("'", "_!_")
+        return json.dumps(jsonArray).replace("\"", "_!!_").replace("'", "_!_").replace("\\", "/")
       
 
     def __str__(self):

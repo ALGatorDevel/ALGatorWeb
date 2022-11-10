@@ -50,7 +50,7 @@ def readHTMLDesc(path, fileName):
       current_desc = fixStaticLinks(path, current_desc)
 
       # replace %thisfile% with the name of this file
-      current_desc = re.sub("%thisfile%", fullFileName, current_desc, flags=re.IGNORECASE)
+      # current_desc = re.sub("%thisfile%", fullFileName, current_desc, flags=re.IGNORECASE)
     else:
       current_desc = "No description provided in the '" + fullFileName + "' file."
                 
@@ -318,9 +318,10 @@ class Entities(object):
       description_file = readFileCont(project_description_filename)
       try:
         json_description = json.loads(description_file)['Project']
-      except IOError as err:
-        gc.logger.error(err)
+      except:
+        # gc.logger.error(err)
         json_description = {}
+        return Project("", )
 
 
       project_desc      = getValue(json_description, 'Description')

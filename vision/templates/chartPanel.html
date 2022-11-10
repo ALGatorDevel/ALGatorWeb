@@ -107,8 +107,16 @@ class Graph {
     }       
   }
 
+  // to sem dodal, ne vem, če je OK. 
   function joinData(data1, data2) {
-
+    var rTab = new Array();
+    for(i=0; i<data1.length; i++) {
+      rTab[i] = new Array();
+      rTab[i][0] = data1[i][0];
+      rTab[i][1] = data2[i][0];
+      rTab[i][2] = data1[i][1];
+    }
+    return rTab;
   }
 
   function deleteDiv(id) {
@@ -158,7 +166,7 @@ class Graph {
   }    
 
   function drawGraph(divID, settings, curData) {
-/*    
+  
     var xAxisType = '';
     if (settings.categoryLabels) xAxisType = 'category';
 
@@ -178,7 +186,8 @@ class Graph {
             show: settings.subchart
         },
         legend: {
-            show: true
+            show: true,
+            position: "right"
         },
         grid: {
             x: {
@@ -211,8 +220,8 @@ class Graph {
         }
     });
     return chart;
-*/
-    return chartEditor.drawChart(curData, divID, settings).chart;
+
+  //  return chartEditor.drawChart(curData, divID, settings).chart;
   }
 
   function addColumns(chart, settings, data) {

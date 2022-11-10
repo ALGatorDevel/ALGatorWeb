@@ -201,3 +201,10 @@
   fill: #000;
   font-size: 28px;
 }
+
+.c3-axis-x-label {
+  font-size: 15px; 
+}
+.c3-axis-y-label {
+  font-size: 15px; 
+}

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
 import os
 import sys
 
@@ -7,6 +6,12 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ALGator.settings')
+
+    if '--server_mode' in sys.argv:
+        print("Starting ALGatorWeb in server mode")
+        sys.argv.remove("--server_mode")
+        os.environ.setdefault('ALGATOR_SERVER_MODE', 'true')        
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
