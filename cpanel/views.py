@@ -17,7 +17,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from Classes.Entities import Entities  
 from ALGator.taskclient import TaskClient
-from Classes.GlobalConfig import GlobalConfig
+from Classes.GlobalConfig import globalConfig
 
 
 #@login_required
@@ -88,7 +88,7 @@ def algorithm(request):
     jweROOT=os.environ["JWE_ROOT"];
     jweURL = subprocess.check_output("cd %s;./getAAA.pl ALGator Algorithm %s PROJ-%s" % (jweROOT, algorithmName, projectName), shell=True)
     
-    computers = GlobalConfig().getComputers()
+    computers = globalConfig.getComputers()
     
     path = os.environ["ALGATOR_ROOT"] + "data_root/projects/PROJ-" + projectName + "/results/"
     mtypes = ["em", "cnt", "jvm"]
@@ -134,7 +134,7 @@ def results(request):
     computer = request.GET.get('comp', '')
     
     try:
-      path = GlobalConfig().root_path + "data_root/projects/PROJ-" + projectName + "/results/" + computer + "/" + file
+      path = globalConfig.root_path + "data_root/projects/PROJ-" + projectName + "/results/" + computer + "/" + file
       cont = open(path, 'r').read()
     except:
       cont = "-- empty --"
@@ -162,7 +162,7 @@ def history(request):
 
     try:
       file = "%s-%s-%s-%s.history" % (projectName, algorithmName, testset, mtype)            
-      path = GlobalConfig().root_path + "data_root/log/tasks/" + file
+      path = globalConfig.root_path + "data_root/log/tasks/" + file
       cont = open(path, 'r').read()
     except:
       cont = "-- empty --"
@@ -200,24 +200,15 @@ def runtask(request):
     return JsonResponse(rsp)
  
 #@login_required
-def panel(request):
-  return render(request,
-    'panel.html',
-    {
-      'test'  : 'test',      
-    }
-  )
-
-#@login_required
 def askServer(request):
     question = request.GET.get('q', '')
     
-    return JsonResponse({"answer" : TaskClient().talkToServer(question).replace("\n", " ")})
+    return JsonResponse({"answer" : TaskClient().talkToServer(question), "user":request.user.username})
 
 def pAskServer(request):
     question     = request.POST.get('q', {})
 
-    return JsonResponse({"answer" : TaskClient().talkToServer(question).replace("\n", " ")})
+    return JsonResponse({"answer" : TaskClient().talkToServer(question)})
 
 
 @ensure_csrf_cookie

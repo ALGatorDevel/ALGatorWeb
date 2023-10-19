@@ -11,10 +11,10 @@ from django.template.defaulttags import register
 from django.http import JsonResponse
 from ALGator.taskclient import TaskClient
 
-from Classes.GlobalConfig import GlobalConfig
+from Classes.GlobalConfig import globalConfig
 from Classes.Entities import Entities 
 
-gc = GlobalConfig()
+gc = globalConfig
 
 def project(request):
   project_name = request.GET.get('projectName', '')
@@ -114,7 +114,7 @@ def errorResponse(request, msg):
   )
 
 def project_exists(project):
-    data_root = GlobalConfig().projects_path
+    data_root = globalConfig.projects_path
     path = "{0}/PROJ-{1}".format(data_root, project)
 
     return os.path.isdir(path)
@@ -125,7 +125,7 @@ def get_project_list():
     Returns algator project list
     """
 
-    projects_dir = os.path.join(GlobalConfig().projects_path, "")
+    projects_dir = os.path.join(globalConfig.projects_path, "")
     # gc.logger.error(projects_dir)
 
 
@@ -139,7 +139,7 @@ def get_project_params(project):
     """
     Returns dictionary containing project input/output parameters
     """
-    data_root = GlobalConfig().projects_path
+    data_root = globalConfig.projects_path
     directory = "{0}/PROJ-{1}/proj".format(data_root, project)  
     
     data = {}

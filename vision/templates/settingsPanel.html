@@ -6,8 +6,8 @@
                     <li class="list-group-item clickable" data-toggle="modal" data-target="#chart-settings-modal">Settings</li>
                     <li class="list-group-item"> 
                         <button type="button" class="btn btn-primary px-3" onclick="chartEditor.setGraphType('line');"><i class="fab fa-android" aria-hidden="true"></i></button>                           
-                            <button type="button" class="btn btn-success px-3" onclick="chartEditor.setGraphType('bar');"><i class="far fa-thumbs-up" aria-hidden="true"></i></button>
-                            <button type="button" class="btn btn-info px-3" onclick="chartEditor.setGraphType('area');"><i class="fas fa-tint" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-success px-3" onclick="chartEditor.setGraphType('spline');"><i class="far fa-thumbs-up" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-info px-3" onclick="chartEditor.setGraphType('bar');"><i class="fas fa-tint" aria-hidden="true"></i></button>
                             <button type="button" class="btn btn-warning px-3" onclick="chartEditor.setGraphType('3d');"><i class="fas fa-bolt" aria-hidden="true"></i></button>
                     </li>
                     <!--script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
@@ -70,12 +70,13 @@
                     <div>
                        Graph type
                         <select class="form-control" id="graphType" name="graphType">
-                          <option id="line"  value="line">Line chart</option>
-                          <option id="bar"   value="bar">Bar chart</option>
-                          <option id="area"  value="area">Area chart</option>
-                          <option id="pie"   value="pie">Pie chart</option>
-                          <option id="donut" value="donut">Donut chart</option>
-                          <option id="other" value="other">Other...</option>
+                          <option id="line"   value="line">Line chart</option>
+                          <option id="spline" value="spline">Spline chart</option>
+                          <option id="bar"    value="bar">Bar chart</option>
+                          <option id="area"   value="area">Area chart</option>
+                          <option id="pie"    value="pie">Pie chart</option>
+                          <option id="donut"  value="donut">Donut chart</option>
+                          <option id="other"  value="other">Other...</option>
                         </select>
                     </div>
 

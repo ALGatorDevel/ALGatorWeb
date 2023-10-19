@@ -24,7 +24,7 @@ def problems(request):
         }
     )
     
-#@login_required
+@login_required
 def pdetails(request):
     
     projectName = request.GET.get('project', '')

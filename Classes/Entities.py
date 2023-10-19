@@ -6,7 +6,7 @@ import sys
 from Classes.Project import Project
 from Classes.Algorithm import Algorithm
 from Classes.Testset import Testset
-from Classes.GlobalConfig import GlobalConfig
+from Classes.GlobalConfig import globalConfig
 from Classes.Presenter import Presenter
 from Classes.Query import Query
 from Classes.TXTResult import TXTResult
@@ -21,7 +21,7 @@ from shutil import copy2
 
 ############# HELPER methods ####################
 
-gc = GlobalConfig()
+gc = globalConfig
 
 def readFileCont(fileName):
   try:
@@ -276,7 +276,7 @@ class Entities(object):
         # Main path used through out the class. This folder contains all the
         # json files of different type
         #-------------------------------------------------------------------# 
-        self.projects_path = GlobalConfig().projects_path
+        self.projects_path = globalConfig.projects_path
 
         #the render(output) lists of objects -> Array of Project objects
         self.projects_list = []

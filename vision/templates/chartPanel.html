@@ -95,7 +95,7 @@ class Graph {
         var cGrahp= new Graph(
           savedID, Graph.DATA_TYPE, "", 
           null, 
-          JSON.stringify(graf1.settings), 
+          graf1.settings, 
           joinData(graf1.data, graf2.data)
         ); 
         var graphDiv = '<div id="graphPanel-'+savedID+'" class="chart c3" style="height: 320px; position: relative;"></div>'
@@ -107,14 +107,21 @@ class Graph {
     }       
   }
 
-  // to sem dodal, ne vem, če je OK. 
   function joinData(data1, data2) {
+    var s1 = data1[0].length;
+    var s2 = data2[0].length;
     var rTab = new Array();
-    for(i=0; i<data1.length; i++) {
+
+    for(var i=0; i<data1.length; i++) {
       rTab[i] = new Array();
-      rTab[i][0] = data1[i][0];
-      rTab[i][1] = data2[i][0];
-      rTab[i][2] = data1[i][1];
+      // prenesem vse stolpce prve tabele ...
+      for(var j=0; j<s1-1; j++)
+        rTab[i][j] = data1[i][j];
+      // ... vse stolpce druge tabele ...
+      for(var j=0; j<s2-1; j++)
+        rTab[i][s1+j-1] = data2[i][j];
+      // ... in zadnji stolpec (X os) prve tabele
+      rTab[i][s1+s2-2] = data1[i][s1-1];
     }
     return rTab;
   }

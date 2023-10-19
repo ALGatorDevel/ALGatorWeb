@@ -151,9 +151,7 @@ var queryEditor = (function () {
     *   @param {string} response - Algator query response.
     *   @returns {Array} newData
     */
-    pub.parseResponse = function (response) {
-        response = response.trim().replace(/<br>/g, "\n");
-        
+    pub.parseResponse = function (response) {        
         var lines = response.split(/\r\n|\r|\n/g); //.splice(3); //split lines
 
         var newData = [];
@@ -975,7 +973,9 @@ var chartEditor = (function() {
             layout
           );
         } else {
-          document.getElementById("the-chart-panel").style.height = "350px";
+          var elt = document.getElementById("the-chart-panel");
+          if (elt != null) elt.style.height = "350px";
+          
           chart = c3.generate({
             data: {
                 x: settings.xAxis + " ",                          

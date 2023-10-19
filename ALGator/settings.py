@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'cpanel',
     'vision',
     'analysis',
+    'ashell',
 ]
 
 MIDDLEWARE = [
@@ -86,6 +87,17 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': 'algator',
+#        'USER': 'algitor',
+#        'PASSWORD': 'algitor',
+#        'HOST': '83.212.82.166', 
+#        'PORT': '3306',
+#    }
+#}
 
 
 # Password validation

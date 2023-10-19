@@ -4,11 +4,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.template.defaulttags import register
 
+from django.contrib.auth.forms import AuthenticationForm
+
 from login.models import UserProfile, ProfileForm
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
+
 
 @register.filter
 def field_type(field):
@@ -23,6 +29,26 @@ def field_type(field):
     return s
 
 @csrf_protect
+def login(request): 
+    return render(request, 'registration/login.html',{'form': AuthenticationForm()})
+
+def dologin(request):
+  if request.method == 'POST':
+    form = AuthenticationForm(request.POST)
+    username = request.POST.get('username', '')
+    password = request.POST.get('password', '')
+    user = authenticate(username=username, password=password)
+
+    if user is not None:
+      if user.is_active:
+        auth_login(request, user)
+        # messages.success(request, "You have logged in!")  
+        return redirect("/") #request.GET.get('next'))
+    else:    
+      return render(request, 'registration/login.html',{'form': form})
+
+
+@csrf_protect
 def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
@@ -35,16 +61,17 @@ def register(request):
             return HttpResponseRedirect('/register/success/')
     else:
         form = RegistrationForm()
-    variables = RequestContext(request, {
-    'form': form
-    })
  
-    return render(request, 'registration/register.html',variables)
+    return render(request, 
+        'registration/register.html',
+        {
+          'form': form
+        }       
+    )
 
 
 def register_success(request):
-    return render(request,
-    'registration/success.html', {})
+    return render(request,'registration/success.html', {})
 
 
 def logout_page(request):

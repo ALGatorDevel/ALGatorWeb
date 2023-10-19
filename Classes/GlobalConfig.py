@@ -5,6 +5,8 @@ import logging
 
 __name__ = "ALGator"
 
+_DEFAULT_HOSTNAME = "localhost"
+_DEFAULT_PORT     = 12321
 
 class GlobalConfig(object):
 
@@ -15,10 +17,7 @@ class GlobalConfig(object):
           # !DEBUG!
           self.root_path = "/mnt/d/Users/tomaz/OneDrive/ULFRI/ALGATOR_ROOT"  
 
-        if 'ALGATOR_SERVER_MODE' in os.environ.keys():
-          self.projects_path = self.root_path + "/server_root/projects/"
-        else:
-          self.projects_path = self.root_path + "/data_root/projects/"
+        self.projects_path = self.root_path + "/data_root/projects/"
         
         # logging
         self.logger = logging.getLogger(__name__)
@@ -26,7 +25,9 @@ class GlobalConfig(object):
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')  
         hdlr.setFormatter(formatter)
         self.logger.addHandler(hdlr) 
-        self.logger.setLevel(logging.WARNING)
+        self.logger.setLevel(logging.INFO)
+
+        print("Task server used: " + str(self.getTaskServerConnectionData()))
         
         
     def getComputers(self):
@@ -45,3 +46,23 @@ class GlobalConfig(object):
     
         return computers
 
+    def getTaskServerConnectionData(self):
+      name = _DEFAULT_HOSTNAME
+      port = _DEFAULT_PORT
+      try:
+        with open(self.root_path+"/data_root/algator.acfg", 'r') as fde:
+          description_file = fde.read()
+          
+        gJson = json.loads(description_file)    
+        
+        name = gJson["Config"]["TaskServerName"]
+        port = gJson["Config"]["TaskServerPort"]
+            
+      except:
+        pass
+    
+      return (name, port)
+
+
+
+globalConfig = GlobalConfig()

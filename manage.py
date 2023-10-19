@@ -7,11 +7,10 @@ def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ALGator.settings')
 
-    if '--server_mode' in sys.argv:
-        print("Starting ALGatorWeb in server mode")
-        sys.argv.remove("--server_mode")
-        os.environ.setdefault('ALGATOR_SERVER_MODE', 'true')        
-
+    with open('version.txt') as f:
+      version = f.readline()
+    os.environ.setdefault('ALGATORWEB_VERSION', version)
+     
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

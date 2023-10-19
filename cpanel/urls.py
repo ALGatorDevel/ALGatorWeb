@@ -15,5 +15,4 @@ urlpatterns = [
     path('askServer', views.askServer, name='askServer'),
     path('pAskServer', views.pAskServer, name='pAskServer'),
     path('savePresenter', views.savePresenter, name='savePresenter'),    
-    path('panel/', views.panel, name='panel'),    
 ]
