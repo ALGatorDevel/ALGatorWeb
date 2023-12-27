@@ -7,7 +7,7 @@ function reloadContent () {
       $("#status").html(obj.answer); 
   }, 'html');
 
-  $.get("{% url 'cpanel:askServer' %}?q=LIST", function( my_var ) {
+  $.get("{% url 'cpanel:askServer' %}?q=getTasks", function( my_var ) {
       obj = JSON.parse(my_var);
       $("#tasks").html(obj.answer); 
   }, 'html');
@@ -20,7 +20,7 @@ function reloadContent () {
 
 <div id="mybody">
 
-<h3>Taskserver status page</h3>
+<h3>ALGatorServer status page</h3>
 
 <p><b>Current status:</b> <span id="status"></span></p><br>
 

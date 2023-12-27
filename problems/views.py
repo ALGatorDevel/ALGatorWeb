@@ -7,20 +7,19 @@ from django.template.context import RequestContext
 from django.http import HttpResponse
 
 from Classes.Entities import Entities 
-from ALGator.taskclient import TaskClient
+from Classes.ServerConnector import connector
+
 
 #@login_required
 def problems(request):
     entities = Entities()
     projects_list = entities.get_projects_list(False)
 
-    tc = TaskClient()
-
     return render(request,
         'index.html',
         {
             'projects_list': projects_list,
-            'userperms' : tc.talkToServer("users userperm " + request.user.username),
+            'userperms' : connector.talkToServer("users userperm " + request.user.username),
         }
     )
     

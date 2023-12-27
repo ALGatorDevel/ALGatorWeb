@@ -57,6 +57,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 24 * 60 * 60  # session expiration: 1 day
+
 ROOT_URLCONF = 'ALGator.urls'
 
 TEMPLATES = [
@@ -78,9 +82,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ALGator.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
+# default db used with local webpage; to use a "global" db
+# server, start manage.py with --settings algator_global
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -88,19 +91,8 @@ DATABASES = {
     }
 }
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.mysql',
-#        'NAME': 'algator',
-#        'USER': 'algitor',
-#        'PASSWORD': 'algitor',
-#        'HOST': '83.212.82.166', 
-#        'PORT': '3306',
-#    }
-#}
 
-
-# Password validation
+# Password validation 
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -153,3 +145,11 @@ LOGOUT_REDIRECT_URL = '/'
 #AUTH_PROFILE_MODULE = 'login.UserProfile'
 
 
+ALGATOR_SERVER = {
+ 'Hostname' : 'localhost',
+ 'Port'     : 12321
+}
+
+
+# max request data size (used with pAskServer view)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400  # i.e. 25 MB

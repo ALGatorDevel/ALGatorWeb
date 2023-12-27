@@ -13,7 +13,7 @@ from Classes.TXTResult import TXTResult
 
 from Classes.EntitiesLister import EntitiesLister
 
-from ALGator.taskclient import TaskClient
+from Classes.ServerConnector import connector
 
 
 from django.conf import settings
@@ -100,20 +100,20 @@ def readProjectSourceFiles(projects_path, proj_name):
   folder = projects_path + "/proj/src/"
 
   sources = {}            
-  sources["input_name"] = proj_name + "Input.java"
-  sources["input"]      = readFileCont(folder + proj_name + "Input.java")
+  sources["input_name"]         = "Input.java"
+  sources["input"]              = readFileCont(folder + "Input.java")
 
-  sources["output_name"] = proj_name + "Output.java"
-  sources["output"]      = readFileCont(folder + proj_name + "Output.java")
+  sources["output_name"]        = "Output.java"
+  sources["output"]             = readFileCont(folder + "Output.java")
 
-  sources["testcase_name"]   = proj_name + "TestCase.java"
-  sources["testcase"]        = readFileCont(folder + proj_name + "TestCase.java")
+  sources["testcase_name"]      = "TestCase.java"
+  sources["testcase"]           = readFileCont(folder + "TestCase.java")
 
-  sources["absalgorithm_name"]  = proj_name + "AbsAlgorithm.java"
-  sources["absalgorithm"]       = readFileCont(folder + proj_name + "AbsAlgorithm.java")
+  sources["absalgorithm_name"]  = "ProjectAbstractAlgorithm.java"
+  sources["absalgorithm"]       = readFileCont(folder + "ProjectAbstractAlgorithm.java")
 
-  sources["tools_name"] = proj_name + "Tools.java"
-  sources["tools"]      = readFileCont(folder + proj_name + "Tools.java")
+  sources["tools_name"]         =  "Tools.java"
+  sources["tools"]              = readFileCont(folder + "Tools.java")
 
 
   return sources
@@ -122,8 +122,8 @@ def readAlgorithmSourceFiles(projects_path, proj_name, algorithm_name):
   folder = os.path.join(projects_path, "algs", "ALG-"+algorithm_name, "src")
 
   sources = {}            
-  sources["alg_source_name"]   = algorithm_name + "Algorithm.java"
-  sources["alg_source"]        = readFileCont(os.path.join(folder, algorithm_name + "Algorithm.java"))
+  sources["alg_source_name"]   = "Algorithm.java"
+  sources["alg_source"]        = readFileCont(os.path.join(folder, "Algorithm.java"))
 
   return sources
 
@@ -168,8 +168,8 @@ def readPresenterDesc(projects_path, presenter_name):
     else:  # if not, read JSON from file     
       pname=presenter_name
       presenter=presenter_name   
-      if not presenter.endswith(".atpd"):          
-          presenter     = presenter + ".atpd"
+      if not presenter.endswith(".json"):          
+          presenter     = presenter + ".json"
       else:
           pname = pname[:-5]
 
@@ -208,7 +208,7 @@ def readPresenterDesc(projects_path, presenter_name):
     
     presenterObj = Presenter(presenterPath, name, title, shtit, desc, query, hasGraph, xaxis, yaxes, gtypes, xal, yal, hasTable, columns,zoom, subchart, gridx, gridy, category, logscale, mandata)
 
-    presenterObj.html_desc = readHTMLDesc (projects_path + "/presenters/", presenter_name.replace(".atpd", "") + ".html" )
+    presenterObj.html_desc = readHTMLDesc (projects_path + "/presenters/", presenter_name.replace(".json", "") + ".html" )
 
     presenterObj.settingsCont = presenterObj.settingsJSON()
     presenterObj.queryCont    = readQueryDesc(projects_path, query).getJSONString()
@@ -229,8 +229,8 @@ def readQueryDesc(project_path, query):
     else:  # if not, read JSON from file     
       qname=query
       qpath=query
-      if not qpath.endswith(".atqd"):          
-          qpath     = qpath + ".atqd"
+      if not qpath.endswith(".json"):          
+          qpath     = qpath + ".json"
       else:
           qname = qname[:-5]
       qpath   = project_path + "/queries/" + qpath 
@@ -314,7 +314,7 @@ class Entities(object):
     # otherwise only basic information about the project is read
     def read_project(self, project_name, deep):
       project_root_path = self.projects_path + "/PROJ-" + project_name; 
-      project_description_filename = project_root_path + "/proj/"+project_name+".atp";
+      project_description_filename = project_root_path + "/proj/"+"project.json";
       description_file = readFileCont(project_description_filename)
       try:
         json_description = json.loads(description_file)['Project']
@@ -355,7 +355,7 @@ class Entities(object):
         project.source_tools_name           = sources["tools_name"]
         project.source_tools                = sources["tools"]
 
-        project.jj = TaskClient().talkToServer("admin -i " + project_name)
+        project.jj = connector.talkToServer("admin -i " + project_name)
 
         # add all the presenters to the projetc
         project.presenters = {}
@@ -400,7 +400,7 @@ class Entities(object):
     def read_algorithm(self, project_name, algorithm_name, deep):
       project_root_path = self.projects_path + "/PROJ-" + project_name
       algorithm_root_path = project_root_path + "/algs/ALG-" + algorithm_name 
-      algorithm_description_filename = algorithm_root_path + "/" + algorithm_name+".atal"
+      algorithm_description_filename = algorithm_root_path + "/" + "algorithm.json"
       description_file = readFileCont(algorithm_description_filename)
       try:
         json_description = json.loads(description_file)['Algorithm']
@@ -437,7 +437,7 @@ class Entities(object):
 
     def read_testset(self, project_name, testset_name, deep):
       project_root_path            = self.projects_path + "/PROJ-" + project_name
-      testset_description_filename = project_root_path + "/tests/" + testset_name+".atts"
+      testset_description_filename = project_root_path + "/tests/" + testset_name+".json"
 
       description_file = readFileCont(testset_description_filename)
       try:

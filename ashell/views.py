@@ -13,4 +13,5 @@ def ashell(request):
 
 def getWebpageVersion(request):
     version = os.environ.get("ALGATORWEB_VERSION")
-    return JsonResponse({"answer" : version})
+    session_id = request.session.session_key or "?"
+    return JsonResponse({"answer" : version + "; session_key: " + session_id})

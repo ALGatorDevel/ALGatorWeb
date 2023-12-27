@@ -16,7 +16,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from Classes.Entities import Entities  
-from ALGator.taskclient import TaskClient
+from Classes.ServerConnector import connector
 from Classes.GlobalConfig import globalConfig
 
 
@@ -34,16 +34,16 @@ def home(request):
     )
 
 #@login_required
-def taskserver(request):
+def algatorserver(request):
 
-    serverStatus= TaskClient().talkToServer("status")
-    tasks       = TaskClient().talkToServer("LIST")
+    serverStatus= connector.talkToServer("status")
+    tasks       = connector.talkToServer("getTasks")
     
     entities = Entities()
     return render(request,
         'cpindex.html',
         {
-          'contentpage'  : 'taskserver.html',
+          'contentpage'  : 'algatorserver.html',
           'projects_list': entities.projects_list,
           
           'serverStatus': serverStatus,
@@ -190,8 +190,8 @@ def runtask(request):
     mType = request.GET.get('mtype', '')
 
     try:
-      taskID = TaskClient().talkToServer("addTask %s %s %s %s" % (projectName, algorithmName, testsetName, mType))    
-      answer = TaskClient().talkToServer("taskStatus %s" % (taskID.replace("\n", "")))
+      taskID = connector.talkToServer("addTask %s %s %s %s" % (projectName, algorithmName, testsetName, mType))    
+      answer = connector.talkToServer("taskStatus %s" % (taskID.replace("\n", "")))
     except:
       answer = "Unknown error"
     
@@ -201,14 +201,14 @@ def runtask(request):
  
 #@login_required
 def askServer(request):
-    question = request.GET.get('q', '')
+    question = request.GET.get('q', 'status')
     
-    return JsonResponse({"answer" : TaskClient().talkToServer(question), "user":request.user.username})
+    return JsonResponse({"answer" : connector.talkToServer(question), "user":request.user.username})
 
 def pAskServer(request):
-    question     = request.POST.get('q', {})
+    question     = request.POST.get('q', 'status')
 
-    return JsonResponse({"answer" : TaskClient().talkToServer(question)})
+    return JsonResponse({"answer" : connector.talkToServer(question), "user":request.user.username})
 
 
 @ensure_csrf_cookie

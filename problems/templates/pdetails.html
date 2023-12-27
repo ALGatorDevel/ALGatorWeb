@@ -172,7 +172,7 @@ openPresenter = function(project, presenter, paramsCnt) {
         <table>
            <tr><td valign="top" width=200><b>{{ testset.name }}</b><br>
                <a href="#"><span data-toggle="modal" data-target="#myModal" 
-                  onClick="openModalWindow('{{ project.name }}', '{{ testset.name }}', 'atts')">atts</span></a>, 
+                  onClick="openModalWindow('{{ project.name }}', '{{ testset.name }}', 'json')">json</span></a>, 
                <a href="#"><span data-toggle="modal" data-target="#myModal" 
                   onClick="openModalWindow('{{ project.name }}', '{{ testset.name }}', 'txt')">txt</span></a>
 
@@ -272,15 +272,19 @@ openPresenter = function(project, presenter, paramsCnt) {
 </div>
 
 <script>
-  function openModalWindow(project, testset, type) {    
-    var url = "{% url 'cpanel:askServer' %}?q=GetFile%20testset%20"+project+"%20"+testset+"%20"+type;  //request url
+  function openModalWindow(project, testset, type) { 
+    var fileDesc='{' + 
+                       ' "Project":"'+project+'", ' + 
+                       ' "File":"tests/'+testset +"."+type+ '"'+
+                       '}';
+          var url = "{% url 'cpanel:askServer' %}?q=GetFile " + fileDesc;
 
     $.ajax({
       url: url,
       dataType: 'json',
     }). done(function (response) {  
       var answer = response.answer;
-      $( "#modal-content" ) .html("<pre>"+answer+"</pre>");
+      $( "#modal-content" ) .html("<pre>"+atob(JSON.parse(answer.replaceAll("'",'"')).Answer)+"</pre>");
       $( "#myModalLabel" )  .html(testset+"."+type);
       
     });                          

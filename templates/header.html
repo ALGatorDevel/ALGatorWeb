@@ -29,7 +29,7 @@
                               
                            </a></li>
 
-                        {% if user.get_username == "admin" %}   
+                        {% if request.user.is_superuser %}   
                         <li class="{% if request.path == cpanel_url %}active{% endif %}" >
                            <a href="{{ cpanel_url }}"><img src="{% static 'images/my_solutions_icon.png' %}" height="25px" style="margin-top: -15px;"/>                     
                               &nbsp;&nbsp;Control panel&nbsp;

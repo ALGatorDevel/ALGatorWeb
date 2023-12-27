@@ -854,7 +854,6 @@ var chartEditor = (function() {
 
     function drawChart(data, webControl, settings) {
         var curData = applyManual(util.copyArray(data), settings.manData);
-
         if (!settings.xAxis) settings.xAxis = "ID";
         curData = generateXColumns(curData, settings.xAxis, settings.yAxes);          
         //if (data.length < 1) return;        

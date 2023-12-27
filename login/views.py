@@ -8,12 +8,22 @@ from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.template.defaulttags import register
+from django.http import JsonResponse
 
 from django.contrib.auth.forms import AuthenticationForm
 
 from login.models import UserProfile, ProfileForm
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
+
+import secrets
+import string
+
+
+def generate_random_string(length=15):
+    characters = string.ascii_letters + string.digits
+    random_string = ''.join(secrets.choice(characters) for _ in range(length))
+    return random_string
 
 
 @register.filter
@@ -32,6 +42,7 @@ def field_type(field):
 def login(request): 
     return render(request, 'registration/login.html',{'form': AuthenticationForm()})
 
+@csrf_protect
 def dologin(request):
   if request.method == 'POST':
     form = AuthenticationForm(request.POST)
@@ -41,9 +52,11 @@ def dologin(request):
 
     if user is not None:
       if user.is_active:
+        request.session['fav_color'] = 'blue'
         auth_login(request, user)
-        # messages.success(request, "You have logged in!")  
-        return redirect("/") #request.GET.get('next'))
+        # messages.success(request, "You have logged in!")
+        nextpage = request.POST.get('next') or "/"
+        return redirect(nextpage) #
     else:    
       return render(request, 'registration/login.html',{'form': form})
 
@@ -102,5 +115,10 @@ def settings_page(request):
         {'form': form}
     )
 
+def get_username(request):
+    username = request.user.username + ";" + request.session.session_key
 
-
+    if username:
+        return JsonResponse({'username': username})
+    else:
+        return JsonResponse({'error': 'Username not found'}, status=400)

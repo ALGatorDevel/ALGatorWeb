@@ -131,7 +131,11 @@ body {
 
           history.pushState(state, title, url);
 
-          var url = "{% url 'cpanel:askServer' %}?q=GetFile%20txtresult%20"+project+"%20"+algorithm+"%20"+cid+"%20"+testset;  //request url
+          var fileDesc='{' + 
+                       ' "Project":"'+project+'", ' + 
+                       ' "File":"results/'+cid+'/'+algorithm+'-'+testset +'"'+
+                       '}';
+          var url = "{% url 'cpanel:askServer' %}?q=GetFile " + fileDesc;
 
           $.ajax({
             url: url,
@@ -140,7 +144,7 @@ body {
             var answer = response.answer;
 
             $( "#txtResultTitle" ).html(cid+" / " + testset);            
-            $( "#txtResultCont" ) .html("<pre>"+answer+"</pre>");
+            $( "#txtResultCont" ) .html("<pre>"+atob(JSON.parse(answer.replaceAll("'",'"')).Answer)+"</pre>");
           });            
        } 
 

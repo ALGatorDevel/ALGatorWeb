@@ -16,13 +16,15 @@ ALGatorShell supports 4 types of questions:
 
   - commands send to server (prefix: >)
       - >who, >list, >status, ... 
+      - >getfile {"Project":"BasicSort", "File":"proj/BasicSort.atp"}
       - >command run, >command list, >command stop, >command output
       - ...
 
   - data manipulation (prefix %)
       - %1 table
       - %5 data odd table plot
-      - %1 decode ... decodes base64 text in Answer property
+      - %1 decode ... decodes base64 text
+      - %2{'Answer'} decode ... decode the 'Answer' property out of %2 json 
 
   - $ commands
       - this is shortcut for ">command" + it displays output  
@@ -43,8 +45,57 @@ const onresize = (dom_elem, callback) => {
 ///************
 ///************         Tools         ************///
 
-function askServer(question, blockID, callback) {  
-  callDjango("/cpanel/askServer?q=" + question, blockID, callback, question);
+// Function to get the value of a cookie by name
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function askServer(question, blockID, callback) {    
+  // instead of calling django (to call server)...
+  //callDjango("/cpanel/pAskServer", blockID, callback, question);
+  // ...we can call server directly with XMLHttpRequest or...
+  talkToServer(blockID, callback, question);
+  // ...with fetch() command 
+  //fetchFromServer(blockID, callback, question);
+}
+
+function fetchFromServer(blockID, callback, question) {
+  var parts = question.split(" ");
+  var req = parts[0], data=parts.slice(1).join(' ');
+  
+  fetch("http://localhost:12321/"+req, {
+    mode:   'cors', 
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      "Content-Encoding": "gzip"
+    },
+    body: data
+  })
+  .then(response => response.text())
+  .then(data => callback(blockID, data))
+  .catch(error => console.error(error));
+}
+
+function talkToServer(blockID, callback, question) {
+  var xmlHttp = new XMLHttpRequest();
+  var parts = question.split(" ");
+  var req = parts[0], data=parts.slice(1).join(' ');
+  xmlHttp.onreadystatechange = function() { 
+    if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+      callback(blockID, xmlHttp.responseText);
+  }
+  // Retrieve the Django session key from the 'sessionid' cookie
+  const sessionKey = getCookie('sessionid');
+
+
+  xmlHttp.open("POST", "http://localhost:12321/"+req, true); // true for asynchronous
+  xmlHttp.setRequestHeader("Content-Type", "application/json; charset=UTF-8");  
+  xmlHttp.setRequestHeader("Content-Encoding", "gzip");  
+  xmlHttp.setRequestHeader("SessionID", sessionKey);  
+  xmlHttp.send(data);
 }
 
 function callDjango(url, blockID, callback, question='') {  
@@ -62,19 +113,16 @@ function callDjango(url, blockID, callback, question='') {
     data: data,
 
     error: function(xhr, status, error) {
-      try {
-        var err = eval("(" + xhr.responseText + ")");
-        alert("Ajax askServer error: " + err.Message); 
-      } catch (error) {
-        alert(xhr.responseText)
-      }
-
+      alert("Ajax askServer error: " + error)
+      
       // rdečo luč ugasnem tudi ob napaki (komunikacije s strežnikom ni več)
       $("#cmdStatusB-" + blockID).css("background","green");
     }, 
 
      
     success: function(result) {
+      console.log("server's answer: " + result.answer);
+
       // ... and answer
       $("#cmdStatusB-" + blockID).css("background","green");
       callback(blockID, result.answer)
@@ -133,6 +181,9 @@ function escapeHtml(text) {
 function toJSON(jsonText, changeQuotes, removeNL, removeBackslash) {
   if (!jsonText) return JSON.parse('{"Status":1,"Message":"Empty or invalid JSON string"}');
 
+  // po novem ALGatorServer vrača JSON z dvojnimi narekovaji, zato zamenjava 
+  // narekovajev ni vec potrebna (se vec - zamenjava pokvari delovanje sistema!)
+  changeQuotes=false;
   if (changeQuotes) {
     jsonText = jsonText.replace(/"/g,    '_aa_');
     jsonText = jsonText.replace(/'/g,    '"');   
@@ -1031,7 +1082,7 @@ function showServerAnswer(blockID, serverAnswer) {
 
 function waitForServerAnswer(blockID, commandID) {
   // najprej ustavim morebitno akcijo, ki se je izvajal od prej (da ne pride do zombi akcij)
-  stopCMD(blockID);
+  // stopCMD(blockID);
 
   if (commandID === "?") {
     $("#cmdStatusB-" + blockID).css("background","green");
@@ -1069,7 +1120,7 @@ function novElement() {
               <input id="cmdStatusB-_hID_" type="button" style="background-color: green; height: 9px; width: 9px;" value="" class="myBtn" onclick="stopCMD(_hID_);">\
               [%_hID_]:\
             </td>                                            \
-            <td><input class="vpis" id="cmdQuestion-_hID_" type="text" style="width: calc(100% - 60px);" onKeyDown="keyDown(event, _hID_);" onKeyPress="processKey(event, _hID_)"; onFocus="gotFocus(event, _hID_);"/>\
+            <td><input class="vpis" id="cmdQuestion-_hID_" type="text" autocomplete="off" style="width: calc(100% - 60px);" onKeyDown="keyDown(event, _hID_);" onKeyPress="processKey(event, _hID_)"; onFocus="gotFocus(event, _hID_);"/>\
                 <!--namesto zgornjega inputa bi lahko dal textarea, da preprečim hint: textarea class="vpis" id="cmdQuestion-_hID_" type="text" rows=1 style="padding: 9px 0 0 5px;overflow:hidden; resize:none; min-height:fit-content; width: calc(100% - 60px);" onKeyDown="keyDown(event, _hID_);" onKeyPress="processKey(event, _hID_);" oninput="this.value=this.value.replace(/\n/g,\"\");"></textarea-->\
                 <img id="clockOn-_hID_"   onclick="clockOnOff(_hID_,0);" src="/static/images/clock16_active.png" style="float: right; margin: 5px;   display: none;">\
                 <img id="clockOf-_hID_"   onclick="clockOnOff(_hID_,1);" src="/static/images/clock16_inactive.png" style="float: right; margin: 5px; display: inline;">\
@@ -1219,14 +1270,41 @@ function processCommand(blockID, vpr) {
 function processPercent(blockID, vpr) {
   var params = [];
   var parts  = vpr.substring(1).split(" ");
-  var data   = env.data.get(parts[0]);
+
+  var data = ""
+  // ce je zahteva oblike %1{'key'}, potem predpostavim, da je %1 
+  // json slovar in vrnem le 'key' lastnost iz tega slovarja
+  if (parts[0].includes("{")) {
+    var msg = "Can't parse input request.";
+    try {
+      var pargs =  parts[0].match(/(\d+)({'([A-Za-z0-9x]+)'})?/) || ["","",""];
+      var parNum = pargs[1];
+      var key    = pargs[3];
+      msg = "Data is not of type TextData."
+      var myText = env.data.get(parNum).getTextData();
+      // try to parse jsno (with an adapted parser)
+      msg = "Can't parse JSON string."
+      var jData  = toJSON(myText, true,true,true);
+      // if parsing didn't work, try to parse with original parser
+      if (jData.Status)
+        jData = JSON.parse(myText);
+
+      msg="Invalid key '" + key + "'.";
+      data = new TextData(jData[key].toString(), blockID);
+    } catch (e) {
+     showAnswer(blockID, new ErrorData(msg));
+     return;      
+    }
+  } else {
+    data   = env.data.get(parts[0]);
+  }
 
   // references are only alowed to previously defined blocks
   // (this prevents cyclic references) 
   if (parts[0] >= blockID) {
     showAnswer(blockID, new ErrorData("Command can not refere to " +
       (parts[0] == blockID ? "itself." : "an answer with higher id.")));
-    reutrn;
+    return;
   }
   env.deps[blockID] = parts[0];
 
@@ -1309,7 +1387,7 @@ function processPercent(blockID, vpr) {
         if (data.type === Data.TEXT_DATA) {
           try {
             data = new TextData(
-              atob(toJSON(data.getTextData(), true, true, true).Answer), blockID);
+              atob(data.getTextData()), blockID);
           } catch (e) {
             data = new ErrorData(e);  
           }

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Datoteka anonymous - če obstaja, spletno stran poganjam 
+# v "lokalnem" načinu (brez povezave na bazo)
+datoteka="$ALGATOR_ROOT/anonymous"
+
+# Preveri obstoj datoteke
+if [ -e "$datoteka" ]; then
+    python manage.py runserver
+else
+    python manage.py runserver --settings algator_global
+fi

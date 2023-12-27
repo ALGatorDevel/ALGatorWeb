@@ -2,6 +2,8 @@ import os
 import json
 import logging
 
+from django.conf import settings
+
 
 __name__ = "ALGator"
 
@@ -26,8 +28,9 @@ class GlobalConfig(object):
         hdlr.setFormatter(formatter)
         self.logger.addHandler(hdlr) 
         self.logger.setLevel(logging.INFO)
+        self.logger.info("ALGator WebPage connected with ALGatorServer " + str(self.getALGatorServerConnectionData()))
 
-        print("Task server used: " + str(self.getTaskServerConnectionData()))
+        print("ALGatorServer: " + str(self.getALGatorServerConnectionData()))
         
         
     def getComputers(self):
@@ -46,23 +49,8 @@ class GlobalConfig(object):
     
         return computers
 
-    def getTaskServerConnectionData(self):
-      name = _DEFAULT_HOSTNAME
-      port = _DEFAULT_PORT
-      try:
-        with open(self.root_path+"/data_root/algator.acfg", 'r') as fde:
-          description_file = fde.read()
-          
-        gJson = json.loads(description_file)    
-        
-        name = gJson["Config"]["TaskServerName"]
-        port = gJson["Config"]["TaskServerPort"]
-            
-      except:
-        pass
-    
-      return (name, port)
-
+    def getALGatorServerConnectionData(self):
+      return (settings.ALGATOR_SERVER['Hostname'], settings.ALGATOR_SERVER['Port'])
 
 
 globalConfig = GlobalConfig()

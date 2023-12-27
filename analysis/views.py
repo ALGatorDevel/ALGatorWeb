@@ -7,7 +7,6 @@ from django.template.context import RequestContext
 from django.http import HttpResponse
 
 from Classes.Entities import Entities 
-from ALGator.taskclient import TaskClient
 
 # Create your views here.
 

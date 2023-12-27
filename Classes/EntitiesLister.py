@@ -49,7 +49,7 @@ class EntitiesLister(object):
 
     # This method lists the names of the test sets of the current project that are available to the current user
     # Currently: mathod reads the content of the data_root/projects/PROJ-peoject_name/tests folder and returns
-    #            all test sets (files with the atts extension) listed there 
+    #            all test sets (files with the json extension) listed there 
     # In the future: the list will be obtained by asking the ALGator for the testsets that
     #            are available to the current user according to user's rights
     def get_testsets_names(self, project_name):
@@ -58,7 +58,7 @@ class EntitiesLister(object):
           testsets_path = self.projects_path + "/PROJ-"+project_name+"/tests/"
           folder_list = os.listdir(testsets_path)
           for fname in folder_list:                        
-            if fname.endswith(".atts"):            
+            if fname.endswith(".json"):            
               testsets_names.append(fname[:-5])              
         except: 
             pass

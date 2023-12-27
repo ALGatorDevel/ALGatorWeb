@@ -9,7 +9,7 @@ from django.template.context import RequestContext
 from django.template.defaulttags import register
 
 from django.http import JsonResponse
-from ALGator.taskclient import TaskClient
+from Classes.ServerConnector import connector
 
 from Classes.GlobalConfig import globalConfig
 from Classes.Entities import Entities 
@@ -82,7 +82,7 @@ def newPresenter(request):
   project_name  = request.POST.get('project',   '')
   tip           = request.POST.get('type',      '0')
 
-  answer = TaskClient().talkToServer("admin -cdp " + project_name + " -pt " + tip)
+  answer = connector.talkToServer("admin -cdp " + project_name + " -pt " + tip)
   
   return JsonResponse({"answer": answer.split("<br>")[-1]})
 

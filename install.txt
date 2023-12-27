@@ -4,6 +4,10 @@
 
 sudo python -m pip install Django==3.2
 sudo python -m pip install django_pygments
+sudo python -m pip install djangorestframework
+sudo python -m pip install requests
+
+
 
 
 - Zagon serverja za prikaz spletne strani:
