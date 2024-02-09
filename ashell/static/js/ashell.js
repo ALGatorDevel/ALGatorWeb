@@ -52,6 +52,13 @@ function getCookie(name) {
   if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
+// v spodnji funkciji so tri možnosti, kako poklicati server. 
+// Trenutno uporabljam callDjango, da gre klic preko django serverja
+// in se s tem ognem problemov zaradi imena ALGatorServerja; če
+// namreč uporabljam talkToServer (čista javascript funkcija),
+// nastane problem, kadar je web strežnik na drugem računalniku 
+// kot uporabnik; v tem primeru je "localhost" za strežnik
+// drugi kot za odjemalca in talkTOServer na dela
 function askServer(question, blockID, callback) {    
   // instead of calling django (to call server)...
   //callDjango("/cpanel/pAskServer", blockID, callback, question);
@@ -65,7 +72,9 @@ function fetchFromServer(blockID, callback, question) {
   var parts = question.split(" ");
   var req = parts[0], data=parts.slice(1).join(' ');
   
-  fetch("http://localhost:12321/"+req, {
+  var host = window.location.origin;
+
+  fetch(host+":12321/"+req, {
     mode:   'cors', 
     method: 'POST',
     headers: {
@@ -90,8 +99,8 @@ function talkToServer(blockID, callback, question) {
   // Retrieve the Django session key from the 'sessionid' cookie
   const sessionKey = getCookie('sessionid');
 
-
-  xmlHttp.open("POST", "http://localhost:12321/"+req, true); // true for asynchronous
+  var host = window.location.protocol.concat("//").concat(window.location.hostname);
+  xmlHttp.open("POST", host + ":12321/"+req, true); // true for asynchronous
   xmlHttp.setRequestHeader("Content-Type", "application/json; charset=UTF-8");  
   xmlHttp.setRequestHeader("Content-Encoding", "gzip");  
   xmlHttp.setRequestHeader("SessionID", sessionKey);  

@@ -139,6 +139,10 @@ body {
                 <li>
                     <a href="#"><i class="fa fa-bar-chart-o fa-fw">&nbsp;</i><span onclick="openQuery('{{ project.name }}')">Query editor</span></a>
                 </li>
+                
+                <li class='active'><a href="{% url 'problems:edit' %}?project={{ project.name }}"><i class="fas fa-edit">&nbsp;</i>Edit project</a>
+                </li>
+
             </ul>
         </div>
         <!-- /.sidebar-collapse -->

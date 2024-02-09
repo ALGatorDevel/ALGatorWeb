@@ -1,0 +1,376 @@
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'codemirror/lib/codemirror.css' %}">
+    <link rel="stylesheet" href="{% static 'codemirror/theme/abcdef.css' %}">
+    <link rel="stylesheet" href="{% static 'codemirror/addon/hint/show-hint.css' %}">
+    <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'codemirror/addon/edit/matchbrackets.js' %}"></script>
+    <script src="{% static 'codemirror/addon/hint/show-hint.js' %}"></script>
+    <script src="{% static 'codemirror/mode/clike/clike.js' %}"></script>
+
+    <link href="{% static 'css/select2.css' %}"              rel="stylesheet">
+    <script type="text/javascript" src="{% static 'js/select2.js' %}"></script>  
+
+    <link href="{% static 'css/edit.css' %}" rel="stylesheet">
+    <script type="text/javascript" src="{% static 'js/edit.js' %}"></script>      
+
+    
+<script>
+  window.CSRF_TOKEN = "{{ csrf_token }}";
+   var askServerURL = "{% url 'cpanel:pAskServer' %}";
+</script>
+<div id="popupDiv"></div>
+
+
+<div id=bodydiv>
+    {% if project.name != "" %}
+    <div id="upper-section">
+        <div id="menu-dot"></div>
+        <span class=menux> 
+        <ul id="menu">
+            <li><a href="#general" onclick="selectMenuItem(this)">General</a></li>
+            <li>|</li>
+            <li><a href="#input" onclick="selectMenuItem(this)">Input</a></li>
+            <li>|</li>
+            <li><a href="#parameters" onclick="selectMenuItem(this)">Parameters</a></li>
+            <li>|</li>
+            <li><a href="#generators" onclick="selectMenuItem(this)">Generators</a></li>
+            <li>|</li>
+            <li><a href="#testset" onclick="selectMenuItem(this)">TestSets</a></li>
+            <li>|</li>
+            <li><a href="#output" onclick="selectMenuItem(this)">Output</a></li>
+            <li>|</li>
+            <li><a href="#timers" onclick="selectMenuItem(this)">Timers</a></li>
+            <li>|</li>
+            <li><a href="#indicators" onclick="selectMenuItem(this)">Indicators</a></li>
+            <li>|</li>
+            <li><a href="#counters" onclick="selectMenuItem(this)">Counters</a></li>
+        </ul>
+        </span>
+    </div>
+    
+    <div id="intermediate-section">
+      <div id="general-list" class="submenuitem">
+        <hi>General properties</hi> 
+        <span id="generals-list_panel"></span>
+      </div>  
+       <div id="input-list" class="submenuitem">
+        <hi>Algorithm's input</hi> 
+        <span id="input-list_panel"></span>
+      </div>        
+      <div id="parameters-list" class="submenuitem">
+        <hi> Project parameters</hi> 
+        <span id="parameters-list_panel"></span>
+      </div>
+      <div id="generators-list" class="submenuitem">
+        <hi>Generators</hi> 
+        <span id="generators-list_panel"></span>
+      </div>
+
+      <div id="testset-list" class="submenuitem">
+        <hi>Testsets</hi> 
+        <span id="testsets-list_panel"></span>
+      </div>
+
+      <div id="output-list" class="submenuitem">
+        <hi>Algorithm's output</hi> 
+        <span id="output-list_panel"></span>
+      </div>
+
+      <div id="timers-list" class="submenuitem">
+        <hi>Timers</hi> 
+        <span id="timers-list_panel"></span>
+      </div>
+
+      <div id="indicators-list" class="submenuitem">
+        <hi>Indicators</hi> 
+        <span id="indicators-list_panel"></span>
+      </div>
+
+      <div id="counters-list" class="submenuitem">
+        <hi>Counters</hi> 
+        <span id="counters-list_panel"></span>
+      </div>
+
+
+
+    </div>
+
+    <div id="lower-section">
+        
+        <div id="general-div" class="content-div">
+            <script>
+                document.getElementById("general-div").innerHTML = getGeneralHTML(
+                      "{{ project.name }}", "{{ project.description }}", "{{ project.author }}", "{{ project.date }}", 
+                      "{% for algorithm in project.algorithms %}{{ algorithm.name }}{% if not forloop.last %},{% endif %}{% endfor %}", 
+                      "{% for testset in project.testsets %}{{ testset.name }}{% if not forloop.last %},{% endif %}{% endfor %}");
+            </script>
+        </div>
+
+        <div id="input-div" class="content-div">
+            <table style="width:100%; padding: 15px;">
+            <tr>
+                <td class="gentd" style="vertical-align:top;"><label for="input-code-editor">Code:</label></td>
+                <td><textarea id="input-class" style="display: none;" onchange="contentChanged(changes.other, 'input')"></textarea>
+                    <div class="CodeMirror" id="input-code-editor"></div>
+                </td>
+            </tr></table>
+            <script>
+                initCodeMirrorEditor("input-code-editor", "input-class", "{{ project.source_input |escapejs }}", changes.other, "input");
+            </script>
+        </div>
+
+        <div id="parameters-div" class="content-div">
+            <div style="vertical-align:bottom;">
+              <label for="newparname">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newparname">
+              &nbsp;<input type="checkbox" id="isInputP" name="isInputP">  <label for="isInputP">Input parameter? </label>
+              &nbsp;<button id="addParamButton" onclick="newParameter('{{ project.name }}')">Add</button>
+              <script>registerClickOnEnter("newparname", "addParamButton");</script>
+            </div>
+
+            <hr>
+            <div id="inputParameters"><h4>Input Parameters</h4></div>
+            <div id="otherParameters"><h4>Other Parameters</h4></div>
+            <script>
+            {% for key, value in project.parameters.items %}
+                addParameterOnForm("{{ project.name }}", "{{ key }}", 
+                    "{{ value.IsInputParameter }}", "{{ value.Description }}", 
+                    "{{ value.Meta.Min }}", "{{ value.Meta.Max }}", 
+                    "{{ value.Meta.Step }}", "{{ value.Meta.Default }}", 
+                    "{{ value.Meta.Values }}", "{{ value.Type }}");
+            {% endfor %}
+            showHideParametersTitles();
+            </script>            
+        </div>
+
+        <div id="generators-div" class="content-div">
+            <div style="vertical-align:bottom;">
+              <label for="newgenname">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newgenname" onchange="" value="">
+              &nbsp;<label for="newgenparam">Parameters: &nbsp; &nbsp;</label><select class="multiselect" id="newgenparam" multiple style="width: 400px;"></select> 
+              <script>setNewGenParamValue();</script>
+              &nbsp;<button onclick="newGenerator('{{ project.name }}')">Add</button> 
+            </div>
+            <hr>
+
+            <div id="generators-div">
+            <script>
+            {% for key, value in project.generators.items|dictsort:0 %}
+               addGeneratorOnForm("{{ project.name }}", "{{ key }}","{{ value.Description }}", 
+                  "{{ value.GeneratingParameters }}", "{{ project.source_generators|get_item:key |escapejs }}");
+            {% endfor %}
+            </script>
+            </div>
+        </div>
+        <div id="testset-div" class="content-div">
+            <div style="vertical-align:bottom;">
+              <label for="newtestsetname">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newtestsetname">
+              &nbsp;<button  onclick="newTestset('{{ project.name }}')">Add</button> 
+            </div>
+            <hr>
+            <div id="testsets-div"></div>
+            <script>
+            {% for testset in project.testsets %}
+                addTestsetOnForm("{{ project.name }}", "{{ testset.name }}", "{{ testset.description }}"); 
+            {% endfor %}
+            </script>            
+
+        </div>
+        <div id="output-div" class="content-div">
+            <table style="width:100%; padding: 15px;">
+            <tr>
+                <td class="gentd" style="vertical-align:top;"><label for="output-code-editor">Code:</label></td>
+                <td><textarea id="output-class" style="display: none;"></textarea>
+                    <div class="CodeMirror" id="output-code-editor"></div>
+                </td>
+            </tr></table>
+            <script>
+                initCodeMirrorEditor("output-code-editor", "output-class", "{{ project.source_output |escapejs }}", changes.other, "output");
+            </script>
+        </div>
+
+        <div id="timers-div" class="content-div">
+          <div>
+            <div style="vertical-align:bottom;">
+              <label for="newtimer">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newtimer" onchange="" value="">
+              &nbsp;<button onclick="newTimer('{{ project.name }}')">Add</button>
+            </div>
+            <hr>
+            <div id="timers-div">
+            <script>                  
+            {% for key, value in project.indicators.items %}
+              {% if value.Type == "timer" %}                
+                addTimerOnForm("{{ project.name }}", "{{ key }}","{{ value.Description }}", "{{ value.Meta.ID }}");
+                selectOptionByValue("statf-{{ key }}", "{{ value.Meta.STAT }}");                
+              {% endif %}            
+            {% endfor %}         
+            </script>
+            </div>
+          </div>
+        </div>
+
+        <div id="indicators-div" class="content-div">
+            <div style="vertical-align:bottom;">
+              <label for="newindicator">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newindicator">
+              &nbsp;<button onclick="newIndicator('{{ project.name }}')">Add</button>
+            </div>
+            <hr>
+            <div id="indicators-div">
+            {% for key, value in project.indicators.items %}
+              {% if value.Type != "timer" %}
+                <script>
+                  addIndicatorOnForm("{{ project.name }}", "{{ key }}","{{ value.Description }}","{{ project.source_indicators|get_item:key |escapejs }}");
+                  selectOptionByValue("itype-{{ key }}", "{{ value.Type }}");
+                </script>
+              {% endif %}            
+            {% endfor %}         
+            </div>   
+        </div>
+
+        <div id="counters-div" class="content-div">
+           <div style="vertical-align:bottom;">
+              <label for="newcounter">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newcounter">
+              &nbsp;<button onclick="newCounter('{{ project.name }}')">Add</button>
+            </div>
+            <hr>
+            <div id="counters-div">
+            {% for key, value in project.counters.items %}
+              <script>
+                addCounterOnForm("{{ project.name }}", "{{ key }}","{{ value.Description }}");
+              </script>
+            {% endfor %}         
+            </div>              
+        </div>
+
+
+        <div id="navigation-buttons">
+            <button onclick="navigate(-1)">Previous</button>
+            <button onclick="navigate(1)">Next</button>
+            <button onclick="saveContent()">Save</button>
+        </div>
+    </div>
+
+<script>
+
+  var currentMenuItemIndex = 0;
+
+  var contentModified = false;
+
+  function updateDotColor(color) {
+      var dot = document.getElementById('menu-dot');
+      dot.style.backgroundColor = color;
+  }
+
+  function setContentModified(modified) {
+    contentModified = modified;
+    updateDotColor(contentModified ? 'red' : 'green');
+  }
+  
+  
+  function hideAllShowOne(clickedItem, className, divIdSuffix) {
+      var contentDivId = clickedItem.getAttribute('href').substring(1) + divIdSuffix;
+      var contentDivs = document.querySelectorAll(className);
+      contentDivs.forEach(function (div) {
+          div.style.display = 'none';
+      });
+      var thisDiv = document.getElementById(contentDivId);
+      if (thisDiv) thisDiv.style.display = 'block'; 
+      return thisDiv;
+  }
+
+  function selectMenuItem(clickedItem) {
+      if (contentModified) saveContent();
+      // Remove 'selected' class from all menu items
+      var menuItems = document.querySelectorAll('#menu a');
+      menuItems.forEach(function (item) {
+          item.classList.remove('selected');
+      });
+      // Add 'selected' class to the clicked menu item
+      clickedItem.classList.add('selected');
+      var thisDiv = hideAllShowOne(clickedItem, '.content-div', '-div');
+      
+      hideAllShowOne(clickedItem, '.submenuitem', '-list');
+      // refresh the height of all editors on this div
+      var allElements = thisDiv.querySelectorAll('[id]');
+      allElements.forEach(function(element) {
+        if (editors.get(element.id)) editors.get(element.id).refresh();
+      });
+      thisDiv.offsetHeight;
+      // Update the current menu item index
+      currentMenuItemIndex = Array.from(menuItems).indexOf(clickedItem);
+
+      // Reset the contentModified flag
+      setContentModified(false);      
+  }
+
+  function navigate(direction) {
+      if (contentModified) saveContent();
+      var menuItems = document.querySelectorAll('#menu a');
+      // Calculate the next index cyclically
+      currentMenuItemIndex = (currentMenuItemIndex + direction + menuItems.length) % menuItems.length;
+      // Trigger the click event for the corresponding menu item
+      menuItems[currentMenuItemIndex].click();
+  }
+
+  function contentChanged(entity, key) {
+    setContentModified(true);
+    entity.add(key);
+  }
+
+ 
+  function saveContent() {
+    if (changes.other.has("general")) saveGeneral("{{ project.name }}");
+    if (changes.other.has("input")) saveInput("{{ project.name }}");
+    saveParameters("{{ project.name }}");
+    saveGenerators("{{ project.name }}");
+    saveTestsets("{{ project.name }}");
+    if (changes.other.has("output")) saveOutput("{{ project.name }}")
+    saveTimers("{{ project.name }}");            
+    saveIndicators("{{ project.name }}");            
+    saveCounters("{{ project.name }}");
+    
+    setContentModified(false);  
+  }
+
+  window.addEventListener('beforeunload', function (event) {
+      if (contentModified) {
+          // Display a confirmation message when attempting to close the page
+          var message = "You have unsaved changes. Are you sure you want to leave?";
+          event.returnValue = message;
+          return message;
+      }
+  }); 
+
+  function setToday() {
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+    var yyyy = today.getFullYear();
+    var formattedDate = yyyy + '-' + mm + '-' + dd;
+    document.getElementById('dategrl').value = formattedDate;
+    contentChanged(changes.other, "general");
+  }
+
+  function setEditPageHeight() {
+      var windowHeight = window.innerHeight;
+      var contentDiv = document.getElementById('bodydiv');
+      contentDiv.style.height = (windowHeight - contentDiv.offsetTop - 15) + 'px';
+  }
+  
+  window.onload = window.onresize = function () {
+    setEditPageHeight();  
+  };
+
+  
+  $(function(){$('.multiselect').select2(select2Options);});
+
+  // Select the first menu item initially
+  document.getElementById('menu').firstElementChild.firstElementChild.click();
+
+  var mac = CodeMirror.keyMap.default == CodeMirror.keyMap.macDefault;
+  CodeMirror.keyMap.default[(mac ? "Cmd" : "Ctrl") + "-Space"] = "autocomplete";
+</script>
+    
+    {% else %}
+    Can't load project. 
+    {% endif %}
+
+</div

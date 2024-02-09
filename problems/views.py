@@ -10,6 +10,9 @@ from Classes.Entities import Entities
 from Classes.ServerConnector import connector
 
 
+from Classes.WEntities import WEntities 
+
+
 #@login_required
 def problems(request):
     entities = Entities()
@@ -196,7 +199,23 @@ def txtresults(request):
         }
     )
 
+#@login_required
+def edit(request):
+    
+    projectName   = request.GET.get('project', '')    
+    wentities = WEntities()
+    project   = wentities.read_project(projectName, True)
 
+    return render(request,
+        'editproject.html',
+        {
+            'project': project,
+        }
+    )
+
+@register.filter
+def male(value):
+  return value.lower()
 
 @register.filter
 def get_item(dictionary, key):

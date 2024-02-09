@@ -1,6 +1,6 @@
 class Algorithm:
 
-    def __init__(self, name, short_name, description,  author, date, language,
+    def __init__(self, name, short_name="", description="",  author="", date="", language="",
                  html_desc="", alg_source_name="", alg_source="",  algorithm_ref_html="", txtResultFiles=[]):
         self.name = name
         self.short_name = short_name
