@@ -8,7 +8,10 @@
     <script src="{% static 'codemirror/mode/clike/clike.js' %}"></script>
 
     <link href="{% static 'css/select2.css' %}"              rel="stylesheet">
-    <script type="text/javascript" src="{% static 'js/select2.js' %}"></script>  
+    <script type="text/javascript" src="{% static 'js/select2.js' %}"></script> 
+
+    <script type="text/javascript" src="{% static 'js/base64.min.js' %}"></script>
+ 
 
     <link href="{% static 'css/edit.css' %}" rel="stylesheet">
     <script type="text/javascript" src="{% static 'js/edit.js' %}"></script>      
@@ -155,7 +158,7 @@
             <script>
             {% for key, value in project.generators.items|dictsort:0 %}
                addGeneratorOnForm("{{ project.name }}", "{{ key }}","{{ value.Description }}", 
-                  "{{ value.GeneratingParameters }}", "{{ project.source_generators|get_item:key |escapejs }}");
+                  "{{ value.GeneratingParameters }}", "{{ project.source_generators|get_item:key |escapejs }}", false);
             {% endfor %}
             </script>
             </div>
@@ -318,11 +321,14 @@
  
   function saveContent() {
     if (changes.other.has("general")) saveGeneral("{{ project.name }}");
-    if (changes.other.has("input")) saveInput("{{ project.name }}");
+    if (changes.other.has("input")) 
+      saveFile("{{ project.name }}", "proj/src/Input.java", editors.get("input-code-editor").getValue(), "input");
+    if (changes.other.has("output")) 
+      saveFile("{{ project.name }}", "proj/src/Output.java", editors.get("output-code-editor").getValue(), "output");
+
     saveParameters("{{ project.name }}");
     saveGenerators("{{ project.name }}");
     saveTestsets("{{ project.name }}");
-    if (changes.other.has("output")) saveOutput("{{ project.name }}")
     saveTimers("{{ project.name }}");            
     saveIndicators("{{ project.name }}");            
     saveCounters("{{ project.name }}");

@@ -111,11 +111,24 @@ function askServer(callback, projectName, key, request='') {
       type: "POST",
       data: data,          
       success: function (response) {  
-        callback(projectName, key, response.answer);
+        serverAnswerPhase2(callback, projectName, key, response.answer);
       }
     }
   );
 }
+function serverAnswerPhase2(callback, projectName, key, response) {
+  try {
+    var jResp = JSON.parse(response);
+    if (jResp.Status == 0) {
+      if (callback != null) callback(projectName, key, jResp);
+    } else {
+      showPopup(response);
+    }
+  } catch (error) {
+    showPopup(error);
+  }
+}
+
 function showAnswer(projectName, key, response) {
   var jResp = JSON.parse(response);
   if (jResp.Status == 0) {
@@ -143,7 +156,7 @@ function addOption(multiSelectElt, value, selected) {
   var option = document.createElement('option');
   option.value = option.text = value;
   option.selected = selected;
-  try {multiSelectElt.add(option);} catch {}
+  try {multiSelectElt.append(option);} catch {}
 }
 function setValueOfMultiSelect(multiSelectId, valuesString) {
   try {
@@ -212,6 +225,7 @@ function showPopup(text) {
     }
   }   
 
+
 // ************************************* General ***************************************** //
 function getGeneralHTML(projectName, projDesc, author, date, algorithms, testsets) {
   var generalHTML = `
@@ -242,29 +256,33 @@ function getGeneralHTML(projectName, projDesc, author, date, algorithms, testset
 
 function saveGeneral(projectName) {
   genJSON = JSON.stringify( {
-    "Name"          : document.getElementById("namegrl").value,
     "Description"   : document.getElementById("descgrl").value,
     "Author"        : document.getElementById("authorgrl").value,
     "Date"          : document.getElementById("dategrl").value,
   });
-  alert(genJSON);
   
-  //askServer(showAnswer, projectName, indicator, 
-  //   `alter {'Action':'SaveProjectGeneral', 'ProjectName':'${projectName}', 'IndicatorType':'indicator', 'Indicator':${indJSON}}` );
+  askServer(saveGeneralPhase2, projectName, "general", 
+     `alter {'Action':'SaveProjectGeneral', 'ProjectName':'${projectName}', 'Data':${genJSON}}` );
+}
+
+function saveGeneralPhase2(projectName, key, response) {
   changes.other.delete("general");
 }
 
 // ************************************* Input  ***************************************** //
-function saveInput(projectName) {
-  inputJSON = JSON.stringify( {
-    "Code"        : editors.get("input-code-editor").getValue()
-  });
-  alert(inputJSON);
-  //askServer(showAnswer, projectName, indicator, 
-  //   `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'indicator', 'Indicator':${indJSON}}` );
-  changes.other.delete("input");
-}
 
+
+function saveFile(projectName, fileName, content, key) {
+  var bContent    = Base64.encode(content);
+  var contentLen = bContent.length; 
+
+  askServer(saveFilePhase2, projectName, key, 
+     `SaveFile {'Project':'${projectName}', 'File':'${fileName}', 'Length':${contentLen}, 'Content':'${bContent}'}` );
+}
+function saveFilePhase2(projectName, key, resp) {
+  if (key != null)
+    changes.other.delete(key);
+}
 
 // ************************************* PARAMETERS ***************************************** //
 
@@ -341,9 +359,16 @@ function newParameter(projectName) {
   
     if (!checkName(parameterName, pageProject.parameters, "parameter")) return;
 
+    askServer(newParameterPhase2, projectName, parameterName, 
+        `alter {'Action':'NewParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameterName}', 'IsInput':${isInput}}` );
+}
+ 
+function newParameterPhase2(projectName, parameterName, response) {
+    var isInput = document.getElementById("isInputP").checked;
     var newDiv = addParameterOnForm(projectName, parameterName, isInput ? "True" : "False", "", 0, 0, 0, 0, "", "");
     newDiv.scrollIntoView({ behavior: 'smooth' });
 }
+
 
 function removeParameter(projectName, parameterName) {
   pageProject.removeParameter(parameterName);  
@@ -384,7 +409,6 @@ function saveParameters(projectName) {
       "Name"           : parameter,
       "Description"    : document.getElementById("descp-"+parameter).value,
       "Type"           : typep,
-           //...
     };
     if (typep == "enum") {
       parameterJSON["Values"]  = getValueOfMultiselectAsJSON("valuesms-"+parameter);
@@ -399,9 +423,8 @@ function saveParameters(projectName) {
     }
 
     paramJSONS = JSON.stringify(parameterJSON);
-    alert(paramJSONS);
-     //askServer(showAnswer, projectName, indicator, 
-     //   `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'indicator', 'Indicator':${indJSON}}` );
+    askServer(null, projectName, parameter, 
+       `alter {'Action':'SaveParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameter}', 'Parameter':${paramJSONS}}` );
   });
 }
 
@@ -434,7 +457,7 @@ function getGeneratorHTML(projectName, key, desc,genpar) {
   return genHTML.replace(/__key__/g, key); 
 }
 
-function addGeneratorOnForm(projectName, generatorName, description, parameters, sourcecode) {
+function addGeneratorOnForm(projectName, generatorName, description, parameters, sourcecode, doTrigger) {
   pageProject.addGenerator(generatorName);
 
   var newDiv = document.createElement('div');
@@ -444,6 +467,7 @@ function addGeneratorOnForm(projectName, generatorName, description, parameters,
 
   $("#genpars-"+generatorName).select2(select2Options);
   setMultiselectValuesFromArrray("genpars-", generatorName);
+  if (doTrigger) $("#genpars-"+generatorName).trigger('change');
 
   return newDiv;
 }
@@ -457,10 +481,17 @@ function newGenerator(projectName) {
     showPopup(`At least one parameter is required`);
     return;
   }
-  
-  var newDiv = addGeneratorOnForm(projectName, generatorName, "", parameters, " ");
-  // tole ne zaskrola, ceprav bi moralo!
-  newDiv.scrollIntoView({ behavior: 'smooth' });
+    
+  askServer(newGeneratorPhase2, projectName, generatorName, 
+    `alter {'Action':'NewGenerator', 'ProjectName':'${projectName}', 'GeneratorName':'${generatorName}', 'GeneratorParameters':${parameters}}` );
+}
+function newGeneratorPhase2(projectName, generatorName, response) {
+  parameters = "[]";
+  var newDiv = addGeneratorOnForm(projectName, generatorName, "", parameters, " ", true);
+  // da zaskrola, moram malo počakati!
+  setTimeout(() => {
+    newDiv.scrollIntoView({ behavior: 'smooth' });
+  }, 500); 
 }
 
 function removeGenerator(projectName, generatorName) {
@@ -533,14 +564,9 @@ function newTestset(projectName) {
     newTestsetPhase2(projectName, testsetName, '{"Status":0}');
 }
 function newTestsetPhase2(projectName, testsetName, response) {
-  var jResp = JSON.parse(response);
-  if (jResp.Status == 0) {
-    addTestsetOnForm(projectName, testsetName, "");
+  addTestsetOnForm(projectName, testsetName, "");
 
-    document.getElementById(`namets-${testsetName}`).scrollIntoView({ behavior: 'smooth' });
-  } else {
-    showPopup(response);
-  }
+  document.getElementById(`namets-${testsetName}`).scrollIntoView({ behavior: 'smooth' });
 }
 function removeTestset(projectName, testsetName) {
 //  askServer(removeTimerPhase2, projectName, timerName, 
@@ -549,18 +575,13 @@ function removeTestset(projectName, testsetName) {
 }
 
 function removeTestsetPhase2(projectName, testsetName, response) {
-  var jResp = JSON.parse(response);
-  if (jResp.Status == 0)  {
-    pageProject.removeTestset(testsetName);
-    changes.delete(changes.testsets, testsetName);
+  pageProject.removeTestset(testsetName);
+  changes.delete(changes.testsets, testsetName);
 
-    var element = document.getElementById("testsetdiv-"+testsetName);
-    if (element) element.parentNode.removeChild(element);
+  var element = document.getElementById("testsetdiv-"+testsetName);
+  if (element) element.parentNode.removeChild(element);
 
-    showPopup(jResp.Answer);
-  } else {
-    showPopup(response);
-  }
+  showPopup(jResp.Answer);
 }
 
 function saveTestsets(projectName) {
@@ -644,33 +665,22 @@ function newTimer(projectName) {
       `alter {'Action':'NewIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${timerName}', 'IndicatorType':'timer', 'Meta':{'ID':0, 'STAT':'MIN'}}`);    
 }
 function newTimerPhase2(projectName, timerName, response) {
-  var jResp = JSON.parse(response);
-  if (jResp.Status == 0) {
-    var newDiv = addTimerOnForm(projectName, timerName, "", 0);
-    newDiv.scrollIntoView({ behavior: 'smooth' });
-  } else {
-    showPopup(response);
-  }
+  var newDiv = addTimerOnForm(projectName, timerName, "", 0);
+  newDiv.scrollIntoView({ behavior: 'smooth' });
 }
 
 function removeTimer(projectName, timerName) {
   askServer(removeTimerPhase2, projectName, timerName, 
       `alter {'Action':'RemoveIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${timerName}', 'IndicatorType':'timer'}`);
 }
-
 function removeTimerPhase2(projectName, timerName, response) {
-  var jResp = JSON.parse(response);
-  if (jResp.Status == 0)  {
-    pageProject.removeTimer(timerName);
-    changes.delete(changes.timers, timerName);
+  pageProject.removeTimer(timerName);
+  changes.delete(changes.timers, timerName);
+  
+  var element = document.getElementById("timerdiv-"+timerName);
+  if (element) element.parentNode.removeChild(element);
 
-    var element = document.getElementById("timerdiv-"+timerName);
-    if (element) element.parentNode.removeChild(element);
-
-    showPopup(jResp.Answer);
-  } else {
-    showPopup(response);
-  }
+  showPopup(jResp.Answer);
 }
 
 function saveTimers(projectName) {
@@ -740,13 +750,8 @@ function newIndicator(projectName) {
       `alter {'Action':'NewIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${indicatorName}', 'IndicatorType':'indicator'}`);
 }
 function newIndicatorPhase2(projectName, indicatorName, response) {
-  var jResp = JSON.parse(response);
-  if (jResp.Status == 0) {
-    var newDiv = addIndicatorOnForm(projectName, indicatorName, "", atob(jResp.Answer));
-    newDiv.scrollIntoView({ behavior: 'smooth' });
-  } else {
-    showPopup(response);
-  }
+  var newDiv = addIndicatorOnForm(projectName, indicatorName, "", atob(jResp.Answer));
+  newDiv.scrollIntoView({ behavior: 'smooth' });
 }
 
 function removeIndicator(projectName, indicatorName, response) {
@@ -757,18 +762,13 @@ function removeIndicator(projectName, indicatorName, response) {
 }
 
 function removeIndicatorPhase2(projectName, indicatorName, response) {
-  var jResp = JSON.parse(response);
-  if (jResp.Status == 0)  {
-    pageProject.removeIndicator(indicatorName);
+  pageProject.removeIndicator(indicatorName);
 
-    changes.delete(changes.indicators, indicatorName);
+  changes.delete(changes.indicators, indicatorName);
 
-    var element = document.getElementById("indicatordiv-"+indicatorName);
-    if (element) element.parentNode.removeChild(element);
-    showPopup(jResp.Answer);
-  } else {
-    showPopup(response);
-  }
+  var element = document.getElementById("indicatordiv-"+indicatorName);
+  if (element) element.parentNode.removeChild(element);
+  showPopup(jResp.Answer);
 }
 
 function saveIndicators(projectName) {
@@ -826,13 +826,8 @@ function newCounter(projectName) {
       `alter {'Action':'NewIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${counterName}', 'IndicatorType':'counter'}`);
 }
 function newCounterPhase2(projectName, counterName, response) {
-  var jResp = JSON.parse(response);
-  if (jResp.Status == 0) {
-    var newDiv = addCounterOnForm(projectName, counterName,"");
-    newDiv.scrollIntoView({ behavior: 'smooth' });
-  } else {
-    showPopup(response);
-  }
+  var newDiv = addCounterOnForm(projectName, counterName,"");
+  newDiv.scrollIntoView({ behavior: 'smooth' });
 }
 
 function removeCounter(projectName, counterName, response) {
@@ -843,17 +838,12 @@ function removeCounter(projectName, counterName, response) {
 }
 
 function removeCounterPhase2(projectName, counterName, response) {
-  var jResp = JSON.parse(response);
-  if (jResp.Status == 0)  {
-    pageProject.removeCounter(counterName);
-    changes.delete(changes.counters, counterName);
+  pageProject.removeCounter(counterName);
+  changes.delete(changes.counters, counterName);
 
-    var element = document.getElementById("counterdiv-"+counterName);
-    if (element) element.parentNode.removeChild(element);
-    showPopup(jResp.Answer);
-  } else {
-    showPopup(response);
-  }
+  var element = document.getElementById("counterdiv-"+counterName);
+  if (element) element.parentNode.removeChild(element);
+  showPopup(jResp.Answer);
 }
 
 function saveCounters(projectName) {

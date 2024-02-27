@@ -7,6 +7,7 @@ from problems import views
 urlpatterns = [
     path('',             views.problems,  name='index'),
     path('pdetails',     views.pdetails,  name='pdetails'),
+    path('proj/<str:projectName>',     views.proj),
     path('adetails',     views.adetails,  name='adetails'),
     path('tdetails',     views.tdetails,  name='tdetails'),
     path('results',      views.results,   name='results'),

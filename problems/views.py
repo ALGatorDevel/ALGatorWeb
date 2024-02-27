@@ -43,6 +43,19 @@ def pdetails(request):
         }
     )
 
+def proj(request, projectName):
+    entities = Entities()
+    project = entities.read_project(projectName, True)
+
+    return render(request,
+        'pdetails.html',
+        {
+            'project': project,
+            'projects_list': entities.projects_list,
+
+        }
+    )    
+
 # technical details about the project
 #@login_required
 def tdetails(request):
