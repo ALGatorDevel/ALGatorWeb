@@ -1,0 +1,29 @@
+{% load static %}
+
+<script src="{% static 'js/problems/playground.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/problems/playground.css' %}">
+
+<div style="height:50px;"></div>
+  
+<div id="querySubNavBar" class="subNavBar">
+      <div class="myPlusDropdown" id="queryDropdown" style="float:right;">
+          <i class="far fa-plus-square icon" id="queryDropdownIcon"></i>&nbsp;&nbsp;
+          <div class="myPlusDropdown-content" id="playgroundViewsDropdown" style="left: -140px;">
+              <span style="padding-top: 10px; padding-left: 10px; border-bottom: 1px solid black; width:100%;">Add:</span>
+          </div>
+      </div>
+</div>      
+
+<div id="playgroundInnerContent" class="innerContent" style="width:100%">
+  <div class="w3-container">
+    <div id="queryEditorDiv" class="w3-row" ></div>
+    <div id="queryViewsDiv"  class="w3-container"></div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    fillPlaygroundDiv();  
+  });
+</script>
+

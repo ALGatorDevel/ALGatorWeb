@@ -1,0 +1,31 @@
+<script>hljs.highlightAll();</script>
+
+<div style="height:50px;"></div>
+  
+<div class="subNavBar">
+  {% for item in navBars.implementation%}
+    <a  id="navBarEl{{ item.sectionId }}" class="w3-bar-item navBarEl" style="background-color: white;" onclick="showSection('{{ item.sectionId }}', {{navBars.implementation}})">
+      {{ item.display }}
+    </a>
+  {% endfor %}
+</div>
+
+<div class="innerContent">
+    
+    <div id="input" style="display: block;" class="bax">
+        <pre><code class="language-java codeBox">{{project.source_input|safe}}</code></pre>
+    </div>
+    
+    <div id="output" style="display: none;" class="bax">
+        <pre><code class="language-java codeBox">{{project.source_output|safe}}</code></pre>
+    </div>    
+    <div id="algorithm" style="display: none;" class="bax">
+        <pre><code class="language-java codeBox">{{project.source_algorithm|safe}}</code></pre>
+    </div>
+    
+    <div id="tools" style="display: none;" class="bax">
+        <pre><code class="language-java codeBox">{{project.source_tools|safe}}</code></pre>        
+    </div>
+</div>
+
+<script>showSection("{{ navBars.implementation.0.sectionId }}", {{navBars.implementation|safe}})</script>

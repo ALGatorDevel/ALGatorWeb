@@ -1,0 +1,77 @@
+@font-face {
+    font-family: 'customFont';
+    src: url('../../fonts/Lambda-mLv6V.ttf') format('truetype');
+}
+/* sign up */
+
+.error-message{
+    padding: 4px !important;
+    text-align: center;
+    margin: 20px;
+    background-color: rgb(247, 96, 96);
+    border-radius: 5px;
+}
+
+#signupContainer{
+    margin: 0 auto;
+    margin-top: 60px;
+    /* margin-left: 300px;
+    margin-right: 300px; */
+    border-radius: 5px;
+    width: 40%;
+}
+
+.myLable{
+    font-size: 18px;
+}
+
+/* profile */
+
+.profilContainer{
+    margin: 0 auto;
+    margin-top: 60px;
+    /* margin-left: 200px;
+    margin-right: 200px; */
+    border-radius: 5px;
+    width: 40%;
+}
+
+
+
+.element{
+    font-size: 20px;
+}
+
+.title{
+    font-size: 50px;
+    font-weight: bold;
+    font-family: 'customFont';
+}
+
+/* login */
+#loginTitle{
+    font-size: 40px;
+    margin-top: 60px;
+    margin-bottom: 60px;
+    font-weight: bold;
+    font-family: 'customFont';
+}
+
+.submitButton{
+    margin-top: 40px;
+}
+
+#errorMessage{
+    padding: 2px;
+    margin: 20px;
+    background-color: rgb(247, 96, 96);
+    border-radius: 5px;
+}
+
+.w3-modal-content{
+    border: 1px solid rgb(35, 192, 35);
+    border-radius: 5px;
+    width: 500px;
+    height: 500px;
+}
+

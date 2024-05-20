@@ -1,0 +1,44 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" style="overflow:hidden;">
+<head>
+    
+    <meta charset="utf-8" />
+    <title>{% block title %}ALGator{% endblock %}</title>
+
+
+    <link rel="icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/w3.css' %}">
+    <link href="{% static 'css/c3.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/arduino-light.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery-ui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/yesno.css' %}">
+    <link rel="stylesheet" href="{% static 'tex/src/tex.css' %}">
+    
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/highlight.min.js' %}"></script>
+    <script src="{% static 'js/fontawesome-a15005e656.js' %}"></script>
+    <script src="{% static 'js/jquery-dataTables.js' %}"></script>
+    <script src="{% static 'js/d3.js' %}"></script>
+    <script src="{% static 'js/c3.min.js' %}"></script>
+    <script src="{% static 'js/select2.js' %}"></script>
+    <script src="{% static 'js/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'js/yesno.js' %}"></script>
+    <script src="{% static 'tex/src/tex.js' %}"></script>
+
+    <script src="{% static 'js/main/base.js' %}"></script>
+</head>
+<body>
+<div id="popupDiv"></div>
+
+    
+<script>
+var isEditMode = ("{{ isEditMode }}" === "True");
+
+</script>
+    {% block content %}
+    {% endblock %}
+</body>
+</html>

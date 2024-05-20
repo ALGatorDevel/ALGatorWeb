@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<script>
+    var currentPath = window.location.pathname;
+    let url = '{% url 'main:pAskServerAjax' %}';
+    let projectName = '{{ project.name }}'
+    let navBars = {{navBars|safe}}
+    var presentersDataString = {{presentersDataString|safe}};
+    var presentersDataJSON = [];
+    for (let index = 0; index < presentersDataString.length; index++) {
+      presentersDataJSON.push(JSON.parse(presentersDataString[index]));
+    }   
+
+    // te podatke uporabljam v aview.js
+    let presenterJSONs = new Map();
+    for (let index = 0; index < presentersDataString.length; index++) {
+      let name = presentersDataJSON[index].Name;
+      presenterJSONs.set(name, presentersDataJSON[index]);
+    }
+
+    let projectJSON = {{projectDataDICT|safe}};
+
+    let projectDescJSON = {};
+    projectDescJSON["problemDescription"] =  "{{ project.html_desc|escapejs }}";
+    projectDescJSON["testCases"         ] =  "{{ project.test_case_html_desc|escapejs }}";
+    projectDescJSON["testSets"          ] =  "{{ project.test_sets_html_desc|escapejs }}";
+    projectDescJSON["projDescAlgorithms"] =  "{{ project.algorithms_html_desc|escapejs }}";
+    projectDescJSON["references"        ] =  "{{ project.project_ref_desc|escapejs }}";
+
+</script>
+
+<link rel="stylesheet" href="{% static 'css/problems/problems.css' %}">
+<script src="{% static 'js/problems/algatorData.js' %}"></script>
+<script src="{% static 'js/main/main.js' %}"></script>
+<script src="{% static 'js/problems/problems.js' %}"></script>
+<script src="{% static 'js/problems/problems.js' %}"></script>
+<script src="{% static 'js/edit.js' %}"></script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script>
+
+</head>
+<body>
+<!-- Left toolbar -->
+<div class="left-toolbar">
+{% include "sidebar.html" %}
+</div>
+
+<!-- Top toolbar -->
+<div class="top-toolbar">
+{% include "problemNavbar.html" %}
+</div>
+
+<div id='main'>
+    <div id="results" style="display: none;">
+        {% include "results.html" %}
+    </div>
+    <div id="projectDescription" style="display: block;">
+        <div id="projectDescription-top"></div>
+        {% include "projectDescription.html" %}
+    </div>
+    <div id="implementation" style="display: none;">
+        <div id="implementation-top"></div>
+        {% include "implementation.html" %}
+    </div>
+    <div id="algorithms" style="display: none;">
+        <div id="algorithms-top"></div>
+        { include "listOfAlgorithms.html" }
+    </div>
+    <div id="playground" style="display: none;">
+        <div id="playground-top"></div>
+        {% include "playground.html" %}
+    </div>
+    <div id="editProject" style="display: none;">
+        <div id="editProject-top"></div>
+        {% include "editProject.html" %}
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById("projectNameSpan").innerHTML = "{{ project.name}}";
+  document.getElementById("sectionTitleSpan").innerHTML = sectionTitle[0];
+  updateTestSetsDescList();
+});
+</script>
+
+
+{% endblock %}
