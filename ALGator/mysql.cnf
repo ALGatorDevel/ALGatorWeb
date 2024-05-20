@@ -1,5 +1,0 @@
-[client]
-database = algator
-user = algator
-password = algator
-default-character-set = utf8
