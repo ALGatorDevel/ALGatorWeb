@@ -1,0 +1,15 @@
+.dropHover {
+    background-color: lightgray; /* Example: Light gray background */
+    /* Add other styles as needed to make it visually distinct */
+}
+
+.drop-target-placeholder {
+    /* Add your styling here */
+    border: 2px dashed #ccc; /* Example style */
+    height: 100px; /* Adjust as needed */
+  }
+
+.drop-target:hover{
+    box-shadow: 3px 6px 9px rgba(0, 0, 0, 0.2); 
+    background-color: #faf9f9;
+  }

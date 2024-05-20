@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "mainNavbar.html" %}
+
+<link rel="stylesheet" href="{% static 'css/main/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/edit.css' %}">
+<script src="{% static 'js/main/main.js' %}"></script>
+<script src="{% static 'js/edit.js' %}"></script>
+
+<script>
+  window.CSRF_TOKEN = "{{ csrf_token }}";
+  askServerURL = "{% url 'main:pAskServer' %}";
+</script>
+
+
+<div class="tooltip"></div>
+
+<div style="width: 100%; overflow:overlay; height:100vh">
+  <div style="height:30px"></div>
+
+  <div class="w3-container myContainer w3-card" style="padding: 25px 10px 10px 20px; margin: 30px 125px 10px 125px;">
+    <span style="font-size:18px">Create a new project: </span>
+    <input style="width:500px;" type="text" id="newprojecttextfield">
+    <span id="addProjectButton" class="tooltip-button" data-tooltip="Create a new project" onclick="newProject()">
+       &nbsp;&nbsp;<img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
+    </span>
+  </div>
+  <script>
+    registerClickOnEnter("newprojecttextfield", "addProjectButton");
+    document.addEventListener("DOMContentLoaded", function() {
+      const inputField = document.getElementById('newprojecttextfield');
+      inputField.addEventListener('keypress', preventNonAlphaNumKeys);
+    });
+  </script>
+
+  <hr>
+
+
+  <div class="w3-container myContainer">
+    {% for project in projects_fulDesc %}
+        
+        <div class="w3-panel w3-card-2 myCard" onclick="redirectToUrlWithParams('/problem/{{ project.Name }}', {homepoint: true });">
+            <header class="w3-container">
+                <h2 class='cardHeader'>{{ project.Name }}</h2>
+            </header>
+
+            <div class="w3-container cardDesc">
+                <p>{{ project.Description }}</p>
+            </div>
+        </div>
+        
+    {% empty %}
+        <p>No problems available.</p>
+    {% endfor %}
+    
+  </div>
+<div>
+
+{% endblock %}

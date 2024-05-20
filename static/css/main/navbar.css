@@ -1,0 +1,73 @@
+
+:root {
+ --navbar_background: #404040;
+ --navbar_fontcolor: #7bc240; /* #27ae60, #27fe60; */
+}
+
+
+@font-face {
+    font-family: 'customFont';
+    src: url('../../fonts/Lambda-mLv6V.ttf') format('truetype');
+}
+
+/*  */ 
+.navBarSim {
+    font-size: 14px;
+    font-family: Arial, sans-serif; 
+    background-color: var(--navbar_background);
+    color: var(--navbar_fontcolor);
+    transition: color 0.3s ease, text-decoration 0.3s ease, text-underline-offset 0.3s ease;
+    padding: 0px 15px; 
+    cursor: default;
+}
+
+.navBarEl {
+    font-size: 14px;
+    font-family: Arial, sans-serif; 
+    background-color: var(--navbar_background);
+    color: var(--navbar_fontcolor);
+    transition: color 0.3s ease, text-decoration 0.3s ease, text-underline-offset 0.3s ease;
+    padding: 0px 15px;
+    cursor: pointer;
+    margin-top: 1px;
+}
+
+.bw {
+  background-color: white;
+}
+.cb {
+  color: #404040;
+}
+
+
+.navBarEl:hover {
+    text-decoration: underline;
+    text-underline-offset: 5px;
+    color: #7bc240;
+}
+
+.myContainerNavbar {
+    padding: 10px 0;
+    xbox-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+    background-color: var(--navbar_background);
+}
+
+
+.subNavBar {
+    height:25px; 
+    padding-top: 3px; 
+    padding-bottom: 3px;
+    box-shadow: 3px 6px 9px rgba(0, 0, 0, 0.2);
+    margin-bottom:10px; 
+    display:flex;
+}
+
+.innerContent {
+    height: calc(100vh - 80px); 
+    overflow:overlay;
+}
+
+.bax{
+    margin:25px;
+}
+

@@ -1,0 +1,30 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/problems/tooltip.css' %}">
+<script src="{% static 'js/problems/tooltip.js' %}"></script>
+<script>
+  createTooltip();
+</script>
+<div id="mySidebar">
+
+  <div class='row' {% if homepoint %} onclick="redirectToUrlWithPathAndParams('/', {})" {% endif %}>
+    <img  class='wide imgA' id='img1' src="{% static 'images/logo_green.png' %}"  alt="ALGator"  {% if not homepoint %}style="cursor:default;" {% endif%}>
+    <img  class='slim imgA' id='img2' src="{% static 'images/algator_icon.png' %}" alt="ALGator" {% if not homepoint %}style="cursor:default;" {% endif%}>
+  </div>
+
+  <div id="problemNavbarMenuButton" class='row'>
+    <p class='sideBarEl wide' onclick="toggleSidebar()" onclick="slimElements()" style="position: fixed; top:-15px; left:0px;">
+      <span>
+        <i class="fa-solid fa-bars"></i>
+      </span>
+    </p>
+    <p class='sideBarEl slim' onclick="toggleSidebar()" onclick="slimElements()" data-tooltip="MENU" onmouseover="showTooltip(event)" onmouseout="hideTooltip()">
+      <span>
+        <i class="fa-solid fa-bars"></i>
+      </span>
+    </p>
+  </div>
+
+</div>
+
+<script>document.getElementById("mySidebar").innerHTML += getSideBarItemsHTML(4);</script>

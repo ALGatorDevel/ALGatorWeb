@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/users/users.css' %}">
+
+
+
+<div class="w3-container w3-card-4" id='signupContainer'>
+  <h1 class="w3-center title">Sign in</h1>
+
+  <form method="POST" class="w3-container">
+      <input type="hidden" name="next" value="{{ request.POST.next }}">
+
+      {% csrf_token %}
+
+      {% for field in form %}
+            <div class='w3-margin'> 
+                <label for="id_{{ field.html_name }}" class="myLable">{{ field.label }}:</label>
+                  <input type="{{ field.field.widget.input_type }}" class="w3-input" id="{{ field.id_for_label }}" 
+                       name="{{ field.html_name }}" value="{{ field.value }}">
+
+                {% for error in field.errors %}
+                    <p class="error-message">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+      
+      <div class='w3-margin'>
+        <button type="submit" class="w3-button w3-block w3-section w3-green w3-ripple w3-padding">Sign up</button>
+      </div>
+      <br>
+  </form>
+</div>
+
+
+{% endblock %}

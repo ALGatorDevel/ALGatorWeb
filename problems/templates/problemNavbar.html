@@ -1,0 +1,42 @@
+{% load static %} 
+<link rel="stylesheet" href="{% static 'css/main/navbar.css' %}">
+<link rel="stylesheet" href="{% static 'css/main/main.css' %}">
+<script src="{% static 'js/main/main.js' %}"></script>
+<script src="{% static 'js/main/base.js' %}"></script>
+
+<div class='w3-container myContainerNavbar w3-top' id="problemNavbar" style="width: calc(100% - 200px);">
+
+  <div class="w3-row">
+    <div class="w3-col s6 w3-left-align" id="problemNavbarLeft">
+      <span class='navBarSim' style='font-size: 20px; padding-left: 0px'> | </span>
+      <span id="projectNameSpan" class='navBarSim' style='font-size: 20px;'></span>  
+      <span class='navBarSim' style='font-size: 20px;'> | </span>
+      <span class='navBarSim' style='font-size: 20px;' id="sectionTitleSpan"></span>
+    </div>
+
+
+    <div class="w3-col s6 w3-right-align">
+      <span class="navBarEl" style='padding-right: 20px;'></span>
+
+      {% if request.user.is_authenticated %}
+        <span class="navBarEl" style='padding-right: 20px; top:-3px;'>
+          <label class='labelswitch' for="isEditCheckbox">Edit mode</label>
+          <label class="switch" style='top:-3px;'>
+            <input id='isEditCheckbox' type="checkbox" onclick="toggleEditModeBoolean()">
+            <span class="slider round"></span>
+          </label>
+        </span>    
+      {% endif %} 
+
+      {% include "usermenu.html" %}   
+    </div>        
+  </div>
+</div>
+
+<script>
+    isEditMode = ("{{ isEditMode }}" === "True");
+
+    setEditCheckBox();
+</script>
+
+

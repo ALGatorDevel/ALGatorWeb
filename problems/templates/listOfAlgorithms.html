@@ -1,0 +1,42 @@
+{% load static %}
+
+<div style="width: 100%; overflow:overlay; height:100vh">
+  <div style="height:30px"></div>
+
+  <div class="w3-container myContainer w3-card" style="padding: 25px 10px 10px 20px; margin: 30px 125px 10px 125px;">
+    <span style="font-size:18px">Create a new algorithm: </span>
+    <input style="width:500px;" type="text" id="newalgorithmtextfield">
+    <span id="addAlgorithmButton" class="tooltip-button" data-tooltip="Create a new algorithm" onclick="newAlgorithm()">
+       &nbsp;&nbsp;<img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
+    </span>
+  </div>
+  <script>
+    registerClickOnEnter("newalgorithmtextfield", "addAlgorithmButton");
+    document.addEventListener("DOMContentLoaded", function() {
+      const inputField = document.getElementById('newalgorithmtextfield');
+      inputField.addEventListener('keypress', preventNonAlphaNumKeys);
+    });
+  </script>
+  <hr>
+
+
+  <div class="w3-container myContainer">
+    Algorithms of the project: 
+    {% for algorithm in project.algorithms %}
+         
+        <div class="w3-panel w3-card-2 myCard" onclick="redirectToUrlWithParams('/problem/{{ algorithm }}', {homepoint: true });">
+            <header class="w3-container">
+                <h2 class='cardHeader'>{{ algorithm.name }}</h2>
+            </header>
+
+            <div class="w3-container cardDesc">
+                <p>{{ algorithm.description }}</p>
+            </div>
+        </div>
+        
+    {% empty %}
+        <p>No algorithms available.</p>
+    {% endfor %}
+    
+  </div>
+</div>

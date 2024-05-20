@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "mainNavbar.html" %}
+
+<link rel="stylesheet" href="{% static 'css/users/users.css' %}">
+<script src="{% static 'js/users/profile.js' %}"></script>
+
+<div class='w3-container w3-card-4 profilContainer'>
+    <div class="w3-row">
+        <div class="w3-col w3-center">
+            <h1 class='title'>Profile</h1>
+        </div>
+    </div>
+    <div class="w3-row ">
+        <div class="w3-col w3-center">
+            <p class='element'><strong>Username:</strong> {{ user.username }}</p>
+        </div>
+    </div>
+    <div class="w3-row">
+        <div class="w3-col w3-center">
+            <p class='element'><strong>Email:</strong> {{ user.email }}</p>
+        </div>
+    </div>
+    <div class="w3-row">
+        <div class="w3-col s6 w3-center">
+            <button 
+                style='width: 90%'
+                onclick='editProfile()' 
+                class="w3-button w3-green w3-padding w3-margin"
+            >
+                Edit profile
+            </button>
+        </div>
+        <div class="w3-col s6 w3-center">
+            <button 
+                style='width: 90%'
+                onclick='editPassword()' 
+                class="w3-button w3-green w3-padding w3-margin"
+            >   
+                Change password
+            </button>
+        </div>
+    </div>
+</div>
+    
+
+{% endblock %}
