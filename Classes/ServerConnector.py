@@ -1,6 +1,8 @@
 from Classes.GlobalConfig import globalConfig 
 import requests
 import json, os
+
+from ausers.auconsts import USER_ANONYMOUS
 from main.autils import file_to_base64
 from main.autils import AutoDeleteArray
 
@@ -15,11 +17,12 @@ class ServerConnector(object):
     (name, port) = globalConfig.getALGatorServerConnectionData()
     return "http://" + name + ":" + str(port) + "/"
 
-  def talkToServer(self, request):    
-    # globalConfig.logger.info("REQUEST: " + request)
-
+  def talkToServer(self, request, uid=USER_ANONYMOUS):
     try:
-      headers = {"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}
+      headers = {
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+        "burden": uid
+      }
 
       parts = request.split(' ')
       url =  self.get_server_url() + parts[0]

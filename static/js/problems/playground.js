@@ -64,7 +64,7 @@ function addAndEditPlaygroundView(viewName, aView) {
 
      <div id="queryViewsDiv_${viewName}" class="w3-row" style="position: relative;">
        <h2 style="margin:0px;">${viewName}</h2>
-       <i class="fa-solid fa-times icon" onclick="deletePlaygroundView('${viewName}')" style="position:absolute;top:0;right:0;"></i>
+       <i class="fas fa-times icon" onclick="deletePlaygroundView('${viewName}')" style="position:absolute;top:0;right:0;"></i>
      </div>
      <div class="w3-row">
        ${aView.getEditorHTML()}

@@ -127,8 +127,9 @@ class TextboxView extends AView {
     htmlEditor.innerHTML = htmltext;            
     const tex = window.tex;
     let self = this;
+    
     tex.init({
-      element: htmlEditor,
+       element: htmlEditor,
        buttons: ['html', "divider", ,"undo","redo", "divider", "fontSize", "textColor","textBackColor", "divider", "bold","italic","underline","strikethrough", "divider", "heading1","heading2","divider", "olist","ulist", "divider", "code","line","link","divider","indent","outdent","divider","justifyCenter","justifyFull","justifyLeft","justifyRight", "divider","myUpload", "myResource"],
        paragraphSeparator: 'div',
        cssStyle: true,
@@ -140,11 +141,10 @@ class TextboxView extends AView {
        plugins: [getUploadImagePlugin(this.viewID), getUploadResourcePlugin(this.viewID)],
     });
   }
-
     
   getEditorControls(id) {
     var cont = `   
-      <div class='box'>
+      <div class='box' id="htmlEditorView_${id}">
         <div class='w3-row'>
             <!--div class='w3-col s12'>
               <label for="htmltext_${id}">HTML text description:</label>
@@ -156,7 +156,6 @@ class TextboxView extends AView {
               </form>
               <div id="htmltext_${id}"></div>
             </div>
-
       </div>
     `;
     return cont;
@@ -371,9 +370,11 @@ class TableView extends AView {
     let selectedColumns =  this.viewJSON["Columns"]; 
 
    
-    let columnValues = addGroupAsterisks(data[0]);
-    fillSelector(columnValues, selectedColumns, 'selected_columns_'+this.viewID, "Select columns");
-    wireControl(this, "selected_columns", "Columns", "change");
+    if (data) {
+      let columnValues = addGroupAsterisks(data[0]);
+      fillSelector(columnValues, selectedColumns, 'selected_columns_'+this.viewID, "Select columns");
+      wireControl(this, "selected_columns", "Columns", "change");
+    }
   
     this.draw();
   }
@@ -532,9 +533,9 @@ function getViewOuterHtml(presenterName, viewName) {
           <div>
             <div class='icons-container'>
               <div class='editMode'>
-                <i class="fa-solid fa-pen-to-square icon " 
+                <i class="far fa-edit icon " 
                   onclick="editView('${presenterName}', '${viewName}', 1)"></i>
-                <i class="fa-solid fa-times icon"
+                <i class="fas fa-times icon"
                   onclick="deletePresenterView('${presenterName}', '${viewName}')"></i>
               </div>
             </div>

@@ -20,6 +20,7 @@ function getQueryDefaultJSON(){
 function getPresenterDefaultJSON(name){
     return {
           "Name": `${name}`,
+          "eid": "",
           "Title": `New presenter`,
           "ShortTitle": `${name}`,
           "Description": "",
@@ -48,7 +49,18 @@ function wirePControl(presenterID, selector, json, property, action, doAction) {
 }
 
 
+function getPresenterEID(pName) {
+    try {
+        let eid = presenterJSONs.get(pName).eid;
+        return  eid ? eid : "";
+    } catch (e) {
+        return "";
+    }
+}
+
 function getPresenterTitleDivHTML(pName, pTitle, editButtonsQ, okCancelQ) {
+  let pEID = getPresenterEID(pName);
+
   let editButtons = !editButtonsQ ? "" : `
     <div id="presenterEditButtons_${pName}" class='editMode' style="float:right;">
         
@@ -60,8 +72,8 @@ function getPresenterTitleDivHTML(pName, pTitle, editButtonsQ, okCancelQ) {
               <span style="padding-top: 10px; padding-left: 10px; border-bottom: 1px solid black; width:100%;">Add:</span>
           </div>
       </div>
-      <i class="fa-solid fa-pen-to-square icon" onclick="editPresenter('${pName}')"></i>
-      <i class="fa-solid fa-times icon" onclick="deletePresenter('${pName}')"></i>
+      <i class="far fa-edit icon" onclick="editPresenter('${pName}')"></i>
+      <i class="fas fa-times icon" onclick="deletePresenter('${pName}')"></i>
       &nbsp;
     </div>
   `;
@@ -69,7 +81,7 @@ function getPresenterTitleDivHTML(pName, pTitle, editButtonsQ, okCancelQ) {
   return `
     <div class='w3-row ptitle' id="title_${pName}">
       <div class='w3-col s8'>
-        <h2 class="ptitleh2" id='presenterTitle_${pName}'>${pTitle}</h2>
+        <h2 class="ptitleh2" id='presenterTitle_${pName}'>${pTitle} [${pEID}]</h2>
       </div>
       <div class='w3-col s4' style="float:inline-end;">                   
          ${editButtons}${okCancelButtons}
@@ -339,7 +351,7 @@ function addNewPresenter() {
           q: `alter {"Action":"NewPresenter", "ProjectName":${projectName}, "PresenterType":0}`
       };
       $.post(url, param, function(response) {
-          var answer = response.response; 
+          var answer = response.answer; //!response->answer 
           let res = answer;
           try {res = JSON.parse(answer).Answer;} catch (e) {}
           resolve(res);
@@ -349,12 +361,16 @@ function addNewPresenter() {
 }
 
 async function newPresenterDone() {
-    let newPresenterName =  await addNewPresenter();
+    let newPresenter =  await addNewPresenter();
+    let newPresenterName = newPresenter.Name;
+    let newPresenterEID = newPresenter.eid;
+
     let presenterJSON = presenterJSONs.get(newPresenterID);
 
-    presenterJSON["Name"]=newPresenterName;
+    presenterJSON["Name"]  = newPresenterName;
+    presenterJSON["eid"]  = newPresenterEID;
     navBars.results.push({'sectionId': newPresenterName})
-    var navBarElHtml = `
+    var navBarElHtml = `¸
       <a id="navBarEl${newPresenterName}" class="w3-bar-item navBarEl" 
          style="background-color: white;" onclick="scrollToPresenter('${newPresenterName}')">
             ${presenterJSON["ShortTitle"]}
@@ -368,7 +384,7 @@ async function newPresenterDone() {
     };
   
     $.post(url, param, function(response) {
-        var answer = response.response; 
+        var answer = response.answer; //!response->answer 
   
         if(answer.includes('"Status":0')){
             presenterJSONs.set(newPresenterName, presenterJSON);
@@ -429,7 +445,7 @@ function editPresenterDone() {
     };
   
     $.post(url, param, function(response) {
-        var answer = response.response; 
+        var answer = response.answer; //!response->answer 
   
         if(answer.includes('"Status":0')){
           let navEl = document.getElementById(`navBarEl${presenterName}`);
@@ -578,7 +594,7 @@ function deletePresenterPhase2(answer, presenterName){
   };
 
   $.post(url, param, function(response) {
-    var answer = response.response; 
+    var answer = response.answer; //!response->answer 
 
     if(answer.includes('"Status":0')){
       $('#'+presenterName).remove();

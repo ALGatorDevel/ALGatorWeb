@@ -1,0 +1,184 @@
+{% load static %}
+
+<script>
+    window.CSRF_TOKEN = "{{ csrf_token }}";
+</script>
+
+<div style="height:50px;"></div>
+
+<div style="margin:10px;", class="innerContent">
+
+
+  
+  <h4>current_user_uid: <script>document.write(current_user_uid);</script></h4>
+  <br><hr>
+
+  <h3>Run a service</h3>
+  <div style="vertical-align: center;">
+  <span id="services_select"></span> <span id="service_commment"></span><br>
+  <textarea id="params_val" style="width: 400px;height: 180px;"></textarea>
+  <input type=button style="width:100px"  value="Run" onclick="runSelectedService();" />
+  <textarea id="service_result" style="width: 600px;height: 180px;"></textarea>
+  </div>
+
+  <br><hr>
+  <p>
+  <input type=button onclick="getCan();" value="Can">
+    (<select id="can_eid"></select>, <select id="can_action"></select>)? 
+  <span id="can_answer" style="border:1px solid lightgray; width:100px;"></span> 
+  <span id="canpy_answer" style="border:1px solid lightgray; width:100px;"></span> 
+  <span id="canj_answer" style="border:1px solid lightgray; width:100px;"></span> 
+  </p>
+
+  <hr>
+
+<h3>ALGatorServer </h3>  
+<table style="width: 100%; border-collapse: collapse;">
+    <tr style="vertical-align: initial;">
+      <td style="padding: 10px;width:80px; white-space: nowrap;">Request</td>
+      <td style="padding: 10px; ">
+        <input type="text" id="request" style="width: 100%; padding: 5px;" 
+               placeholder="Enter request..." onkeydown="checkEnter(event)">
+      </td>
+      <td style="padding: 10px;white-space: nowrap;">
+        <button id="submitButton" style="padding: 5px 10px;" 
+                onclick="getServerResponse()" value="ALGatorServer"></button>
+      </td>
+    </tr>
+
+    <tr>
+      <td colspan="3" style="padding: 10px;">
+        <textarea id="response" style="width: 100%; height: 100px; padding: 5px;"></textarea>
+      </td>
+    </tr>
+  </table>  
+  <hr>
+
+
+
+  <hr>
+  <h3>Local environment</h3>
+  <input type=button style="width:100px" value="Show" onclick="printValues();" />
+  <input type=button style="width:100px" value="Hide" onclick="hideValues();" />
+  <div id="values" style="display:none;"></div>
+
+  
+</div>
+<script>
+//////  server connect
+function checkEnter(event) {
+  if (event.key === 'Enter') {
+    document.getElementById('submitButton').click();
+  }
+}
+function showResponse(projectName, key, jResp) {
+  let answer = projectName ? projectName : jResp;
+  if (typeof answer==='object') answer = JSON.stringify(answer, null, 2);
+  $("#response").html(answer);   
+}
+function getServerResponse() {
+  askServer(showResponse, null, null, document.getElementById("request").value, showResponse);
+}
+//////  server connect
+
+
+function hideValues() {
+  var div = document.getElementById("values"); 
+  div.style.display = "none";
+}
+
+function printValues() {
+  var div = document.getElementById("values"); 
+  var content = "<table border=1><tbody>"
+  content    += "<tr><td>Users:  </td><td>"                     + JSON.stringify(ausers.users)      + "</td></tr>";
+  content    += "<tr><td>Groups:     </td><td>"                 + JSON.stringify(ausers.groups)      + "</td></tr>";
+  content    += "<tr><td>Entities:       </td><td>"             + JSON.stringify(ausers.entities)        + "</td></tr>";
+  content    += "<tr><td>Permissions: </td><td>"                + JSON.stringify(ausers.permissions)  + "</td></tr>";
+  content    += "<tr><td>permission_types: </td><td>"           + JSON.stringify(ausers.permission_types)  + "</td></tr>";
+  content    += "<tr><td>entities_permission_types: </td><td>"  + JSON.stringify(ausers.entities_permission_types)  + "</td></tr>";
+  
+  content    += "</tbody></table>";
+  div.innerHTML = content;
+  div.style.display = "block";  
+}
+
+
+function runSelectedService() {
+  var serviceName = document.getElementById("service_select_list").value;
+  var endpoint = auservices[serviceName]["endpoint"]  
+  var dataToSend  = JSON.parse(document.getElementById("params_val").value);
+  var method = auservices[serviceName]["method"];
+
+  document.getElementById("service_result").value = "... loading";
+  runService(endpoint, method, dataToSend, (result) => {
+    if (result.Status==0) { // if status == 0, answer is a json object...
+      result = JSON.stringify(result.Answer, null, 2);
+    } else { // ... else it is a string
+      result = result.Answer;
+    }
+    var color = "red"; if (status==0) color = "black";
+    document.getElementById("service_result").value = result;  
+    document.getElementById("service_result").style.color = color;  
+  });
+}
+
+function fillSelectWithKeys(selectId, keys) {
+    const selectElement = document.getElementById(selectId);
+    if (selectElement) {
+        // Clear any existing options
+        selectElement.innerHTML = '';
+        
+        // Loop through keys and create options
+        keys.forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = key;
+            selectElement.appendChild(option);
+        });
+    }
+}
+
+async function getCan() {
+  var eid    = document.getElementById("can_eid").value;
+  var action = document.getElementById("can_action").value;
+  
+  var answer = document.getElementById("can_answer");
+  var canjs = await can(eid, action);
+  answer.innerHTML = "JS: " + canjs;
+
+  var answerPY = document.getElementById("canpy_answer");
+  var canpy = await canPY({'eid':eid, 'codename':action});
+  answerPY.innerHTML = "PY: " + canpy;
+
+  askServer((x,y,v)=>{document.getElementById("canj_answer").innerHTML="J: " + v.Answer}, 
+     null, null, `db {'Action':'can', 'eid':'${eid}', 'codename':'${action}'}`);
+
+  answerPY.style.color = (canjs != canpy) ? "red" : "black";
+}
+
+var ents;
+
+document.addEventListener('DOMContentLoaded', async function() {
+  var serviceList = getServiceListAsSelect();
+  document.getElementById("services_select").appendChild(serviceList);  
+  serviceList.addEventListener("change", function() {
+    var parsArray = auservices[serviceList.value]["params"];
+    var jsonObject = parsArray.reduce((obj, key) => {obj[key] = ""; return obj;}, {});
+    var comment    = auservices[serviceList.value]["comment"];
+
+    document.getElementById("params_val").value = JSON.stringify(jsonObject, null, 2);    
+    document.getElementById("service_commment").innerHTML = comment
+  });
+
+
+  let ents = await getEntitiesKeysAsSet();
+  fillSelectWithKeys("can_eid", ents);
+
+  await waitForUserDataToLoad(["get_all_permission_types"]);
+  fillSelectWithKeys("can_action", new Set(Object.keys(ausers.permission_types)));
+
+
+  serviceList.dispatchEvent(new Event('change', {bubbles: true, cancelable: true }));  
+});
+
+</script>

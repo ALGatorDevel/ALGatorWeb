@@ -1,5 +1,4 @@
-import base64
-import time
+import base64, time, string, random
 
 # array that keeps elements only expiration_period (in seconds) of time;
 # outdated elements are deleted before any other action (add, contains, ...) is performed
@@ -29,3 +28,6 @@ def file_to_base64(file_path):
         return base64_data
 
 
+def rand_str(length=8):
+    characters = string.ascii_lowercase  + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))

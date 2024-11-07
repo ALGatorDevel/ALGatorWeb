@@ -1,0 +1,29 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/edit.css' %}">
+
+<div style="height:50px;"></div>
+<div class="innerContent" id="editUserInnerContent" style=" margin:15px;">  
+  <div id="edit_profile_frame">
+      <div style="font-size:20px">User: 
+        <select id="user_list"     onchange="selectedUserChanged()"></select> 
+        <span   id="single_user_label"></span>
+      </div>
+      <div id="editUserInnerContent-form"></div>
+      <i class="fa fa-plus" style="font-size:18px; margin-top:10px; color:green; display:none;" 
+       id="newUserB"    title="Add a user"onclick="addNewUser()"></i>
+  </div>
+  
+   
+  <div id="newUserInnerContent-form"></div>
+
+</div>
+
+<script>
+  async function toggleNewUserButton() {
+    let showButton = await can("e0_S", "can_edit_users");
+    document.getElementById("newUserB").style.display= showButton ? "" : "none";
+  }
+  toggleNewUserButton();
+</script>
+

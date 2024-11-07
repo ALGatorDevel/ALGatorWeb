@@ -1,0 +1,50 @@
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/ausers.css' %}">
+<link rel="stylesheet" href="{% static 'css/w3.css' %}">
+
+
+<div class="w3-container w3-card-4" id='signupContainer'>
+  <div style="padding: 10px; text-align: center;">
+    <a href="{% if request.POST.next %}{{ request.POST.next }}{% else %}/problems{% endif %}">
+       <img src="{% static 'images/logo.png' %}" id="logo"/></a>
+  </div>
+
+  <form method="POST" class="w3-container" autocomplete="new-password">
+      <input type="hidden" name="next" value="{{ request.POST.next }}">
+      <input type="hidden" name="fr"   value="0"> 
+
+      {% csrf_token %}
+
+{{ form_resubmitted }}
+
+      {% for field in form %}
+            <div class='w3-margin'> 
+                <label for="{{ field.id_for_label }}" class="myLable" 
+                   style="{% if form_resubmitted and field.errors and 'This field is required.' in field.errors %} color: red; {% endif %}">
+                {{ field.label }}
+                </label>
+                  <input type="{{ field.field.widget.input_type }}" autocomplete="nope" 
+                         id="{{ field.id_for_label }}" name="{{ field.html_name }}" 
+                         value="{% if field.value %}{{ field.value }}{% endif %}" class="w3-input">
+                    <div style="color:red;">
+                      {% for error in field.errors %}
+                        {% if 'This field is required.' != error %}  
+                          <p style="margin-top:0px;">{{ error }}</p>
+                        {% endif %}
+                      {% endfor %}
+                    </div>                         
+            </div>
+        {% endfor %}
+
+      
+      <div class='w3-margin'>
+        <button type="submit" class="w3-button w3-block w3-section w3-green w3-ripple w3-padding">Sign up</button>
+      </div>
+      <br>
+  </form>
+</div>
+
+
+{% endblock %}

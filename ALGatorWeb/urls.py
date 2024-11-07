@@ -16,18 +16,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from users.views import *
-import problems.views as pviews 
+from ausers.views import *
+import problems.views as pviews
+
 
 urlpatterns = [
     path("", include(("main.urls", 'main'), namespace='main'), name="main"),
-    path("users/", include(("users.urls", "users"), namespace="users"), name="users"),
+
+    path("ausers/", include(("ausers.urls", "ausers"), namespace="ausers"), name="ausers"),
+    path("ashell/", include(("ashell.urls", "ashell"), namespace="ashell"), name="ashell"),
     
     path("problems/", include(("problems.urls", "problems"), namespace="problems"), name="problems"),
+
     path('problem/<str:problemName>',     pviews.project, name="problem"),
+    path('problem/<str:problemName>/',    pviews.project, name="problemws"),
 
-
-    path('admin/', admin.site.urls, name=admin),
+    path('permissions/', include(('ausers.urls', 'ausers'), namespace='auserş')),
 ]
 
 

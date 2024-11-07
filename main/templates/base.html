@@ -7,19 +7,18 @@
     <meta charset="utf-8" />
     <title>{% block title %}ALGator{% endblock %}</title>
 
-
-    <link rel="icon" href="{% static 'images/favicon.png' %}">
+    <link rel="icon"       href="{% static 'images/favicon.png' %}">
     <link rel="stylesheet" href="{% static 'css/w3.css' %}">
-    <link href="{% static 'css/c3.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'fa/css/all.css' %}">    
+    <link rel="stylesheet" href="{% static 'css/c3.css' %}">
     <link rel="stylesheet" href="{% static 'css/arduino-light.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/select2.css' %}">
     <link rel="stylesheet" href="{% static 'css/jquery-ui.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/yesno.css' %}">
     <link rel="stylesheet" href="{% static 'tex/src/tex.css' %}">
-    
+
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/highlight.min.js' %}"></script>
-    <script src="{% static 'js/fontawesome-a15005e656.js' %}"></script>
     <script src="{% static 'js/jquery-dataTables.js' %}"></script>
     <script src="{% static 'js/d3.js' %}"></script>
     <script src="{% static 'js/c3.min.js' %}"></script>
@@ -27,6 +26,10 @@
     <script src="{% static 'js/jquery-ui.min.js' %}"></script>
     <script src="{% static 'js/yesno.js' %}"></script>
     <script src="{% static 'tex/src/tex.js' %}"></script>
+    <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
+
+    <script src="{% static 'js/auser.js' %}"></script>    
+    <script src="{% static 'js/can.js' %}"></script>
 
     <script src="{% static 'js/main/base.js' %}"></script>
 </head>
@@ -35,7 +38,13 @@
 
     
 <script>
-var isEditMode = ("{{ isEditMode }}" === "True");
+var isEditMode  = false;
+var isDBMode    = ("{{ isDBMode }}"   === "True");
+
+current_user_uid              = "{{ request.user.uid }}";
+current_user_is_superuser     = ("{{ request.user.is_superuser }}" === "True");
+
+askServerURL   = "{% url 'main:pAskServer' %}";
 
 </script>
     {% block content %}
