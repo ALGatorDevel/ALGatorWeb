@@ -5,16 +5,16 @@ import re
 import base64
 from Classes.ServerConnector import connector
 
-def getProjectData(problemName):
-    projectJSON = connector.talkToServer(f'getData {{"Type":"Project", "ProjectName":"{problemName}"}}')
+def getProjectData(problemName, uid="__internal__"):
+    projectJSON = connector.talkToServer(f'getData {{"Type":"Project", "ProjectName":"{problemName}"}}', uid)
     return json.loads(projectJSON)
 
-def getPresentersData(projectData, problemName):
+def getPresentersData(projectData, problemName, uid="__internal__"):
     presentersDataDICT = []
     presentersDataString = []
     if 'MainProjPresenters' in projectData:
       for presenter in projectData['MainProjPresenters']:
-        presenterJSON = connector.talkToServer(f'getData {{"Type":"Presenter", "ProjectName":"{problemName}", "PresenterName":"{presenter}"}}')
+        presenterJSON = connector.talkToServer(f'getData {{"Type":"Presenter", "ProjectName":"{problemName}", "PresenterName":"{presenter}"}}', uid)
         presenterDICT = json.loads(presenterJSON)["Answer"]
         if 'Name' in presenterDICT:
           presenterDICT = traverse_and_transform(presenterDICT, lambda text: replaceStaticLinks(text, problemName))
@@ -23,12 +23,12 @@ def getPresentersData(projectData, problemName):
 
     return [presentersDataDICT, presentersDataString]
 
-def getPresenterData(problemName, presenter):
-    presenterJSON = connector.talkToServer(f'getData {{"Type":"Presenter", "ProjectName":"{problemName}", "PresenterName":"{presenter}"}}')
+def getPresenterData(problemName, presenter, uid="__internal__"):
+    presenterJSON = connector.talkToServer(f'getData {{"Type":"Presenter", "ProjectName":"{problemName}", "PresenterName":"{presenter}"}}', uid)
     presenterDICT = json.loads(presenterJSON)
     return presenterDICT
 
-def setPresenterData(problemName, presenterDICT):
+def setPresenterData(problemName, presenterDICT, uid="__internal__"):
     presenterData = {
         "Name": presenterDICT['Name'],
         "Title": presenterDICT['Title'],
@@ -45,11 +45,11 @@ def setPresenterData(problemName, presenterDICT):
 
 
     requestString = f'alter {{"Action":"SavePresenter", "ProjectName":"{problemName}", "PresenterName": {json.dumps(presenterDICT["Name"])}, "PresenterData": {json.dumps(presenterDICT)}}}'
-    presenterJSON = connector.talkToServer(requestString)
+    presenterJSON = connector.talkToServer(requestString, uid)
 
 def replaceStaticLinks(html_string, problemName):
     for sLink in re.findall(r'%static{([^}]+)}', html_string):
-        newName = f"\"/static/projectDocs/{problemName}/{sLink}\""
+        newName = f"/static/ProjectDocs/{problemName}/{sLink}"
         html_string = html_string.replace(f"%static{{{sLink}}}", newName)
     return html_string
 
@@ -64,7 +64,7 @@ def traverse_and_transform(dictionary, transform_function):
   return dictionary
 
 
-def updateResourcesIfNeeded(projectDocResources, problemName):
+def updateResourcesIfNeeded(projectDocResources, problemName, uid="__internal__"):
     for keyFileName, valueTimeStamp in projectDocResources.items():
         pathCheckForFile = os.path.join("static", "ProjectDocs", problemName, keyFileName.replace("\\", "/"))
         path = os.path.join("static", "ProjectDocs", problemName)
@@ -72,13 +72,13 @@ def updateResourcesIfNeeded(projectDocResources, problemName):
         if fileExists(pathCheckForFile):
             timeStamp = os.path.getmtime(pathCheckForFile)  
             if((valueTimeStamp / 1000) != timeStamp):
-                ProjectResourceJson = connector.talkToServer(f'getData {{"Type":"ProjectResource", "ProjectName":"{problemName}", "ResourceName":"{keyFileName}"}}')
+                ProjectResourceJson = connector.talkToServer(f'getData {{"Type":"ProjectResource", "ProjectName":"{problemName}", "ResourceName":"{keyFileName}"}}', uid)
                 ProjectResourceDict = json.loads(ProjectResourceJson)
                 saveBase64ToFile(ProjectResourceDict["Answer"], path, keyFileName)
                 # nastavimo timestamp datoteke
                 os.utime(pathCheckForFile, (valueTimeStamp / 1000, valueTimeStamp / 1000))
         else:
-            ProjectResourceJson = connector.talkToServer(f'getData {{"Type":"ProjectResource", "ProjectName":"{problemName}", "ResourceName":"{keyFileName}"}}')
+            ProjectResourceJson = connector.talkToServer(f'getData {{"Type":"ProjectResource", "ProjectName":"{problemName}", "ResourceName":"{keyFileName}"}}', uid)
             ProjectResourceDict = json.loads(ProjectResourceJson)
             saveBase64ToFile(ProjectResourceDict["Answer"], path, keyFileName)
             # nastavimo timestamp datoteke

@@ -18,25 +18,18 @@
     <div class="w3-col s6 w3-right-align">
       <span class="navBarEl" style='padding-right: 20px;'></span>
 
-      {% if request.user.is_authenticated %}
-        <span class="navBarEl" style='padding-right: 20px; top:-3px;'>
-          <label class='labelswitch' for="isEditCheckbox">Edit mode</label>
-          <label class="switch" style='top:-3px;'>
-            <input id='isEditCheckbox' type="checkbox" onclick="toggleEditModeBoolean()">
-            <span class="slider round"></span>
-          </label>
-        </span>    
-      {% endif %} 
+      <span id="edit_button_panel" class="navBarEl" style='padding-right: 20px; top:-3px; display:none'>
+        <label class='labelswitch' for="isEditCheckbox">Edit mode</label>
+        <label class="switch" style='top:-3px;'>
+          <input id='isEditCheckbox' type="checkbox" onclick="toggleEditModeBoolean()">
+          <span class="slider round"></span>
+        </label>
+      </span>    
 
       {% include "usermenu.html" %}   
     </div>        
   </div>
 </div>
 
-<script>
-    isEditMode = ("{{ isEditMode }}" === "True");
-
-    setEditCheckBox();
-</script>
 
 

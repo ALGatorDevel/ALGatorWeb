@@ -28,7 +28,7 @@ function getData(url, projectName, presenterJSON) {
         q: `query {"ProjectName":"${projectName}", "Query":${JSON.stringify(presenterJSON.Query)}}}`
     };
     $.post(url, param, function(response) {
-        var answer = response.response; 
+        var answer = response.answer; //!response->answer 
         var resData = parseResponse(answer);
       
         resolve(resData);
@@ -122,6 +122,11 @@ function fillSelector(data, selected, selectroId, ePrompt){
   try {
     let XSelector = $('#'+selectroId);
     XSelector.empty();
+    
+    // if data is a map, use only keys 
+    if (data instanceof Map) 
+      data = Array.from(data.keys());
+
     data.forEach(function(item) {
         XSelector.append(new Option(item, item)); 
     });
@@ -131,8 +136,9 @@ function fillSelector(data, selected, selectroId, ePrompt){
     });
   } catch (e) {}
   $('#'+selectroId).val(selected);
-  if (ePrompt != "") {
-      $(`#${selectroId}`).select2({placeholder: ePrompt,allowClear: true, tags:true});
+  if (ePrompt != "") {    
+      // $(`#${selectroId}`).select2({placeholder: ePrompt,allowClear: true, tags:true});
+      applySelect2Options($(`#${selectroId}`), {placeholder: ePrompt,allowClear: true, tags:true});
   }
 }
 
@@ -443,7 +449,7 @@ function callDjangoWithAjax(props, url, popupQ, successF, errorF) {
 }
 
 function replaceStaticProjDocLinkWithDolarStatic(htmlText) {
-  var regex = new RegExp("/static/projectDocs/" + projectName + "/([^\"]+)", "g");
+  var regex = new RegExp("/static/ProjectDocs/" + projectName + "/([^\"]+)", "g");
 
   // Replace all occurrences of the matched pattern with "%static{X}"
   return  htmlText.replaceAll(regex, "%static{$1}");
@@ -467,7 +473,6 @@ function moveResources(id, htmlContent, successF, errorF) {
     }, errorF
   );
 }
-
 
 //////////////////////// TextBox //////////////////////
 function getUploadImagePlugin(id) {
@@ -535,4 +540,41 @@ function getNextViewNumber(presenterJSON, viewType) {
     });
   } catch (e) {}
   return max + 1;
+}
+
+
+
+//////////////************ SELECT2 options *****************//////
+
+var select2Options = {
+      placeholder: " Choose ...",      
+      tags: true,
+      tokenSeparators: [','],
+};
+var selectionOrder = [];
+
+
+function applySelect2Options(selectElement, options=select2Options) {
+  $(selectElement).select2(options)
+    .on('change', function() {
+        reorderOptions(this);
+    }); 
+}
+
+function reorderOptions(selectElement) {
+  var selectedOptions = $(selectElement).val();
+  if (selectedOptions == null) return;
+  
+  var options = $(selectElement).find('option');
+  // Reorder options based on the selected values order
+  options.sort(function(a, b) {
+    var aIndex = selectedOptions.indexOf(a.value);
+    var bIndex = selectedOptions.indexOf(b.value);
+    // If both are selected, order by selection order
+    if (aIndex > -1 && bIndex > -1) return aIndex - bIndex;    
+    if (aIndex > -1) return -1;    
+    if (bIndex > -1) return 1;    
+    return 0;
+  });
+  $(selectElement).html(options);//.trigger('change'); 
 }

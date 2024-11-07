@@ -1,31 +1,33 @@
 import json
 from django.template.defaulttags import register
-from django.shortcuts import redirect, render
-from django.contrib.auth.decorators import login_required
-from .utils import (getProjectData, getPresentersData, getPresenterData, setPresenterData, updateResourcesIfNeeded)
-from Classes.ServerConnector import connector
+from django.shortcuts import render
+
+from ausers.autools import getUID, isAnonymousMode
+from .utils import (getPresentersData,  updateResourcesIfNeeded)
 
 from Classes.WEntities import WEntities 
 
-def project (request, problemName, isEditMode_str='False'):
+def project (request, problemName):
     homepoint = request.POST.get('homepoint', False) # ce je True, potem se s klikom na ALGator ikono vračam na ALGator hp, sicer ne
-    isEditMode = (isEditMode_str.lower() == 'true')
 
     resultsNavBar = []
     try:
+      uid       = getUID(request)
       wentities = WEntities()
-      project   = wentities.read_project(problemName, True)
-      updateResourcesIfNeeded(project.doc_resources, problemName)
-
+      project   = wentities.read_project(problemName, True, uid)
+      updateResourcesIfNeeded(project.doc_resources, problemName, uid)
 
       projectDataDICT = project.json # getProjectData(problemName)
-      [presentersDataDICT, presentersDataString] = getPresentersData(projectDataDICT, problemName)
-    
-      for pre in projectDataDICT["MainProjPresenters"]:
-        for prst in presentersDataDICT:
+      [presentersDataDICT, presentersDataString] = getPresentersData(projectDataDICT, problemName, uid)
+
+      if "MainProjPresenters" in projectDataDICT:
+        for pre in projectDataDICT["MainProjPresenters"]:
+          for prst in presentersDataDICT:
             if prst["Name"] == pre:
                resultsNavBar.append({'sectionId': pre, 'shortTitle': prst["ShortTitle"]})
                break
+      else:
+          return render(request, 'error.html', {'error': f"project '{problemName}' does not exist or can not be read."})
     except Exception as e:
       return render(request, 'error.html', {'error': str(e)})
 
@@ -48,7 +50,7 @@ def project (request, problemName, isEditMode_str='False'):
  
 
     context = {
-        'isEditMode': isEditMode,
+        'isDBMode'  : not isAnonymousMode(),
         'homepoint': homepoint,
 
         'navBars': navBars,
@@ -64,12 +66,9 @@ def project (request, problemName, isEditMode_str='False'):
 def problem(request):
     if request.method == 'POST':
         problemName = request.POST.get('problemName', '')
-        isEditMode_str = request.POST.get('isEditMode', 'False')
     else:
         problemName = request.GET.get('problemName', '')
-        isEditMode_str = request.GET.get('isEditMode', 'False')
-
-    return project(request, problemName, isEditMode_str)
+    return project(request, problemName)
 
 
 

@@ -1,17 +1,36 @@
+{% load static %}
+
+{% block content %}
+
 <div style="height:50px;"></div>
+<div id="algorithm_panel" style="height:calc(100vh - 50px); display:flex; flex-direction: column;">
+  <div id="algorithm_panel_list">  
+    <div id="new_algorithm_panel" 
+         style="padding: 25px 10px 10px 20px; margin: 30px 125px 10px 125px; display:none;">
+      <span style="font-size:18px">Add a new algorithm: </span>
+      <input style="width:500px;" type="text" id="newalgorithmtextfield">
+      <span id="addAlgorithmButtonA" class="tooltip-button" data-tooltip="Add a new algorithm" onclick="addAlgorithm()">
+         &nbsp;&nbsp;<img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
+      </span>
+    </div>
+    <script>
+      registerClickOnEnter("newalgorithmtextfield", "addAlgorithmButtonA");
+      document.addEventListener("DOMContentLoaded", async function() {
+        const inputField = document.getElementById('newalgorithmtextfield');
+        inputField.addEventListener('keypress', preventNonAlphaNumKeys);
   
-<div class="subNavBar">
+        let showNewAlgorithmPanel = await can(projectEID, "can_add_algorithm");
+        document.getElementById("new_algorithm_panel").style.display = showNewAlgorithmPanel ? "" : "none";
+      });
+    </script>
   
+    <hr>
+    <div style="flex: 1; display: flex; flex-direction: column; overflow: auto;">
+      <div id="list_of_algorithms_panel" style="flex: 1; overflow-y: auto;">      
+      </div>
+    </div>
+  </div>
+  <div id="algorithm_panel_detail" style="flex: 1; display: flex; flex-direction: column; overflow: auto;"></div>  
 </div>
 
-<div class="innerContent" style="padding:30px;">
-    <script> projectJSON.Algorithms</script>
-    {{ projectDataDICT.Name }} == {{ project.name }}
-    <hr>
-    projectJSON: <br>
-    <div id="projectJSON"></div>
-    <script> document.getElementById("projectJSON").innerHTML = JSON.stringify(projectJSON)</script>
-    <hr>
-    {{presentersDataDICT}}
-
-</div>
+{% endblock %}

@@ -251,7 +251,7 @@ function XgetData(url, projectName, presenterJSON) {
         q: `query {"ProjectName":"${projectName}", "Query":${JSON.stringify(presenterJSON.Query)}}}`
     };
     $.post(url, param, function(response) {
-        var answer = response.response; 
+        var answer = response.answer; //!response->answer 
         var resData = parseResponse(answer);
       
         resolve(resData);

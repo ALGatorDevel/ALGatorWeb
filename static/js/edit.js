@@ -1,134 +1,209 @@
-select2Options = {
-      placeholder: " Choose ...",      
-      tags: true,
-      tokenSeparators: [','],
-  };
 
 function scrollIntoView(id) {
   var elt = document.getElementById(id);
   if (elt) elt.scrollIntoView({ behavior: "smooth"});
 }
 
-class Testset {
-  constructor(testsetName, description, shortname, n, repeat, limit, fileContent) {
-    this.setProps(testsetName, description, shortname, n, repeat, limit, fileContent);
+class GeneralData {
+  constructor(projectName, eid, projDesc, author, date, algorithms, testsets) {
+    this.setProps(projectName, eid, projDesc, author, date, algorithms, testsets);
   }
-  setProps(testsetName, description, shortname, n, repeat, limit, fileContent) {
-    this.name        = testsetName; 
-    this.description = description;
-    this.shortname   = shortname;
-    this.n           = n;
-    this.repeat      = repeat;
-    this.limit       = limit;
-    this.fileContent = fileContent;
+  setProps(projectName, eid, projDesc, author, date, algorithms, testsets) {
+    this.name       = projectName; 
+    if (eid)         this.eid        = eid; 
+    if (projDesc)    this.projDesc   = projDesc;
+    if (author)      this.author     = author;
+    if (date       ) this.date       = date;
+    if (algorithms ) this.algorithms = algorithms;
+    if (testsets   ) this.testsets   = testsets;
   }
 }
-
-class Algorithm {
-  constructor(name, description, shortname, date, author, language, fileContent) {
-    this.setProps(name, description, shortname, date, author, language, fileContent)
+class Parameter {
+  constructor(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType) {
+    this.setProps(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType);
   }
-  setProps(name, description, shortname, date, author, language, fileContent) {
+  setProps(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType) {
+    this.name        = parameterName; 
+    if (isInput)    this.isInput     = isInput;
+    if (desc)       this.desc        = desc;
+    if (defValue)   this.defValue    = defValue;
+    if (metaMin)    this.metaMin     = metaMin;
+    if (metaMax)    this.metaMax     = metaMax;
+    if (metaStep)   this.metaStep    = metaStep;
+    if (metaValues) this.metaValues  = metaValues;
+    if (vType)      this.vType       = vType;
+  }
+}
+class Generator {
+  constructor(generatorName, description, parameters, sourcecode) {
+    this.setProps(generatorName, description, parameters, sourcecode);
+  }
+  setProps(generatorName, description, parameters, sourcecode) {
+    this.name        = generatorName; 
+    if (description) this.description = description;
+    if (parameters)  this.parameters  = parameters;
+    if (sourcecode)  this.sourcecode  = sourcecode;
+  }
+}
+class Testset {
+  constructor(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent) {
+    this.setProps(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent);
+  }
+  setProps(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent) {
+    this.name        = testsetName; 
+    if (testsetEID)  this.eid         = testsetEID;
+    if (description) this.description = description;
+    if (shortname)   this.shortname   = shortname;
+    if (n)           this.n           = n;
+    if (repeat)      this.repeat      = repeat;
+    if (limit)       this.limit       = limit;
+    if (fileContent) this.fileContent = fileContent;
+  }
+}
+class Timer {
+  constructor(timerName, desc, timerID, timerSTAT) {
+    this.setProps(timerName, desc, timerID, timerSTAT);
+  }
+  setProps(timerName, desc, timerID, timerSTAT) {
+    this.name      = timerName; 
+    if (desc)      this.desc      = desc;
+    if (timerID)   this.timerID   = timerID;
+    if (timerSTAT) this.timerSTAT = timerSTAT;
+  }
+}
+class Indicator {
+  constructor(indicatorName, desc, type, code) {
+    this.setProps(indicatorName, desc, type, code);
+  }
+  setProps(indicatorName, desc, type, code) {
+    this.name = indicatorName; 
+    if (desc) this.desc = desc;
+    if (type) this.type = type;
+    if (code) this.code = code;
+  }
+}
+class Counter {
+  constructor(counterName, desc) {
+    this.setProps(counterName, desc);
+  }
+  setProps(counterName, desc) {
+    this.name = counterName; 
+    if (desc) this.desc = desc;
+  }
+}
+class Algorithm {
+  constructor(name, eid, description, shortname, date, author, language, fileContent, htmlContent) {
+    this.setProps(name, eid, description, shortname, date, author, language, fileContent, htmlContent)
+  }
+  setProps(name, eid, description, shortname, date, author, language, fileContent, htmlContent) {
     this.name        = name;
-    this.author      = author;
-    this.date        = date;
-    this.shortname   = shortname;
-    this.description = description;
-    this.language    = language;
-    this.fileContent = fileContent;
+    if (eid)         this.eid         = eid;
+    if (author)      this.author      = author;
+    if (date)        this.date        = date;
+    if (shortname)   this.shortname   = shortname;
+    if (description) this.description = description;
+    if (language)    this.language    = language;
+    if (fileContent) this.fileContent = fileContent;
+    if (htmlContent) this.htmlContent = htmlContent;    
   }
 }
 
 class PageProject {
   constructor() {
-    this.parameters = new Set();
-    this.timers     = new Set();
-    this.indicators = new Set();
-    this.counters   = new Set();
-    this.generators = new Set();
-    this.testsets   = new Set();
-    this.algorithms = new Set(); 
+    this.generalData = new GeneralData();
+    this.srcFiles    = new Map();
+    this.parameters  = new Map();
+    this.timers      = new Map();
+    this.indicators  = new Map();
+    this.counters    = new Map();
+    this.generators  = new Map();
+    this.testsets    = new Map();
+    this.algorithms  = new Map(); 
   }
-  addElt(key, elt, eltMap, eltID, linkID, eltList) {
-    eltMap.add(elt);
-
+  getListElement(eltID, key, linkID) {  
     var newListElement = document.createElement('span'); 
-    newListElement.innerHTML = `<span class="navBarEl bw cb" onclick="document.getElementById('${eltID}-${key}').scrollIntoView({ behavior: 'smooth' });">${key}</span>`;
+    newListElement.innerHTML = `
+       <span class="navBarEl bw cb" id="${eltID}_${key}_mi" name="${eltID}_mi" 
+       onclick="selectEditProjectMenuItem('${eltID}', '${key}')">${key}</span>
+    `;
     newListElement.id = `${linkID}_${key}`;
+    return newListElement;    
+  }
+
+  addSubmenuItem(key, eltID, linkID, eltList) {
+    var newListElement = this.getListElement(eltID, key, linkID);
     document.getElementById(eltList).appendChild(newListElement);
   }
-  removeElt(key, elt, eltMap, linkID) {
-    eltMap.delete(elt);
-
+  removeSubmenuItem(key, linkID) {
     var element = document.getElementById(`${linkID}_${key}`);
     if (element) element.parentNode.removeChild(element);
   }
-  addParameter(key) {
-    this.addElt(key, key, this.parameters, "parameterElt", "parameterlink", "parameters-list_panel");
+
+  addElt(key, elt, eltMap) {
+    eltMap.set(key, elt);
+  }
+  removeElt(key, eltMap, linkID) {
+    eltMap.delete(key);
+  }
+  addParameter(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType) {
+    var parameter = new Parameter(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType);
+    this.addElt(parameterName, parameter, this.parameters);
     
     // add parameter to newGenParam multiselect
-    addOption(document.getElementById("newgenparam"), key, false);
+    addOption(document.getElementById("newgenparam"), parameterName, false);
   }
   removeParameter(key) {
-    this.removeElt(key, key, this.parameters, "parameterlink");
+    this.removeElt(key, this.parameters, "parameterlink");
 
     // remove parameter from newGenParam multiselect
     $(`#newgenparam option[value="${key}"]`).remove();
   }
 
-  addTimer(key) {
-    this.addElt(key, key, this.timers, "timerElt", "timerlink", "timers-list_panel");
-  }
-  removeTimer(key) {
-    this.removeElt(key, key, this.timers, "timerlink");
-  }
-  addIndicator(key) {
-    this.addElt(key, key, this.indicators, "indicatorElt", "indicatorlink", "indicators-list_panel");
-  }
-  removeIndicator(key) {
-    this.removeElt(key, key, this.indicators, "indicatorlink");
-  }
-  addCounter(key) {
-    this.addElt(key, key, this.counters, "counterElt", "counterlink", "counters-list_panel");
-  }
-  removeCounter(key) {
-    this.removeElt(key, key, this.counters, "counterlink");
-  }
-  addGenerator(key) {
-    this.addElt(key, key, this.generators, "generatorElt", "generatorlink", "generators-list_panel");
+  addGenerator(generatorName, description, parameters, sourcecode) {
+    var generator = new Generator(generatorName, description, parameters, sourcecode);
+    this.addElt(generatorName, generator, this.generators);
   }
   removeGenerator(key) {
-    this.removeElt(key, key, this.generators, "generatorlink");
+    this.removeElt(key, this.generators, "generatorlink");
   }
-  addTestset(elt) {
-    this.addElt(elt.name, elt, this.testsets, "testsetElt", "testsetlink", "testsets-list_panel");
+  addTestset(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent) {
+    var testset = new Testset(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent);
+    this.addElt(testsetName, testset, this.testsets);
   }
   removeTestset(key) {
-    let ts = elementWithName(this.testsets, key);
-    if (ts) this.removeElt(key, ts, this.testsets, "testsetlink");
+    this.removeElt(key, this.testsets, "testsetlink");
   }
-  addAlgorithm(elt) {
-    this.addElt(elt.name, elt, this.algorithms, "algorithmElt", "algorithmlink", "algorithms-list_panel");
+  addTimer(key, desc, timerID, timerSTAT) {
+    var timer = new Timer(key, desc, timerID, timerSTAT);
+    this.addElt(key, timer, this.timers);
+  }
+  removeTimer(key) {
+    this.removeElt(key, this.timers, "timerlink");
+  }
+  addIndicator(key, desc, type, code) {
+    var indicator = new Indicator(key, desc, type, code);
+    this.addElt(key, indicator, this.indicators);
+  }
+  removeIndicator(key) {
+    this.removeElt(key, this.indicators, "indicatorlink");
+  }
+  addCounter(key, desc) {
+    var counter = new Counter(key, desc);
+    this.addElt(key, counter, this.counters);
+  }
+  removeCounter(key) {
+    this.removeElt(key, this.counters, "counterlink");
+  }
+  addAlgorithm(algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent) {
+    var algorithm = new Algorithm(algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent);
+    this.addElt(algorithmName, algorithm, this.algorithms);
   }
   removeAlgorithm(key) {
-    let ts = elementWithName(this.algorithms, key);
-    if (ts) this.removeElt(key, ts, this.algorithms, "algorithmlink");
+    this.removeElt(key, this.algorithms, "algorithmlink");
   }
-
-
 }
 pageProject = new PageProject();
 
-
-function getNamesOfElements(elements) {
-  var names = new Set();
-  elements.forEach(element=>{names.add(element.name);})
-  return names;
-}
-function elementWithName(elements, name) {
-  for (let element of elements) if (element.name === name) return element;    
-  return null; 
-}
 
 // saves all changes to entities so that they can be saved
 class Changes {
@@ -153,42 +228,22 @@ class Changes {
         setContentModified(false);
       }
     }
+    add(set, key) {
+      set.add(key);
+    }
 }
 changes = new Changes();
 
 // all CoreMirror editors on page; key=id of a div thet editor is placed on
-editors   = new Map();
+editors      = new Map();
+editorsColor = new Map(); 
+
+// all editors that are togged between enabled/disabled mode on ProjectEdit; 
+disabableEditors = new Map();
 
 // this is used to save Algorithms HTML views
 htmlViews = new Map();
 
-function askServer(callback, projectName, key, request='') {  
-  var data = {
-      csrfmiddlewaretoken : window.CSRF_TOKEN,
-      q : request,
-  };
-  $.ajax({
-      url: askServerURL,
-      type: "POST",
-      data: data,          
-      success: function (response) {  
-        serverAnswerPhase2(callback, projectName, key, response.answer);
-      }
-    }
-  );
-}
-function serverAnswerPhase2(callback, projectName, key, response) {
-  try {
-    var jResp = JSON.parse(response);
-    if (jResp.Status == 0) {
-      if (callback != null) callback(projectName, key, jResp);
-    } else {
-      showPopup(response);
-    }
-  } catch (error) {
-    showPopup(error);
-  }
-}
 
 function showAnswer(projectName, key, response) {
   var jResp = JSON.parse(response);
@@ -236,30 +291,30 @@ function setValueOfMultiSelect(multiSelectId, valuesString) {
 
 
 
-// unhides div for 3 sec and shows message in it
-function showPopup(text) {
-    var messageDiv = document.getElementById("popupDiv");
-    messageDiv.textContent = text;
-    messageDiv.style.display = 'block';
-    setTimeout(function() {messageDiv.style.display = 'none';}, 3000);
-}
-
-
-function initCodeMirrorEditor(cmDiv, hiddenDiv, content, entity, key, theme="abcdef", mode="text/x-java", height="") {
- var editor = CodeMirror(document.getElementById(cmDiv), {
-   mode: mode,
-   lineNumbers: true,
-   matchBrackets: true,
-   theme: theme
- });
- editors.set(cmDiv,editor);     
- editor.getDoc().setValue(content);
- editor.on("change", function() {
-   var code = editor.getValue();
-   document.getElementById(hiddenDiv).value = code;
-   contentChanged(entity, key);
- });
- if (height!="") editor.setSize(null, height);
+function initCodeMirrorEditor(cmDiv, hiddenDiv, content, entity, key, theme="eclipse", mode="text/x-java", height="", readOnly=false) {
+  var editor = CodeMirror(document.getElementById(cmDiv), {
+    mode: mode,
+    lineNumbers: true,
+    matchBrackets: true,
+    theme: theme,
+    readOnly: readOnly
+  });
+  editors.set(cmDiv,editor);    
+  editorsColor.set(cmDiv, window.getComputedStyle(editor.getWrapperElement()).getPropertyValue("background-color"));
+ 
+  if (readOnly) {
+     disabableEditors.set(cmDiv,editor);
+     editor.getWrapperElement().style.backgroundColor = "#f5f5f5"; 
+  }    
+ 
+  editor.getDoc().setValue(content);
+  editor.on("change", function() {
+    var code = editor.getValue();
+    document.getElementById(hiddenDiv).value = code;
+    contentChanged(entity, key);
+  });
+  if (height!="") editor.setSize(null, height);
+  return editor;
 }
 
    // reads the "array" atribute of element with eltID (which is of 
@@ -325,51 +380,81 @@ function getGeneralHTML(projectName, projDesc, author, date, algorithms, testset
   var generalHTML = `
     <table style="width:100%; padding: 15px;">
       <tr><td class="gentd"><label for="namegrl">Name:</label></td>
-          <td><input class="almostW" type="text" id="namegrl" onchange="contentChanged(changes.other, 'general')" readonly value="${projectName}">
+          <td><input class="almostW pEdit" disabled type="text" id="namegrl" onchange="contentChanged(changes.other, 'general')" readonly value="${projectName}">
       </td></tr>
-      <tr><td class="gentd" style="vertical-align: top;"><label for="descgrl">Description:</label></td>
-          <td><textarea class="descTA almostW"  id="descgrl" onchange="contentChanged(changes.other, 'general')">${projDesc}</textarea>
+      <tr><td class="gentd" disabled style="vertical-align: top;"><label for="descgrl">Description:</label></td>
+          <td><textarea class="descTA almostW pEditE" disabled id="descgrl" onchange="contentChanged(changes.other, 'general')">${projDesc}</textarea>
       </td></tr>
-      <tr><td class="gentd"><label for="authorgrl">Author:</label></td>
-          <td><input class="almostW" type="text" id="authorgrl" onchange="contentChanged(changes.other, 'general')" value="${author}">
+      <tr><td class="gentd"><label for="authorgrl">Author name:</label></td>
+          <td><input class="almostW pEditE" disabled type="text" id="authorgrl" onchange="contentChanged(changes.other, 'general')" value="${author}">
       </td></tr>
-      <tr><td class="gentd"><label for="dategrl">Date:</label></td>
-          <td><span><input style="width:calc(100% - 35px);" type="text" id="dategrl" onchange="contentChanged(changes.other, 'general')" value="${date}">
-              <button onclick="setToday()">...</button></span>
+      <tr><td class="gentd"><label for="dategrl">Created:</label></td>
+          <td><span><input class="almostW" disabled type="text" id="dategrl" onchange="contentChanged(changes.other, 'general')" value="${date}">
       </td></tr>
+      <tr><td class="gentd"><label for="dategrl">Last Modified:</label></td>
+          <td><span><input class="almostW" disabled type="text" id="dategrl" onchange="contentChanged(changes.other, 'general')" value="${date}">
+      </td></tr>
+
       <!--tr><td class="gentd"><label for="algorithmsgrl">Algorithms:</label></td>
-          <td><input class="almostW" type="text" id="algorithmsgrl" readonly value="${algorithms}">
+          <td><input class="almostW pEdit" disabled type="text" id="algorithmsgrl" readonly value="${algorithms}">
       </td></tr>
       <tr><td class="gentd"><label for="testsetsgrl">Testsets:</label></td>
-          <td><input class="almostW" "type="text" id="testsetsgrl" readonly value="${testsets}">
+          <td><input class="almostW pEdit" disabled "type="text" id="testsetsgrl" readonly value="${testsets}">
       </td></tr-->
     </table>    
   `;
   return generalHTML; 
 }
 
+function setGeneralData(projectName, eid, projDesc, author, date, algorithms, testsets) {
+  pageProject.generalData = new GeneralData(projectName, eid, projDesc, author, date, algorithms, testsets);
+}
+function showGeneralData() {
+  var gd = pageProject.generalData;
+  document.getElementById("general-div").innerHTML = getGeneralHTML(
+    `${gd.name} [${gd.eid}]`, gd.projDesc, gd.author, gd.date, gd.algorithms, gd.testsets, gd.isPrivate
+  );
+}
+
 function saveGeneral(projectName) {
-  genJSON = JSON.stringify( {
+  genJSON =  {
     "Description"   : document.getElementById("descgrl").value,
     "Author"        : document.getElementById("authorgrl").value,
     "Date"          : document.getElementById("dategrl").value,
-  });
-  
+  };
+  genJSONS = JSON.stringify(genJSON);
+
+  var gen = pageProject.generalData;
+  if (gen) gen.setProps(projectName, undefined, genJSON.Description, genJSON.Author);
+
   askServer(saveGeneralPhase2, projectName, "general", 
-     `alter {'Action':'SaveProjectGeneral', 'ProjectName':'${projectName}', 'Data':${genJSON}}` );
+     `alter {'Action':'SaveProjectGeneral', 'ProjectName':'${projectName}', 'Data':${genJSONS}}` );
 }
 
 function saveGeneralPhase2(projectName, key, response) {
   changes.other.delete("general");
 }
 
-// ************************************* Save file (input, output)  ***************************************** //
+// ****************************** Files (input, output, tools)  ***************************************** //
+
+function setFileContent(key, content) {
+  pageProject.srcFiles.set(key, content);
+}
+function showFileContent(key) {
+  var editor = editors.get(key + "-code-editor");
+  if (editor)
+    editor.getDoc().setValue(pageProject.srcFiles.get(key));    
+}
+
+
 function saveFile(projectName, fileName, content, key) {
   var bContent    = Base64.encode(content);
   var contentLen = bContent.length; 
 
   askServer(saveFilePhase2, projectName, key, 
      `SaveFile {'Project':'${projectName}', 'File':'${fileName}', 'Length':${contentLen}, 'Content':'${bContent}'}` );
+
+  setFileContent(key,content);
 }
 function saveFilePhase2(projectName, key, resp) {
   if (key != null)
@@ -384,35 +469,42 @@ function getParameterHTML(projectName, key, valueDescription, minv, maxv, stepv,
     <div id="paramdiv-__key__">
     <span id="parameterElt-__key__"></span>
     <table style="width:100%; padding: 15px;">
-    <tr><td class="gentd"><label for="namep-__key__">Name: </label>
-          <span class="tooltip-button" data-tooltip="Delete" onclick="removeParameter('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
+    <tr><td class="gentd"><label for="namep-__key__">Name: </label>            
+           <span class="tooltip-button pEditV" style="display: none;" data-tooltip="Delete" onclick="removeParameter('${projectName}', '__key__')"><img style="padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
         </td>
-        <td><input class="almostW" type="text" id="namep-__key__" onchange="contentChanged(changes.parameters, '__key__')" readonly value="${key}">
+        <td><input class=3"almostW" disabled type="text" id="namep-__key__" onchange="contentChanged(changes.parameters, '__key__')" readonly value="${key}">
     </td></tr>
     <tr><td class="gentd"><label for="descp-__key__">Description:</label></td>
-        <td><textarea class="descTA almostW" type="text" id="descp-__key__" onchange="contentChanged(changes.parameters, '__key__')">${valueDescription}</textarea>
+        <td><textarea class="descTA almostW pEditE" disabled type="text" id="descp-__key__" onchange="contentChanged(changes.parameters, '__key__')">${valueDescription ? valueDescription : ""}</textarea>
     </td></tr>
     <tr><td class="gentd"><label for="typep-__key__">Type:</label></td>
-      <td><select id="typep-__key__" name="typep-__key__" onchange="showAdditionalParametersControls('__key__'); contentChanged(changes.parameters, '__key__')">
+      <td><select id="typep-__key__" class="pEditE" disabled name="typep-__key__" onchange="showAdditionalParametersControls('__key__'); contentChanged(changes.parameters, '__key__')">
         <option id="opstr-__key__" value="string">string</option><option id="opint-__key__" value="int">int</option><option id="opdbl-__key__" value="double">double</option><option id="openu-__key__" value="enum">enum</option>
       </select><br>
     </td></tr>
     <tr><td class="gentd"></td>
       <td><table id="idmeta-controls-p-__key__" class="hidden-controls">
-        <tr><td class=metatd><label for="minp-__key__">Min:</label>    </td><td><input style="width: 400px;" type="text" id="minp-__key__"  name="min-__key__"  value="${minv}"  onchange="contentChanged(changes.parameters, '__key__')"></td></tr>
-        <tr><td class=metatd><label for="maxp-__key__">Max:</label>    </td><td><input style="width: 400px;" type="text" id="maxp-__key__"  name="max-__key__"  value="${maxv}"  onchange="contentChanged(changes.parameters, '__key__')"></td></tr>
-        <tr><td class=metatd><label for="stepp-__key__">Step:</label>  </td><td><input style="width: 400px;" type="text" id="stepp-__key__" name="step-__key__" value="${stepv}" onchange="contentChanged(changes.parameters, '__key__')"></td></tr>
-        <tr><td class=metatd><label for="defp-__key__">Default:</label></td><td><input style="width: 400px;" type="text" id="defp-__key__"  name="defp-__key__" value="${defv}"  onchange="contentChanged(changes.parameters, '__key__')"></td></tr>
+        <tr><td class=metatd><label for="minp-__key__">Min:</label>    </td><td><input class="pEditE" disabled style="width: 400px;" type="text" id="minp-__key__"  name="min-__key__"  value="${minv}"  onchange="contentChanged(changes.parameters, '__key__')"></td></tr>
+        <tr><td class=metatd><label for="maxp-__key__">Max:</label>    </td><td><input class="pEditE" disabled style="width: 400px;" type="text" id="maxp-__key__"  name="max-__key__"  value="${maxv}"  onchange="contentChanged(changes.parameters, '__key__')"></td></tr>
+        <tr><td class=metatd><label for="stepp-__key__">Step:</label>  </td><td><input class="pEditE" disabled style="width: 400px;" type="text" id="stepp-__key__" name="step-__key__" value="${stepv}" onchange="contentChanged(changes.parameters, '__key__')"></td></tr>
       </table>
     </td></tr>
     <tr><td class="gentd""></td>
-      <td><table id="emeta-controls-p-__key__" class="hidden-controls">
+      <td>
+        <table id="emeta-controls-p-__key__" class="hidden-controls">
         <tr><td class=metatd><label for="valuesp-__key__">Values:</label></td>
-            <td><select class="multiselect" id="valuesms-__key__" multiple style="width: 400px; top: 0px;" array="${evalue}" onchange="contentChanged(changes.parameters, '__key__')"></select>  
+            <td><select class="multiselect pEditE" disabled id="valuesms-__key__" multiple style="width: 400px; top: 0px;" array="${evalue}" onchange="contentChanged(changes.parameters, '__key__')"></select>  
         </td></tr>
-        <tr><td class=metatd><label for="edefaultp-__key__">Default:</label></td><td><input type="text" style="width: 400px; margin-top: 10px;" id="edefaultp-__key__" name="edefaultp" value="${defv}" onchange="contentChanged(changes.parameters, '__key__')"></td></tr>
-      </table>
+        </table>
     </td></tr>
+
+    <tr><td class="gentd""></td>
+      <td>
+        <table>
+        <tr><td class=metatd><label for="edefaultp-__key__">Default:</label></td><td><input class="pEditE" disabled type="text" style="width: 400px; margin-top: 10px;" id="edefaultp-__key__" name="edefaultp" value="${defv ? defv : ""}" onchange="contentChanged(changes.parameters, '__key__')"></td></tr>
+        </table>
+    </td></tr>
+
     </table>
     <hr>
     </div>
@@ -420,18 +512,33 @@ function getParameterHTML(projectName, key, valueDescription, minv, maxv, stepv,
   return paramHTML.replace(/__key__/g, key); 
 }
 
-function addParameterOnForm(projectName, key, isInput, desc, metaMin, metaMax, metaStep, metaDef, metaValues, vType) {
-  pageProject.addParameter(key);
+function showParameters() {
+  document.getElementById("parameters-list_panel").innerHTML = ""; 
+  document.querySelectorAll('.paramDiv').forEach(e => e.remove());
+
+  pageProject.parameters.forEach(function(value, key, map){
+    var param = pageProject.parameters.get(key);
+    addParameterOnForm(projectName, key, param.isInput, param.desc, param.defValue, param.metaMin, param.metaMax, param.metaStep, param.metaValues, param.vType);
+  });
+  showHideParametersTitles();
+}
+
+function addParameterOnForm(projectName, key, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType) {
+  if (!pageProject.parameters.has(key))
+    pageProject.addParameter(key, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType);
+  
   var parDivID  = (isInput == "True") ? "inputParameters" : "otherParameters";
-  var newParDiv = document.createElement('div');
-  newParDiv.innerHTML = getParameterHTML(projectName, key, desc, metaMin, metaMax, metaStep, metaDef, metaValues);
+  var newParDiv = document.createElement('div');newParDiv.classList.add("paramDiv");
+  newParDiv.innerHTML = getParameterHTML(projectName, key, desc, metaMin, metaMax, metaStep, defValue, metaValues);
+
+  pageProject.addSubmenuItem(key, "parameterElt", "parameterlink", "parameters-list_panel");
   
   let paramParentDiv = document.getElementById(parDivID);                  
   paramParentDiv.appendChild(newParDiv);
   paramParentDiv.style.display = "block"; // if div is empty, display=none has to be changed to display=block
   selectOptionByValue("typep-"+key, vType);
-  $("#valuesms-"+key).select2(select2Options);
   showAdditionalParametersControls(key);
+  setTimeout(() => {  applySelect2Options($("#valuesms-"+key)); }, 200);   // $("#valuesms-"+key).select2(select2Options);
 
   return newParDiv;
 }
@@ -447,7 +554,9 @@ function newParameter(projectName) {
 }
 function newParameterPhase2(projectName, parameterName, response) {
     var isInput = document.getElementById("isInputP").checked;
-    var newDiv = addParameterOnForm(projectName, parameterName, isInput ? "True" : "False", "", 0, 0, 0, 0, "", "");
+    var newDiv = addParameterOnForm(projectName, parameterName, isInput ? "True" : "False", "", "", 0, 0, 0, "", "");
+    enableProjectEditMode(true, newDiv);
+
     newDiv.scrollIntoView({ behavior: 'smooth' });
 
     document.getElementById("newparname").value   = "";
@@ -456,19 +565,23 @@ function newParameterPhase2(projectName, parameterName, response) {
 
 
 function removeParameter(projectName, parameterName) {
-  askServer(removeParameterPhase2, projectName, parameterName, 
+  /* 
+    askServer(removeParameterPhase2, projectName, parameterName, 
       `alter {'Action':'RemoveParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameterName}'}`);
+  */
+  
+  removeParameterPhase2(projectName, parameterName, null);
 }
 function removeParameterPhase2(projectName, parameterName, response) {
-  pageProject.removeParameter(parameterName);  
-  changes.delete(changes.parameters, parameterName);
+  removedItems.push(parameterName);
+  contentChanged(changes.parameters, parameterName);
 
   var element = document.getElementById("paramdiv-"+parameterName);
   if (element) element.parentNode.remove();
+  pageProject.removeSubmenuItem(parameterName, "parameterlink");
+
   showHideParametersTitles();
 }
-
-
 
 // counts number of Input parameters and number of Other parameters and 
 // hide Title of corresponding div if number equals to 0
@@ -480,30 +593,52 @@ function showHideParametersTitles() {
 }
 
 function saveParameters(projectName) {
+  removedItems.forEach(function(parameterName) {
+    askServer(null, projectName, parameterName, 
+      `alter {'Action':'RemoveParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameterName}'}`);    
+    pageProject.removeParameter(parameterName);      
+    changes.delete(changes.parameters, parameterName);
+  });
+
   changes.parameters.forEach(function (parameter) {                
-    var typep = document.getElementById("typep-"+parameter).value;    
-    parameterJSON = {
+    var typep      = document.getElementById("typep-"+parameter).value;  
+    var defValue   = document.getElementById("edefaultp-"+parameter).value;
+    var desc       = document.getElementById("descp-"+parameter).value;
+    var metaMin    = document.getElementById("minp-"+parameter).value; 
+    var metaMax    = document.getElementById("maxp-"+parameter).value;
+    var metaStep   = document.getElementById("stepp-"+parameter).value;
+    var metaValues = getValueOfMultiselectAsJSON("valuesms-"+parameter);
+    var parameterJSON  = {
       "Name"           : parameter,
-      "Description"    : document.getElementById("descp-"+parameter).value,
+      "Description"    : desc,
       "Type"           : typep,
     };
     if (typep == "enum") {
-      parameterJSON["Default"] = document.getElementById("edefaultp-"+parameter).value;
       parameterJSON["Meta"] = {
-        'Values':  getValueOfMultiselectAsJSON("valuesms-"+parameter),
+        'Values':  metaValues,
+        'Default': defValue,
       }
     } else if (typep == "int" || typep == "double") {
       parameterJSON["Meta"] = {
-        'Min':     document.getElementById("minp-"+parameter).value,
-        'Max':     document.getElementById("maxp-"+parameter).value,
-        'Step':    document.getElementById("stepp-"+parameter).value, 
-        'Default': document.getElementById("defp-"+parameter).value,
+        'Min':     metaMin,
+        'Max':     metaMax,
+        'Step':    metaStep, 
+        'Default': defValue,
+      }
+    } else {
+      parameterJSON["Meta"] = {
+        "Default" : defValue,
       }
     }
+    var paramJSONS = JSON.stringify(parameterJSON);
 
-    paramJSONS = JSON.stringify(parameterJSON);
+    var par = pageProject.parameters.get(parameter);
+    if (par) par.setProps(parameter, undefined, parameterJSON.Description, defValue, metaMin, metaMax, metaStep, metaValues, parameterJSON.Type);
+
     askServer(saveParametersPhase2, projectName, parameter, 
        `alter {'Action':'SaveParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameter}', 'Parameter':${paramJSONS}}` );
+
+    
   });
 }
 function saveParametersPhase2(projectName, parameter, response) {
@@ -519,15 +654,15 @@ function getGeneratorHTML(projectName, key, desc,genpar) {
      <span id="generatorElt-__key__"></span>  
      <table style="width:100%; padding: 15px;">
      <tr><td class="gentd"><label for="typeg-__key__">Type:</label>
-            <span class="tooltip-button" data-tooltip="Delete" onclick="removeGenerator('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
+            <span class="tooltip-button pEditV" style="display:none;" data-tooltip="Delete" onclick="removeGenerator('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
         </td>
-         <td><input class="almostW" type="text" id="typeg-__key__" readonly value="${key}">
+         <td><input class="almostW" type="text" disabled id="typeg-__key__" readonly value="${key}">
      </td></tr>
      <tr><td class="gentd"><label for="descg-__key__">Description:</label></td>
-         <td><textarea class="descTA almostW" type="text" id="descg-__key__" onchange="contentChanged(changes.generators, '__key__')">${desc}</textarea>
+         <td><textarea class="descTA almostW pEditE" disabled type="text" id="descg-__key__" onchange="contentChanged(changes.generators, '__key__')">${desc ? desc : ""}</textarea>
      </td></tr>
      <tr><td class="gentd"><label for="¸genpars-__key__">Generating parameters:</label></td>
-         <td><select class="multiselect" id="genpars-__key__" multiple style="width: 400px; top: 0px;"  array="${genpar}" onchange="contentChanged(changes.generators, '__key__')"></select>  
+         <td><select class="multiselect pEditE" disabled id="genpars-__key__" multiple style="width: 400px; top: 0px;"  array="${genpar}" onchange="contentChanged(changes.generators, '__key__')"></select>  
      </td></tr>
      <tr><td class="gentd" style="vertical-align: top;"><label for="gencode-__key__">Code:</label></td>
          <td><textarea id="genhcode-__key__" style="display: none;" onchange="contentChanged(changes.generators, '__key__')"></textarea>
@@ -540,17 +675,34 @@ function getGeneratorHTML(projectName, key, desc,genpar) {
   return genHTML.replace(/__key__/g, key); 
 }
 
-function addGeneratorOnForm(projectName, generatorName, description, parameters, sourcecode, doTrigger) {
-  pageProject.addGenerator(generatorName);
+function showGenerators() {
+  document.getElementById("generators-list_panel").innerHTML = ""; 
+  document.querySelectorAll('.generatorDiv').forEach(e => e.remove());
 
-  var newDiv = document.createElement('div');
+  pageProject.generators.forEach(function(value, key, map){
+    var g = pageProject.generators.get(key);
+    addGeneratorOnForm(projectName, key, g.description, g.parameters, g.sourcecode, false, true);
+  });
+}
+
+
+function addGeneratorOnForm(projectName, generatorName, description, parameters, sourcecode, doTrigger, readOnly) {
+  if (!pageProject.generators.has(generatorName))
+    pageProject.addGenerator(generatorName, description, parameters, sourcecode);
+
+  var newDiv = document.createElement('div');newDiv.classList.add("generatorDiv");
   newDiv.innerHTML = getGeneratorHTML(projectName, generatorName, description, parameters.replaceAll("\"", "'"));
   document.getElementById("generators-div").appendChild(newDiv);
-  initCodeMirrorEditor(`gencode-${generatorName}`, `genhcode-${generatorName}`, sourcecode, changes.generators, generatorName);
+  var cmDiv=`gencode-${generatorName}`;  
+  initCodeMirrorEditor(cmDiv, `genhcode-${generatorName}`, sourcecode, changes.generators, generatorName, undefined,undefined,undefined, readOnly);
+  disabableEditors.set(cmDiv,editors.get(cmDiv));
 
-  $("#genpars-"+generatorName).select2(select2Options);
+  pageProject.addSubmenuItem(generatorName, "generatorElt", "generatorlink", "generators-list_panel");
+
   setMultiselectValuesFromArrray("genpars-", generatorName);
   if (doTrigger) $("#genpars-"+generatorName).trigger('change');
+
+  applySelect2Options($("#genpars-"+generatorName));  // $("#genpars-"+generatorName).select2(select2Options);
 
   return newDiv;
 }
@@ -578,14 +730,16 @@ function newGeneratorPhase2(projectName, generatorName, response) {
     parameters = JSON.stringify(response.Answer.Parameters);
     code       = atob(response.Answer.Code); 
   } catch (error) {};
-  var newDiv = addGeneratorOnForm(projectName, generatorName, "", parameters, code, true);
+  var newDiv = addGeneratorOnForm(projectName, generatorName, "", parameters, code, true, false);
+  enableProjectEditMode(true, newDiv);
+
   // da zaskrola, moram malo počakati!
   setTimeout(() => {
     newDiv.scrollIntoView({ behavior: 'smooth' });
   }, 500); 
 
-  document.getElementById("newgenname").value   = "";
-  $('#newgenparam').val(null).trigger('change');
+  // document.getElementById("newgenname").value   = "";
+  $('#newgenparam').select2('val', null);
 }
 
 function removeGenerator(projectName, generatorName) {
@@ -608,21 +762,25 @@ function removeGeneratorPhase2(projectName, generatorName, response) {
 function setNewGenParamValue() {
   var multiSelectElt = document.getElementById("newgenparam");
   pageProject.parameters.forEach(function(param) {
-    addOption(multiSelectElt, param, false);
+    addOption(multiSelectElt, param.name, false);
   })
 }
 
 function saveGenerators(projectName) {
     changes.generators.forEach(function (generator) {                
-        var genJSON = JSON.stringify( {
+        var genJSON = {
            "Type"                 : generator,
            "Description"          : document.getElementById("descg-"+generator).value,
            "GeneratingParameters" : getValueOfMultiselectAsJSON("genpars-"+generator),
-        });
+        };
         var genJSONS = JSON.stringify(genJSON);
-        var code = Base64.encode(editors.get("gencode-"+generator).getValue());
+        var code = editors.get("gencode-"+generator).getValue();
+        var codes = Base64.encode(code);
         askServer(saveGeneratorsPhase2, projectName, generator, 
-          `alter {'Action':'SaveGenerator', 'ProjectName':'${projectName}', 'GeneratorType':'${generator}', 'Generator':${genJSON}, 'Code':'${code}'}` );
+          `alter {'Action':'SaveGenerator', 'ProjectName':'${projectName}', 'GeneratorType':'${generator}', 'Generator':${genJSONS}, 'Code':'${codes}'}` );
+
+        var gen = pageProject.generators.get(generator);
+        if (gen) gen.setProps(generator, genJSON.Description, JSON.stringify(genJSON.GeneratingParameters), code);
    });
 }
 function saveGeneratorsPhase2(projectName, generator, response) {
@@ -631,30 +789,30 @@ function saveGeneratorsPhase2(projectName, generator, response) {
 
 
 // ************************************* TESTSETS ***************************************** //
-function getTestsetHTML(projectName, key, desc, shortname, n, repeat, timelimit) {
+function getTestsetHTML(projectName, key, eid, desc, shortname, n, repeat, timelimit) {
   var testsetHTML = `
      <div id="testsetdiv-__key__">
      <span id="testsetElt-__key__"></span>  
      <table style="width:100%; padding: 15px;">
      <tr><td class="gentd"><label for="namets-__key__">Name:</label>
-            <span class="tooltip-button" data-tooltip="Delete" onclick="removeTestset('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
+            <span class="tooltip-button pEditV" style="display:none" data-tooltip="Delete" onclick="removeTestset('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
          </td>
-         <td><input class="almostW" type="text" id="namets-__key__" readonly value="${key}">
+         <td><input class="almostW" disabled type="text" id="namets-__key__" readonly value="${key} [${eid}]">
      </td></tr>
      <tr><td class="gentd"><label for="tsshort-__key__">Short name</label></td>
-         <td><input class="almostW" type="text" id="tsshort-__key__" value="${shortname}" onchange="contentChanged(changes.testsets, '__key__')">
+         <td><input class="almostW pEditE" disabled type="text" id="tsshort-__key__" value="${shortname}" onchange="contentChanged(changes.testsets, '__key__')">
      </td></tr>
      <tr><td class="gentd"><label for="descts-__key__">Description:</label></td>
-         <td><textarea class="descTA almostW" class="almostW" type="text" id="descts-__key__" onchange="contentChanged(changes.testsets, '__key__')">${desc}</textarea>
+         <td><textarea class="descTA almostW pEditE" disabled class="almostW" type="text" id="descts-__key__" onchange="contentChanged(changes.testsets, '__key__')">${desc}</textarea>
      </td></tr>
      <tr><td class="gentd"><label for="tsnum-__key__">Number of tests</label></td>
-         <td><input class="almostW" type="number" id="tsnum-__key__" value="${n}" onchange="contentChanged(changes.testsets, '__key__')">
+         <td><input class="almostW pEditE" disabled type="number" id="tsnum-__key__" value="${n}" onchange="contentChanged(changes.testsets, '__key__')">
      </td></tr>
      <tr><td class="gentd"><label for="tsrepeated-__key__">Test repeat</label></td>
-         <td><input class="almostW" type="number" id="tsrepeat-__key__" value="${repeat}" onchange="contentChanged(changes.testsets, '__key__')">
+         <td><input class="almostW pEditE" disabled type="number" id="tsrepeat-__key__" value="${repeat}" onchange="contentChanged(changes.testsets, '__key__')">
      </td></tr>
      <tr><td class="gentd"><label for="tstimelimit-__key__">Time limit</label></td>
-         <td><input class="almostW" type="number" id="tstimelimit-__key__" value="${timelimit}" onchange="contentChanged(changes.testsets, '__key__')">
+         <td><input class="almostW pEditE" disabled type="number" id="tstimelimit-__key__" value="${timelimit}" onchange="contentChanged(changes.testsets, '__key__')">
      </td></tr>
      <tr><td style="vertical-align:top" class="gentd"><label for="tsfilecont-__key__">Tests</label></td>
          <td><textarea style="display:none;" class="almostW" id="tstimelimitTA-__key__" onchange="contentChanged(changes.testsets, '__key__');"></textarea>
@@ -667,16 +825,33 @@ function getTestsetHTML(projectName, key, desc, shortname, n, repeat, timelimit)
   `;
   return testsetHTML.replace(/__key__/g, key); 
 }
-function addTestsetOnForm(projectName, testsetName, description, shortname, n, repeat, limit, fileContent) {
-  pageProject.addTestset(new Testset(testsetName, description, shortname, n, repeat, limit, fileContent));
 
-  var newDiv = document.createElement('div');
-  newDiv.innerHTML = getTestsetHTML(projectName, testsetName, description, shortname, n, repeat, limit);
+function showTestsets() {
+  document.getElementById("testsets-list_panel").innerHTML = ""; 
+  document.querySelectorAll('.testsetDiv').forEach(e => e.remove());
+
+  pageProject.testsets.forEach(function(value, key, map){
+    var ts = pageProject.testsets.get(key);
+    addTestsetOnForm(projectName, key, ts.eid, ts.description, ts.shortname, ts.n, ts.repeat, ts.limit, ts.fileContent, true);
+  });
+}
+
+function addTestsetOnForm(projectName, testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent, readOnly) {
+  if (!pageProject.testsets.has(testsetName))
+    pageProject.addTestset(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent);
+
+  var newDiv = document.createElement('div');newDiv.classList.add("testsetDiv");
+  newDiv.innerHTML = getTestsetHTML(projectName, testsetName, testsetEID, description, shortname, n, repeat, limit);
   document.getElementById("testsets-div").appendChild(newDiv);
   document.getElementById("newtestsetname").value   = "";
 
-  initCodeMirrorEditor("tstimelimitCM-"+testsetName, "tstimelimitTA-"+testsetName, 
-    fileContent, changes.testsets, testsetName, "light", undefined, "240px");
+  pageProject.addSubmenuItem(testsetName, "testsetElt", "testsetlink", "testsets-list_panel");
+
+
+  var cmDiv = "tstimelimitCM-"+testsetName;
+  initCodeMirrorEditor(cmDiv, "tstimelimitTA-"+testsetName, fileContent, changes.testsets, testsetName, "light", undefined, "240px", readOnly);
+  var tsEditor = editors.get(cmDiv);
+  disabableEditors.set(cmDiv,tsEditor);
 
   return newDiv;
 }
@@ -684,7 +859,7 @@ function addTestsetOnForm(projectName, testsetName, description, shortname, n, r
 function newTestset(projectName) {
     var testsetName = document.getElementById("newtestsetname").value;
 
-    if (!checkName(testsetName, getNamesOfElements(pageProject.testsets), "testset")) return;
+    if (!checkName(testsetName, pageProject.testsets, "testset")) return;
 
     askServer(newTestsetPhase2, projectName, testsetName, 
        `alter {'Action':'NewTestset', 'ProjectName':'${projectName}', 'TestsetName':'${testsetName}'}`);    
@@ -695,8 +870,9 @@ function newTestsetPhase2(projectName, testsetName, response) {
 }
 function newTestsetPhase3(projectName, testsetName, response) {
   let prop = response.Answer.Properties;
-  addTestsetOnForm(projectName, testsetName, prop.Description, prop.ShortName, 
-      prop.N, prop.TestRepeat, prop.TimeLimit, response.Answer.FileContent);
+  var tsDiv = addTestsetOnForm(projectName, testsetName, prop.eid, prop.Description, prop.ShortName, 
+      prop.N, prop.TestRepeat, prop.TimeLimit, response.Answer.FileContent, false);
+  enableProjectEditMode(true, tsDiv);
 
   document.getElementById(`namets-${testsetName}`).scrollIntoView({ behavior: 'smooth' });
 }
@@ -715,8 +891,12 @@ function removeTestsetPhase2(projectName, testsetName, response) {
 
 function saveTestsets(projectName) {
     changes.testsets.forEach(function (testset) {                        
+      let ts = pageProject.testsets.get(testset);
+      let tsEID = ""; if (ts) tsEID = ts.eid; 
+
       let tsJSON = {
         "Name"                 : testset,
+        "eid"                  : tsEID, 
         "ShortName"            : document.getElementById("tsshort-"+testset).value,
         "Description"          : document.getElementById("descts-"+testset).value,
         "N"                    : parseInt(document.getElementById("tsnum-"+testset).value),
@@ -725,8 +905,7 @@ function saveTestsets(projectName) {
       };
       let tests = document.getElementById("tstimelimitTA-"+testset).value;
 
-      let ts = elementWithName(pageProject.testsets, testset);
-      if (ts) ts.setProps(tsJSON.Name, tsJSON.Description, tsJSON.ShortName, tsJSON.N, tsJSON.TestRepeat, tsJSON.TimeLimit, tests);
+      if (ts) ts.setProps(tsJSON.Name, tsJSON.eid, tsJSON.Description, tsJSON.ShortName, tsJSON.N, tsJSON.TestRepeat, tsJSON.TimeLimit, tests);
 
       let dataJSON = {
         "Properties" : tsJSON,
@@ -758,18 +937,18 @@ function getTimerHTML(projectName, key, desc,timerid) {
      <div id="timerdiv-__key__">
      <table style="width:100%; padding: 15px;">
      <tr><td class="gentd"><label for="namet-__key__">Name:</label>
-            <span class="tooltip-button" data-tooltip="Delete" onclick="removeTimer('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
+            <span class="tooltip-button pEditV" style="display:none" data-tooltip="Delete" onclick="removeTimer('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
          </td>
-         <td><input class="almostW" type="text" id="namet-__key__" readonly value="${key}">
+         <td><input class="almostW" disabled type="text" id="namet-__key__" readonly value="${key}">
      </td></tr>
      <tr><td class="gentd"><label for="desct-__key__">Description:</label></td>
-         <td><textarea class="descTA almostW" type="text" id="desct-__key__" onchange="contentChanged(changes.timers, '__key__','desct-','Desc')">${desc}</textarea>
+         <td><textarea class="descTA almostW pEditE" disabled type="text" id="desct-__key__" onchange="contentChanged(changes.timers, '__key__','desct-','Desc')">${desc ? desc : ""}</textarea>
      </td></tr>
      <tr><td class="gentd"><label for="timid-__key__">Timer ID:</label></td>
-         <td><input class="almostW" type="text" id="timid-__key__" onchange="contentChanged(changes.timers, '__key__', 'timid-', 'TimerID')" value="${timerid}">
+         <td><input class="almostW pEditE" disabled type="text" id="timid-__key__" onchange="contentChanged(changes.timers, '__key__', 'timid-', 'TimerID')" value="${timerid}">
      </td></tr>
      <tr><td class="gentd"><label for="statf-__key__">Statistics:</label></td>
-       <td><select id="statf-__key__" name="statf-__key__" onchange="contentChanged(changes.timers, '__key__', 'statf-', 'Stat')">
+       <td><select class=" pEditE" disabled id="statf-__key__" name="statf-__key__" onchange="contentChanged(changes.timers, '__key__', 'statf-', 'Stat')">
          <option id="statmin-__key__" value="MIN">MIN</option><option id="statmax-__key__" value="MAX">MAX</option>
          <option id="statfirst-__key__" value="FIRST">FIRST</option><option id="statlast-__key__" value="LAST">LAST</option>
          <option id="statsum-__key__" value="SUM">SUM</option><option id="statavg-__key__" value="AVG">AVG</option>
@@ -783,13 +962,28 @@ function getTimerHTML(projectName, key, desc,timerid) {
   return timHTML.replace(/__key__/g, key); 
 }
 
-function addTimerOnForm(projectName, timerName, desc, timerID) {
-  pageProject.addTimer(timerName);
+function showTimers() {
+  document.getElementById("timers-list_panel").innerHTML = ""; 
+  document.querySelectorAll('.timerDiv').forEach(e => e.remove());
+
+  pageProject.timers.forEach(function(value, key, map){
+    var tm = pageProject.timers.get(key);
+    addTimerOnForm(projectName, key, tm.desc, tm.timerID, tm.timerSTAT);
+  });
+}
+
+function addTimerOnForm(projectName, timerName, desc, timerID, timerSTAT) {
+  if (!pageProject.timers.has(timerName))
+    pageProject.addTimer(timerName, desc, timerID, timerSTAT);
 
   var divID = "timers-div";
-  var newDiv = document.createElement('div');
+  var newDiv = document.createElement('div');newDiv.classList.add("timerDiv");
   newDiv.innerHTML = getTimerHTML(projectName, timerName, desc, timerID);
   document.getElementById(divID).appendChild(newDiv);
+
+  selectOptionByValue("statf-"+timerName, timerSTAT);                
+
+  pageProject.addSubmenuItem(timerName, "timerElt", "timerlink", "timers-list_panel");
 
   return newDiv;
 }
@@ -804,6 +998,8 @@ function newTimer(projectName) {
 }
 function newTimerPhase2(projectName, timerName, response) {
   var newDiv = addTimerOnForm(projectName, timerName, "", 0);
+  enableProjectEditMode(true, newDiv);
+
   newDiv.scrollIntoView({ behavior: 'smooth' });
 
   document.getElementById("newtimer").value   = "";
@@ -828,7 +1024,7 @@ function saveTimers(projectName) {
         if (isNaN(timerId)) timerId = 0;
         document.getElementById("timid-"+timer).value = timerId;
 
-        var timerJSON = JSON.stringify({
+        var timerJSON = {
            "Name"                 : timer,
            "Description"          : document.getElementById("desct-"+timer).value,
            "Type"                 : "timer",
@@ -836,9 +1032,14 @@ function saveTimers(projectName) {
               "ID"   : timerId,
               "STAT" : document.getElementById("statf-"+timer).value
            }
-        });
+        };
+        var timerJSONS= JSON.stringify(timerJSON);
+
+        var tm = pageProject.timers.get(timer);
+        if (tm) tm.setProps(timer, timerJSON.Description, timerJSON.Meta.ID, timerJSON.Meta.STAT);
+
        askServer(saveTimerPhase2, projectName, timer, 
-          `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'timer', 'Indicator':${timerJSON}}` );
+          `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'timer', 'Indicator':${timerJSONS}}` );
    });
 }
 function saveTimerPhase2(projectName, timer, response) {  
@@ -854,15 +1055,15 @@ function getIndicatorHTML(projectName, key, desc) {
      <div id="indicatordiv-__key__">
      <table style="width:100%; padding: 15px;">
      <tr><td class="gentd"><label for="namei-__key__">Name:</label>           
-           <span class="tooltip-button" data-tooltip="Delete" onclick="removeIndicator('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
+           <span class="tooltip-button pEditV" style="display:none" data-tooltip="Delete" onclick="removeIndicator('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
          </td>
-         <td><input class="almostW" type="text" id="namei-__key__" readonly value="${key}">
+         <td><input class="almostW" disabled type="text" id="namei-__key__" readonly value="${key}">
      </td></tr>
      <tr><td class="gentd"><label for="desci-__key__">Description:</label></td>
-         <td><textarea class="descTA almostW" type="text" id="desci-__key__" onchange="contentChanged(changes.indicators, '__key__')">${desc}</textarea>
+         <td><textarea class="descTA almostW pEditE" disabled type="text" id="desci-__key__" onchange="contentChanged(changes.indicators, '__key__')">${desc ? desc : ""}</textarea>
      </td></tr>
      <tr><td class="gentd"><label for="itype-__key__">Type:</label></td>
-       <td><select id="itype-__key__" name="itype-__key__" onchange="contentChanged(changes.indicators, '__key__')">
+       <td><select class="pEditE" disabled id="itype-__key__" name="itype-__key__" onchange="contentChanged(changes.indicators, '__key__')">
          <option id="typeint-__key__" value="int">int</option>
          <option id="typedouble-__key__" value="double">double</option>
          <option id="typestring-__key__" value="string">string</option>
@@ -879,15 +1080,35 @@ function getIndicatorHTML(projectName, key, desc) {
   return timHTML.replace(/__key__/g, key); 
 }
 
-function addIndicatorOnForm(projectName, indicatorName, desc, code) {
-  pageProject.addIndicator(indicatorName);
+function showIndicators() {
+  document.getElementById("indicators-list_panel").innerHTML = ""; 
+  document.querySelectorAll('.indicatorDiv').forEach(e => e.remove());
+
+  pageProject.indicators.forEach(function(value, key, map){
+    var ind = pageProject.indicators.get(key);
+    addIndicatorOnForm(projectName, key, ind.desc, ind.type, ind.code, true);
+  });
+}
+
+
+function addIndicatorOnForm(projectName, indicatorName, desc, type, code, readOnly) {
+  if (!pageProject.indicators.has(indicatorName))
+    pageProject.addIndicator(indicatorName, desc, type, code);
   
   var divID = "indicators-div";
-  var newDiv = document.createElement('div');
+  var newDiv = document.createElement('div');newDiv.classList.add("indicatorDiv");
   newDiv.innerHTML = getIndicatorHTML(projectName, indicatorName, desc);
   document.getElementById(divID).appendChild(newDiv);
   
-  initCodeMirrorEditor(`indcode-${indicatorName}`, `indhcode-${indicatorName}`, code, changes.indicators, indicatorName);  
+  var cmDiv = `indcode-${indicatorName}`;
+  initCodeMirrorEditor(cmDiv, `indhcode-${indicatorName}`, code, changes.indicators, indicatorName, undefined, undefined, undefined, readOnly);
+  var indEditor = editors.get(cmDiv);
+  disabableEditors.set(cmDiv,indEditor);
+
+  selectOptionByValue("itype-"+indicatorName, type);
+
+  pageProject.addSubmenuItem(indicatorName, "indicatorElt", "indicatorlink", "indicators-list_panel");
+  
   return newDiv;
 }
 
@@ -899,7 +1120,8 @@ function newIndicator(projectName) {
       `alter {'Action':'NewIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${indicatorName}', 'IndicatorType':'indicator'}`);
 }
 function newIndicatorPhase2(projectName, indicatorName, response) {
-  var newDiv = addIndicatorOnForm(projectName, indicatorName, "", atob(response.Answer));
+  var newDiv = addIndicatorOnForm(projectName, indicatorName, "", "int", atob(response.Answer), false);
+  enableProjectEditMode(true, newDiv);  
   newDiv.scrollIntoView({ behavior: 'smooth' });
 
   document.getElementById("newindicator").value   = "";  
@@ -924,14 +1146,20 @@ function removeIndicatorPhase2(projectName, indicatorName, response) {
 function saveIndicators(projectName) {
     changes.indicators.forEach(function (indicator) {                
 
-        indJSON = JSON.stringify( {
+        var code = editors.get("indcode-"+indicator).getValue();
+        var indJSON =  {
            "Name"        : indicator,
            "Description" : document.getElementById("desci-"+indicator).value,
            "Type"        : document.getElementById("itype-"+indicator).value,
-           "Code"        : btoa(editors.get("indcode-"+indicator).getValue())
-        });
+           "Code"        : btoa(code)
+        };
+        var indJSONS = JSON.stringify(indJSON);
+
+        var ind = pageProject.indicators.get(indicator);
+        if (ind) ind.setProps(indicator, indJSON.Description, indJSON.Type, code);
+
        askServer(saveIndicatorPhase2, projectName, indicator, 
-          `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'indicator', 'Indicator':${indJSON}}` );
+          `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'indicator', 'Indicator':${indJSONS}}` );
    });
 }
 function saveIndicatorPhase2(projectName, indicator, response) {
@@ -946,12 +1174,12 @@ function getCounterHTML(projectName, key, desc) {
      <div id="counterdiv-__key__">
      <table style="width:100%; padding: 15px;">
      <tr><td class="gentd"><label for="namec-__key__">Name:</label>
-            <span class="tooltip-button" data-tooltip="Delete" onclick="removeCounter('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
+            <span class="tooltip-button pEditV" style="display:none" data-tooltip="Delete" onclick="removeCounter('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
          </td>
-         <td><input class="almostW" type="text" id="namec-__key__" readonly value="${key}">
+         <td><input class="almostW" disabled type="text" id="namec-__key__" value="${key}">
      </td></tr>
      <tr><td class="gentd"><label for="descc-__key__">Description:</label></td>
-         <td><textarea class="descTA almostW" type="text" id="descc-__key__" onchange="contentChanged(changes.counters, '__key__')">${desc}</textarea>
+         <td><textarea class="descTA almostW pEditE" disabled type="text" id="descc-__key__" onchange="contentChanged(changes.counters, '__key__')">${desc ? desc : ""}</textarea>
      </td></tr>
      </table>
      <hr>
@@ -960,13 +1188,26 @@ function getCounterHTML(projectName, key, desc) {
   return cntHTML.replace(/__key__/g, key); 
 }
 
+function showCounters() {
+  document.getElementById("counters-list_panel").innerHTML = ""; 
+  document.querySelectorAll('.counterDiv').forEach(e => e.remove());
+
+  pageProject.counters.forEach(function(value, key, map){
+    var cnt = pageProject.counters.get(key);
+    addCounterOnForm(projectName, key, cnt.desc);
+  });
+}
+
 function addCounterOnForm(projectName, counterName, desc) {
-  pageProject.addCounter(counterName);    
+  if (!pageProject.counters.has(counterName))  
+    pageProject.addCounter(counterName, desc);    
 
   var divID = "counters-div";
-  var newDiv = document.createElement('div');
+  var newDiv = document.createElement('div');newDiv.classList.add("counterDiv");
   newDiv.innerHTML = getCounterHTML(projectName, counterName, desc);
   document.getElementById(divID).appendChild(newDiv);
+
+  pageProject.addSubmenuItem(counterName, "counterElt", "counterlink", "counters-list_panel");
 
   return newDiv;
 }
@@ -980,6 +1221,7 @@ function newCounter(projectName) {
 }
 function newCounterPhase2(projectName, counterName, response) {
   var newDiv = addCounterOnForm(projectName, counterName,"");
+  enableProjectEditMode(true, newDiv);  
   newDiv.scrollIntoView({ behavior: 'smooth' });
 
   document.getElementById("newcounter").value   = "";  
@@ -1003,13 +1245,18 @@ function removeCounterPhase2(projectName, counterName, response) {
 function saveCounters(projectName) {
     changes.counters.forEach(function (counter) {                
       changes.delete(changes.counters, counter);
-        indJSON = JSON.stringify( {
+        var indJSON = {
            "Name"        : counter,
            "Description" : document.getElementById("descc-"+counter).value,
            "Type"        : "counter"
-        });
+        };
+        var indJSONS = JSON.stringify(indJSON);
+
+        var cnt = pageProject.counters.get(counter);
+        if (cnt) cnt.setProps(counter, indJSON.Description);
+
        askServer(saveCounterPhase2, projectName, counter, 
-          `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'counter', 'Indicator':${indJSON}}` );
+          `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'counter', 'Indicator':${indJSONS}}` );
    });
 }
 function saveCounterPhase2(projectName, counter, response) {
@@ -1032,38 +1279,39 @@ function registerClickOnEnter(textfieldID, buttonID) {
 
 
 // ************************************* TESTSETS ***************************************** //
-function getAlgorithmHTML(projectName, key, desc, shortname, date, author, language) {
+function getAlgorithmHTML(projectName, key, eid, desc, shortname, date, author, language, htmlContent) {
   var algorithmHTML = `
      <div id="algorithmdiv-__key__">
      <span id="algorithmElt-__key__"></span>  
      <table style="width:100%; padding: 15px;">
      <tr><td class="gentd"><label for="nameal-__key__">Name:</label>
-            <span class="tooltip-button" data-tooltip="Delete" onclick="removeAlgorithm('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
+            <span class="tooltip-button pEditV" style="display: none;" data-tooltip="Delete" onclick="removeAlgorithm('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
          </td>
-         <td><input class="almostW" type="text" id="nameal-__key__" readonly value="${key}">
+         <td><input class="almostW" type="text" id="nameal-__key__" disabled readonly value="${key} [${eid}]">
      </td></tr>
      <tr><td class="gentd"><label for="alshort-__key__">Short name</label></td>
-         <td><input class="almostW" type="text" id="alshort-__key__" value="${shortname}" onchange="contentChanged(changes.algorithms, '__key__')">
+         <td><input class="almostW pEditE" disabled type="text" id="alshort-__key__" value="${shortname}" onchange="contentChanged(changes.algorithms, '__key__')">
      </td></tr>
-     <tr><td class="gentd"><label for="descal-__key__">Description:</label></td>
-         <td><textarea class="descTA almostW" class="almostW" type="text" id="descal-__key__" onchange="contentChanged(changes.algorithms, '__key__')">${desc}</textarea>
+     <tr><td class="gentd"><label for="descal-__key__">Short description:</label></td>
+         <td><textarea class="descTA almostW pEditE" disabled class="almostW" type="text" id="descal-__key__" onchange="contentChanged(changes.algorithms, '__key__')">${desc}</textarea>
      </td></tr>
 
      <tr><td class="gentd"><label for="aldate-__key__">Date</label></td>
-         <td><input class="almostW" type="text" id="aldate-__key__" value="${date}" onchange="contentChanged(changes.algorithms, '__key__')">
+         <td><input class="almostW pEditE" disabled type="text" id="aldate-__key__" value="${date}" onchange="contentChanged(changes.algorithms, '__key__')">
      </td></tr>
      <tr><td class="gentd"><label for="alauthor-__key__">Author</label></td>
-         <td><input class="almostW" type="text" id="alauthor-__key__" value="${author}" onchange="contentChanged(changes.algorithms, '__key__')">
+         <td><input class="almostW pEditE" disabled type="text" id="alauthor-__key__" value="${author}" onchange="contentChanged(changes.algorithms, '__key__')">
      </td></tr>
      <tr><td class="gentd"><label for="allang-__key__">Language</label></td>
-         <td><input class="almostW" type="text" id="allang-__key__" value="${language}" onchange="contentChanged(changes.algorithms, '__key__')">
+         <td><input class="almostW pEditE" disabled type="text" id="allang-__key__" value="${language}" onchange="contentChanged(changes.algorithms, '__key__')">
      </td></tr>
      
-     <tr><td style="vertical-align:top" class="gentd"><label for="alghtml-__key__">Doc</label></td>
-         <td><div id="alghtml-__key__"></div>
+     <tr><td style="vertical-align:top" class="gentd"><label for="alghtml-__key__">Detailed description</label></td>
+         <td><div class="almostW pEditNV blck" style="background:#f5f5f5; border:1px solid lightgray; margin-bottom:10px;padding:10px;" id="alghtml_prev-algorithmDescription___key__" >${htmlContent}</div>
+             <div class="almostW pEditV blck"  style="display:none"       id="alghtml-__key__" ></div>
      </td></tr>
 
-     <tr><td style="vertical-align:top" class="gentd"><label for="algsrcCM-__key__">Algorithm</label></td>
+     <tr><td style="vertical-align:top" class="gentd"><label for="algsrcCM-__key__">Source code</label></td>
          <td><textarea style="display:none;" class="almostW" id="algsrcTA-__key__" onchange="contentChanged(changes.algorithms, '__key__');"></textarea>
          <div class="CodeMirror almostW" id="algsrcCM-__key__"></div>
      </td></tr>
@@ -1074,23 +1322,44 @@ function getAlgorithmHTML(projectName, key, desc, shortname, date, author, langu
   `;
   return algorithmHTML.replace(/__key__/g, key); 
 }
-function addAlgorithmOnForm(projectName, algorithmName, description, shortname, date, author, language, fileContent, htmlContent) {
-  pageProject.addAlgorithm(new Algorithm(algorithmName, description, shortname, date, author, language, fileContent));
 
-  var newDiv = document.createElement('div');
-  newDiv.innerHTML = getAlgorithmHTML(projectName, algorithmName, description, shortname, date, author, language);
+function showAlgorithms() {
+  document.getElementById("algorithms-list_panel").innerHTML = ""; 
+  document.querySelectorAll('.algorithmDiv').forEach(e => e.remove());
+
+  pageProject.algorithms.forEach(function(value, key, map){
+    var alg = pageProject.algorithms.get(key);
+    addAlgorithmOnForm(projectName, key, alg.eid, alg.description, alg.shortname, 
+      alg.date, alg.author, alg.language, alg.fileContent, alg.htmlContent, true);
+  });
+}
+
+function addAlgorithmOnForm(projectName, algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent, readOnly) {
+  if (!pageProject.algorithms.has(algorithmName))  
+    pageProject.addAlgorithm(algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent );
+
+  var newDiv = document.createElement('div');newDiv.classList.add("algorithmDiv");
+  newDiv.innerHTML = getAlgorithmHTML(projectName, algorithmName, algorithmEID, description, shortname, date, author, language, htmlContent);
   document.getElementById("algorithms-div").appendChild(newDiv);
   document.getElementById("newalgorithmname").value   = "";
 
-  initCodeMirrorEditor("algsrcCM-"+algorithmName, "algsrcTA-"+algorithmName, 
-    fileContent, changes.algorithms, algorithmName, undefined, undefined, "400px");
+  var editor = initCodeMirrorEditor("algsrcCM-"+algorithmName, "algsrcTA-"+algorithmName, 
+    fileContent, changes.algorithms, algorithmName, undefined, undefined, "400px", readOnly);
+  disabableEditors.set("algsrcCM-"+algorithmName, editor);  // vsi urejevalniki algoritmov so disabable
 
-  let view = getViewOfType("TextBox", "algorithmDescription", algorithmName); 
+  let view = getViewOfType("TextBox", "algorithmDescription", algorithmName);
   document.getElementById("alghtml-"+algorithmName).innerHTML = view.getEditorHTML();  
+  document.getElementById("htmlEditorView_algorithmDescription_"+algorithmName).style.margin = "0px 0px 20px 0px";
   view.initNewMode();
   view.viewJSON["htmltext"]=htmlContent;
-  view.fillDataAndWireControls(function(){contentChanged(changes.algorithms, algorithmName)});
+  view.fillDataAndWireControls(function(){
+     contentChanged(changes.algorithms, algorithmName);          
+     document.getElementById(`alghtml_prev-${view.viewID}`).innerHTML = view.viewJSON["htmltext"];
+  });
   htmlViews.set(algorithmName, view);
+
+  pageProject.addSubmenuItem(algorithmName, "algorithmElt", "algorithmlink", "algorithms-list_panel");
+
 
   return newDiv;
 }
@@ -1098,7 +1367,7 @@ function addAlgorithmOnForm(projectName, algorithmName, description, shortname, 
 function newAlgorithm(projectName) {
     var algorithmName = document.getElementById("newalgorithmname").value;
 
-    if (!checkName(algorithmName, getNamesOfElements(pageProject.algorithms), "algorithm")) return;
+    if (!checkName(algorithmName, pageProject.algorithms, "algorithm")) return;
 
     askServer(newAlgorithmPhase2, projectName, algorithmName, 
        `alter {'Action':'NewAlgorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${algorithmName}'}`);    
@@ -1109,8 +1378,12 @@ function newAlgorithmPhase2(projectName, algorithmName, response) {
 }
 function newAlgorithmPhase3(projectName, algorithmName, response) {
   let prop = response.Answer.Properties;
-  addAlgorithmOnForm(projectName, algorithmName, prop.Description, prop.ShortName, 
-      prop.Date, prop.Author, prop.Language, response.Answer.FileContent, response.Answer.HtmlFileContent);
+  let newDiv = addAlgorithmOnForm(projectName, algorithmName, prop.eid, prop.Description, prop.ShortName, 
+      prop.Date, prop.Author, prop.Language, response.Answer.FileContent, response.Answer.HtmlFileContent, false);
+  let editor = disabableEditors.get("algsrcCM-"+algorithmName);
+  if (editor) editor.getWrapperElement().style.backgroundColor = "#FBFFFB"; // nov editor takoj postane zelen
+
+  enableProjectEditMode(true, newDiv);
 
   document.getElementById(`nameal-${algorithmName}`).scrollIntoView({ behavior: 'smooth' });
 }
@@ -1125,6 +1398,7 @@ function removeAlgorithmPhase2(projectName, algorithmName, response) {
 
   var element = document.getElementById("algorithmdiv-"+algorithmName);
   if (element) element.parentNode.removeChild(element);
+  showPopup(response.Message);
 }
 
 function saveAlgorithms(projectName) {
@@ -1143,13 +1417,14 @@ function saveAlgorithmsPhase2(algorithm, htmlContent, newHtmlText) {
     "Language"             : document.getElementById("allang-"+algorithm).value,
   };
   let algsrc = document.getElementById("algsrcTA-"+algorithm).value;
-  let al = elementWithName(pageProject.algorithms, algorithm);
+
+  let al = pageProject.algorithms.get(algorithm);
   if (al) al.setProps(alJSON.Name, alJSON.Description, alJSON.ShortName, alJSON.Date, alJSON.Author, alJSON.language, algsrc);
 
   let dataJSON = {
     "Properties" : alJSON,
     "FileContent": algsrc,
-    "HtmlFileContent" : newHtmlText
+    "HtmlFileContent" : replaceStaticProjDocLinkWithDolarStatic(newHtmlText)
   };
   askServer(saveAlgorithmsPhase3, projectName, algorithm, 
      `alter {'Action':'SaveAlgorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${algorithm}', 'Algorithm':${JSON.stringify(dataJSON)}}` );  
@@ -1158,6 +1433,251 @@ function saveAlgorithmsPhase2(algorithm, htmlContent, newHtmlText) {
 function saveAlgorithmsPhase3(projectName, algorithmName, response) {
   changes.delete(changes.algorithms, algorithmName);  
 }
+
+
+/////////////   editProject logic  /////////////////////////////
+
+var contentModified = false;
+var projectEditMode = false;
+
+
+function enableProjectEditMode(enabled, where=document){
+  projectEditMode = enabled;
+
+  // show/hide elements
+  where.querySelectorAll('.pEditV').forEach(function(element) {
+    var shw = element.classList.contains("blck") ? "block" : "inline";
+    if (projectEditMode) 
+      element.style.display = shw; 
+    else 
+      element.style.display = 'none'; 
+  });
+  where.querySelectorAll('.pEditNV').forEach(function(element) {
+    var shw = element.classList.contains("blck") ? "block" : "inline";    
+    if (projectEditMode) 
+      element.style.display = 'none'; 
+    else 
+      element.style.display = shw; 
+  });
+  
+
+  // enable/disable edit fields
+  where.querySelectorAll('.pEditE').forEach(function(element) {
+    element.disabled = !enabled;
+    if (element.classList.contains('multiselect')) {
+      updateSelect2Styles(element);
+    }
+  });
+
+  disabableEditors.forEach(function(editor){
+    editor.setOption("readOnly", !enabled);
+    editor.getWrapperElement().style.backgroundColor = (enabled ? "#FBFFFB" : "#f5f5f5"); 
+  });
+}
+
+function updateSelect2Styles(selectElement) {
+    var $select = $(selectElement);
+    if ($select.prop('disabled')) {
+        $select.next('.select2-container').addClass('select2-container--disabled').removeClass('select2-container--enabled');
+    } else {
+        $select.next('.select2-container').addClass('select2-container--enabled').removeClass('select2-container--disabled');
+    }
+}
+
+function insertNewSubNavbarItem(id, link, panel) {
+  var newListElement = pageProject.getListElement(id, "(New)", link);
+  newListElement.classList.add('pEditV');newListElement.style.display="none";
+  document.getElementById(panel).appendChild(newListElement);  
+}
+
+function selectEditProjectMenuItem(eltID, key) {
+  document.getElementsByName(eltID + "_mi").forEach(function(title) {
+    title.style.color = '#333';
+  });
+  document.getElementById(`${eltID}_${key}_mi`).style.color = '#27ae60';
+
+  if (document.activeElement) document.activeElement.blur();
+
+  document.getElementById(eltID+'-'+key).scrollIntoView({ behavior: 'smooth',  block: 'center', inline: 'nearest' });  
+}
+
+function updateDotColor(color) {
+    var dot = document.getElementById('menu-dot');
+    dot.style.backgroundColor = color;
+    if (color == 'red') {
+      dot.style.cursor ='pointer';
+      dot.classList.add("menu-dot-tosave");
+    } else {
+      dot.style.cursor ='auto';
+      dot.classList.remove("menu-dot-tosave");
+    }
+}
+function setContentModified(modified) {
+  contentModified = modified;
+  updateDotColor(contentModified ? 'red' : 'green');
+}
+
+
+function hideAllShowOne(clickedItem, className, divIdSuffix) {
+    var contentDivId = clickedItem.getAttribute('href').substring(1) + divIdSuffix;
+    var contentDivs = document.querySelectorAll(className);
+    contentDivs.forEach(function (div) {
+        div.style.display = 'none';
+    });
+    var thisDiv = document.getElementById(contentDivId);
+    if (thisDiv) thisDiv.style.display = 'block'; 
+    return thisDiv;
+}
+function selectMenuItem(clickedItem) {
+    if (projectEditMode) 
+      if (contentModified)
+        showYesNoDialog("Action will discard changes on '" +editProjectSelectedItem+"' tab. Continue?" , selectMenuItemPhase2, "", "", clickedItem);
+      else
+        selectMenuItemPhase2(0, "", "", clickedItem);      
+    else
+      selectMenuItemPhase2(2, "", "", clickedItem);
+}
+
+// action: 0 ...cancel Edit and selectItem,  1 ... do not selectItem - stay on page, 2 ... just selectItem
+function selectMenuItemPhase2(action, s1, s2, clickedItem) {
+    if (action == 1) return;
+
+    if (action==0) {
+      editProjectSectionCancel();
+    }
+
+    editProjectSelectedItem = clickedItem.innerText;
+
+    document.getElementsByName("mi").forEach(function(title) {
+      title.style.color = '#333';
+    });
+    clickedItem.style.color = '#27ae60';
+    if (contentModified) saveContent();
+    // Remove 'selected' class from all menu items
+    var menuItems = document.querySelectorAll('#menu span');
+    menuItems.forEach(function (item) {
+        item.classList.remove('selected');
+    });
+    // Add 'selected' class to the clicked menu item
+    clickedItem.classList.add('selected');
+    var thisDiv = hideAllShowOne(clickedItem, '.content-div', '-div');
+    
+    hideAllShowOne(clickedItem, '.submenuitem', '-list');
+    // refresh the height of all editors on this div
+    var allElements = thisDiv.querySelectorAll('[id]');
+    allElements.forEach(function(element) {
+      if (editors.get(element.id)) editors.get(element.id).refresh();
+    });
+    thisDiv.offsetHeight;
+
+    // Reset the contentModified flag
+    setContentModified(false);       
+}
+function contentChanged(entity, key) {
+  setContentModified(true);
+  entity.add(key);
+}
+
+function saveContent() {
+  if (changes.other.has("general")) 
+    saveGeneral(projectName);
+  if (changes.other.has("input")) 
+    saveFile(projectName, "proj/src/Input.java", editors.get("input-code-editor").getValue(), "input");
+  if (changes.other.has("output")) 
+    saveFile(projectName, "proj/src/Output.java", editors.get("output-code-editor").getValue(), "output");
+  if (changes.other.has("tools")) 
+    saveFile(projectName, "proj/src/Tools.java", editors.get("tools-code-editor").getValue(), "tools");
+  if (changes.other.has("algorithms")) 
+    saveFile(projectName, "proj/src/Tools.java", editors.get("tools-code-editor").getValue(), "tools");
+  if (changes.parameters.size > 0)
+    saveParameters(projectName);
+  
+  saveGenerators(projectName);
+  saveTestsets(projectName);
+  saveAlgorithms(projectName);
+  saveTimers(projectName);            
+  saveIndicators(projectName);            
+  saveCounters(projectName);
+  
+  setContentModified(false);  
+}
+
+function cancelContentChanges() {
+  changes = new Changes();
+  setContentModified(false);  
+
+  switch(editProjectSelectedItem) {
+    case "General":
+      showGeneralData(); break; 
+    case "Input":case "Output": case "Tools":
+      showFileContent(editProjectSelectedItem.toLowerCase()); break;  
+    case "Parameters":
+      showParameters(); break;  
+    case "Generators":
+      showGenerators(); break;  
+    case "TestSets":
+      showTestsets(); break;  
+    case "Timers":
+      showTimers(); break;  
+    case "Indicators":
+      showIndicators(); break;  
+    case "Counters":
+      showCounters(); break;  
+    case "Algorithms":
+      showAlgorithms(); break;  
+  }
+}
+
+function setToday() {
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2, '0');
+  var mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+  var yyyy = today.getFullYear();
+  var formattedDate = yyyy + '-' + mm + '-' + dd;
+  document.getElementById('dategrl').value = formattedDate;
+  contentChanged(changes.other, "general");
+}
+function setEditPageHeight() {
+    var windowHeight = window.innerHeight;
+    var contentDiv = document.getElementById('bodydiv');
+    var bodyDivHeight = windowHeight - contentDiv.offsetTop - 10;;
+    contentDiv.style.height = bodyDivHeight + 'px';
+    document.getElementById('lower-section').style.height = (bodyDivHeight-48) + 'px';
+}
+
+
+function showHideSaveCancelButtons(show) {
+  document.getElementById("OKCancelButtons_editProjectSection").style.display = (show ? "flex" : "none");
+  document.getElementById("Edit_editProjectSection")           .style.display = (show ? "none" : "flex");
+  setEditPageHeight();
+}
+
+function editSection() {
+  // during edit some items (parameters, generators, ...) can be 
+  // deleted or added: here we store all such items to be properly
+  // processed when Save is pressed
+  removedItems = [];
+  addedItems   = [];
+  
+  enableProjectEditMode(true);
+  showHideSaveCancelButtons(true); 
+}
+
+function editProjectSectionCancel() {
+  cancelContentChanges();
+
+  enableProjectEditMode(false);
+  showHideSaveCancelButtons(false);
+}
+function editProjectSectionSave() {
+  saveContent();
+
+  enableProjectEditMode(false);
+  showHideSaveCancelButtons(false);
+}
+
+
+
 
 
 ////////////// project ////////////////////////
@@ -1171,4 +1691,3 @@ function newProjectPhase2(projectName, key, response) {
   showPopup(response.Answer);
   redirectToUrlWithParams(`/problem/${projectName}`, {homepoint: true });
 }
-

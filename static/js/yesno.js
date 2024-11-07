@@ -1,14 +1,19 @@
-let yesnoaction = null;
+var yesnoaction = null;
 
 
-// user can define up to three parameters that will be passed to the "action" function
-function showYesNoDialog(question, action, param1, param2, param3) {
+// user can define up to four parameters that will be passed to the "action" function; 
+// first two parameters are of type String, and the last two of type Object
+var yesnoO1 = null;
+var yesnoO2 = null;
+function showYesNoDialog(question, action, param1, param2, param3, param4) {
+  yesnoO1 = param3;
+  yesnoO2 = param4;
   let dialogHTML =`
     <div id="yesnodialog" class="yesnodialog">
       <div class="yesnodialog-content">
         <p id="dialogQuestion" style="width:200px;"></p>
-        <button onclick="buttonClicked(0, '${param1}','${param2}', '${param3}')">Yes</button>
-        <button onclick="buttonClicked(1, '${param1}','${param2}', '${param3}')">No</button>
+        <button onclick="buttonClicked(0, '${param1}','${param2}')">Yes</button>
+        <button onclick="buttonClicked(1, '${param1}','${param2}')">No</button>
       </div>
     </div>
   `;
@@ -24,9 +29,9 @@ function showYesNoDialog(question, action, param1, param2, param3) {
   dialog.style.display = "block";
 }
 
-function buttonClicked(answer, param1, param2, param3) {
+function buttonClicked(answer, param1, param2) {
   document.getElementById("dialogQuestion").style.display = "none";
   $("#yesnodialog").remove();
   if (yesnoaction != null)
-    yesnoaction(answer, param1, param2, param3);
+    yesnoaction(answer, param1, param2, yesnoO1, yesnoO2);
 }

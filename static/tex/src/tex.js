@@ -386,6 +386,7 @@ htmlContent.oninput = ({ target: { firstChild } }) => {
 return settings.element
 }
 
+
 var tex = { exec: exec, init: init, destroy: destroy, getContent: getContent }
 
 exports.exec = exec

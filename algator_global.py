@@ -1,4 +1,4 @@
-from ALGator.settings import *
+from ALGatorWeb.settings import *
 
 DATABASES = {
     'default': {
@@ -15,3 +15,5 @@ ALGATOR_SERVER = {
  'Hostname' : 'localhost',
  'Port'     : 12321
 }
+
+IS_PRODUCTION = False

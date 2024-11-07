@@ -226,7 +226,7 @@ async function updatePresenterLayout(presenterDataJSON, presenter){
             q: `alter {"Action":"SavePresenter", "ProjectName":"${projectName}", "PresenterName":"${presenter}",  "PresenterData":${JSON.stringify(presenterDataJSON)}}`
         };
         $.post(url, param, function(response) {
-            var answer = response.response; 
+            var answer = response.answer; //!response->answer
     
             if(answer.includes('"Status":0')) {
                 let data = presenterData.get(presenter);

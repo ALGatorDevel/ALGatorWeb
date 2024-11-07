@@ -1,27 +1,22 @@
-      <span class="w3-dropdown-hover w3-right">
+      <span id="user_menu_panel" style="display:none;" class="w3-dropdown-hover w3-right">
         <span class="w3-bar-item navBarEl">          
-          <i class="fa fa-user fa-fw"></i>{% if request.user.is_authenticated %}<span>&nbsp;User: {{ request.user.username }}&nbsp;</span>{% endif %} <i class="fa fa-caret-down"></i>          
+          <i class="fa fa-user"></i>{% if request.user.is_authenticated %}<span>&nbsp;User: {{ request.user.username }}&nbsp;</span>{% endif %} <i class="fa fa-caret-down"></i>          
         </span>
         <div class="w3-dropdown-content w3-bar-block w3-border" style="right:0;">
           {% if request.user.is_authenticated %}
-            <span onclick="redirectToUrlWithPathAndParams('/users/profile', {})" class="w3-bar-item w3-button">
-                <i class="fa-solid fa-user"></i> Profile
+            <span onclick="redirectToUrlWithPathAndParams('/ausers/settings', {'homepoint': true })" class="w3-bar-item w3-button">
+                <i class="fas fa-user"></i> Settings
+            </span>            
+            <span onclick="redirectToUrlWithPathAndParams('/ausers/logout', {})" class="w3-bar-item w3-button">
+                <i class="fas fa-sign-out-alt"></i> Logout
             </span>
-            <span onclick="redirectToUrlWithPathAndParams('/users/logout', {})" class="w3-bar-item w3-button">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
-            </span>
-
-            <!--span onclick="openMyModalWindow('/users/login')" class="w3-bar-item w3-button">
-                <i class="fa-solid fa-right-from-bracket"></i> TEST LOGIN TEST
-            </span-->
           {% else %}
-            <span onclick="redirectToUrlWithPathAndParams('/users/login', {})" class="w3-bar-item w3-button">
-               <i class="fa-solid fa-right-to-bracket"></i> Log in
+            <span onclick="redirectToUrlWithPathAndParams('/ausers/login', {})" class="w3-bar-item w3-button">
+               <i class="fas fa-sign-in-alt"></i> Log in
             </span>
-            <span onclick="redirectToUrlWithPathAndParams('/users/signup', {})" class="w3-bar-item w3-button">
-              <i class="fa-solid fa-user-plus"></i> Sign up
+            <span onclick="redirectToUrlWithPathAndParams('/ausers/signup', {})" class="w3-bar-item w3-button">
+              <i class="fas fa-user-plus"></i> Sign up
             </span>          
           {% endif %} 
         </div>
-      </span>   
-
+      </span> 

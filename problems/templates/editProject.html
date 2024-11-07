@@ -1,6 +1,7 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'codemirror/lib/codemirror.css' %}">
     <link rel="stylesheet" href="{% static 'codemirror/theme/abcdef.css' %}">
+    <link rel="stylesheet" href="{% static 'codemirror/theme/eclipse.css' %}">
     <link rel="stylesheet" href="{% static 'codemirror/addon/hint/show-hint.css' %}">
     <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
     <script src="{% static 'codemirror/addon/edit/matchbrackets.js' %}"></script>
@@ -44,10 +45,13 @@
 
 </div> 
 
-<div class="innerContent" id="presentersContent">
+<div class="innerContent" id="editProjectContent">
+  <div id="editProjectButtons" class="editMode" style="display: flex;flex-direction: row-reverse;margin-right: 10px;">
+    <i id="Edit_editProjectSection" class="far fa-edit icon" onclick="editSection()"></i>
+  </div>
+
   <div id=bodydiv style="margin: 5px 10px 0px 10px;">
-    {% if project.name != "" %}
-    
+    {% if project.name != "" %}    
     <div id="intermediate-section">
       <div id="general-list" class="submenuitem">
         <hi>General properties</hi> 
@@ -98,17 +102,18 @@
         <hi>Algorithms</hi> 
         <span id="algorithms-list_panel"></span>
       </div>
-
     </div>
 
     <div id="lower-section">
         
         <div id="general-div" class="content-div">
             <script>
-                document.getElementById("general-div").innerHTML = getGeneralHTML(
-                      "{{ project.name }}", "{{ project.description }}", "{{ project.author }}", "{{ project.date }}", 
-                      "{% for algorithm in project.algorithms %}{{ algorithm.name }}{% if not forloop.last %},{% endif %}{% endfor %}", 
-                      "{% for testset in project.testsets %}{{ testset.name }}{% if not forloop.last %},{% endif %}{% endfor %}");
+              setGeneralData(
+                "{{ project.name }}", "{{ project.eid }}", "{{ project.description }}", "{{ project.author }}", "{{ project.date }}", 
+                "{% for algorithm in project.algorithms %}{{ algorithm.name }}{% if not forloop.last %},{% endif %}{% endfor %}", 
+                "{% for testset in project.testsets %}{{ testset.name }}{% if not forloop.last %},{% endif %}{% endfor %}"
+              );
+              showGeneralData();
             </script>
         </div>
 
@@ -116,11 +121,12 @@
             <table style="width:100%;">
             <tr>
                 <td><textarea id="input-class" style="display: none;" onchange="contentChanged(changes.other, 'input')"></textarea>
-                    <div class="CodeMirror" id="input-code-editor"></div>
+                    <div class="CodeMirror" disabled id="input-code-editor"></div>
                 </td>
             </tr></table>
             <script>
-                initCodeMirrorEditor("input-code-editor", "input-class", "{{ project.source_input |escapejs }}", changes.other, "input");
+                initCodeMirrorEditor("input-code-editor", "input-class", "{{ project.source_input |escapejs }}", changes.other, "input", undefined,undefined,undefined,true);
+                setFileContent("input", "{{ project.source_input |escapejs }}");
             </script>
         </div>
 
@@ -132,135 +138,156 @@
                 </td>
             </tr></table>
             <script>
-                initCodeMirrorEditor("output-code-editor", "output-class", "{{ project.source_output |escapejs }}", changes.other, "output");
+                initCodeMirrorEditor("output-code-editor", "output-class", "{{ project.source_output |escapejs }}", changes.other, "output", undefined,undefined,undefined,true);
+                setFileContent("output", "{{ project.source_output |escapejs }}");                
             </script>
         </div>
 
         <div id="parameters-div" class="content-div">
-            <div style="vertical-align:bottom;">
-              <label for="newparname">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newparname">
+            <div id="parameterElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
+              <label for="newparname">Create a new parameter: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newparname">
               &nbsp;<input type="checkbox" id="isInputP" name="isInputP">  <label for="isInputP">Input parameter? </label>&nbsp;
               <span id="addParamButton" class="tooltip-button" data-tooltip="Add" onclick="newParameter('{{project.name}}')" style="content:'Add';">
                   <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
               </span>
 
-              <script>registerClickOnEnter("newparname", "addParamButton");</script>
+              <script>
+                registerClickOnEnter("newparname", "addParamButton");
+                insertNewSubNavbarItem("parameterElt", "parameterlink", "parameters-list_panel");
+              </script>
+              <hr>
             </div>
 
-            <hr>
             <div id="inputParameters"><h4>Input Parameters</h4></div>
             <div id="otherParameters"><h4>Other Parameters</h4></div>
             <script>
-            {% for key, value in project.parameters.items %}
-                addParameterOnForm("{{ project.name }}", "{{ key }}", 
-                    "{{ value.IsInputParameter }}", "{{ value.Description }}", 
-                    "{{ value.Meta.Min }}", "{{ value.Meta.Max }}", 
-                    "{{ value.Meta.Step }}", "{{ value.Meta.Default }}", 
-                    "{{ value.Meta.Values }}", "{{ value.Type }}");
-            {% endfor %}
-            showHideParametersTitles();
+              {% for key, value in project.parameters.items %}
+                pageProject.addParameter("{{ key }}", "{{ value.IsInputParameter }}", "{{ value.Description }}", "{{ value.Meta.Default }}",
+                    "{{ value.Meta.Min }}", "{{ value.Meta.Max }}", "{{ value.Meta.Step }}", "{{ value.Meta.Values }}", "{{ value.Type }}"
+                );
+              {% endfor %}
+              showParameters();
             </script>            
         </div>
 
         <div id="generators-div" class="content-div">
-            <div style="vertical-align:bottom;">
-              <label for="newgenname">Type: &nbsp; &nbsp;</label><input style="width:200px;" type="number" min="0" value="0" id="newgenname">
+            <div id="generatorElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
+              <label for="newgenname">Create a new generator of type: &nbsp; &nbsp;</label><input style="width:200px;" type="number" min="0" value="0" id="newgenname">
               &nbsp;<label for="newgenparam">Parameters: &nbsp; &nbsp;</label><select class="multiselect" id="newgenparam" multiple style="width: 400px;"></select> &nbsp;
-              <script>setNewGenParamValue();</script>
-              <span id="addGButton" class="tooltip-button" data-tooltip="Add" onclick="newGenerator('{{project.name}}')" style="content:'Add';">
+                <span id="addGButton" class="tooltip-button" data-tooltip="Add" onclick="newGenerator('{{project.name}}')" style="content:'Add';">
                   <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
               </span>
-
+              <hr>
             </div>
-            <hr>
+            <script>
+              setNewGenParamValue();
+              insertNewSubNavbarItem("generatorElt", "generatorlink", "generators-list_panel");
+            </script>
 
             <div id="generators-div">
             <script>
-            {% for key, value in project.generators.items|dictsort:0 %}
-               addGeneratorOnForm("{{ project.name }}", "{{ key }}","{{ value.Description }}", 
-                  "{{ value.GeneratingParameters }}", "{{ project.source_generators|get_item:key |escapejs }}", false);
-            {% endfor %}
+              {% for key, value in project.generators.items|dictsort:0 %}
+                 pageProject.addGenerator("{{ key }}","{{ value.Description }}", "{{ value.GeneratingParameters }}", 
+                    "{{ project.source_generators|get_item:key |escapejs }}");
+              {% endfor %}
+              showGenerators();
             </script>
             </div>
         </div>
 
         <div id="testset-div" class="content-div">
-            <div style="vertical-align:bottom;">
-              <label for="newtestsetname">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newtestsetname">&nbsp;
+            <div id="testsetElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
+              <label for="newtestsetname">Create a new testset: &nbsp; &nbsp;</label><input style="width:300px;" type="text" id="newtestsetname">&nbsp;
               <span id="addTestsetButton" class="tooltip-button" data-tooltip="Add" onclick="newTestset('{{project.name}}')" style="content:'Add';">
                   <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
               </span>
-
-            </div>
-            <script>registerClickOnEnter("newtestsetname", "addTestsetButton");</script>
             <hr>
+            </div>
+            <script>
+              registerClickOnEnter("newtestsetname", "addTestsetButton");
+              insertNewSubNavbarItem("testsetElt", "testsetlink", "testsets-list_panel");
+            </script>
             <div id="testsets-div"></div>
             <script>
-            {% for testset in project.testsets %}
-                addTestsetOnForm("{{ project.name|escapejs }}", "{{ testset.name|escapejs }}", "{{ testset.description|escapejs }}", "{{ testset.short_name|escapejs }}", {{ testset.n }}, {{ testset.test_repeat }}, {{ testset.time_limit }}, '{{ testset.description_file|escapejs}}'); 
-            {% endfor %}
+              {% for testset in project.testsets %}
+                pageProject.addTestset("{{ testset.name|escapejs }}", "{{ testset.eid |escapejs }}", "{{ testset.description|escapejs }}", "{{ testset.short_name|escapejs }}", {{ testset.n }}, {{ testset.test_repeat }}, {{ testset.time_limit }}, '{{ testset.description_file|escapejs}}'); 
+              {% endfor %}
+              showTestsets();              
             </script>            
         </div>
 
         <div id="timers-div" class="content-div">
           <div>
-            <div style="vertical-align:bottom;">
-              <label for="newtimer">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newtimer" onchange="" value="">&nbsp;
+            <div id="timerElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
+              <label for="newtimer">Create a new timer: &nbsp; &nbsp;</label><input style="width:300px;" type="text" id="newtimer" onchange="" value="">&nbsp;
               <span id="newTimerButton" class="tooltip-button" data-tooltip="Add" onclick="newTimer('{{project.name}}')" style="content:'Add';">
                   <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>              
+              </span>  
+              <hr>            
             </div>
-            <script>registerClickOnEnter("newtimer", "newTimerButton");</script>
-            <hr>
+            <script>
+              registerClickOnEnter("newtimer", "newTimerButton");
+              insertNewSubNavbarItem("timerElt", "timerlink", "timers-list_panel");
+            </script>
             <div id="timers-div">
-            <script>                  
-            {% for key, value in project.indicators.items %}
-              {% if value.Type == "timer" %}                
-                addTimerOnForm("{{ project.name }}", "{{ key }}","{{ value.Description }}", "{{ value.Meta.ID }}");
-                selectOptionByValue("statf-{{ key }}", "{{ value.Meta.STAT }}");                
-              {% endif %}            
-            {% endfor %}         
+            <script>  
+              {% for key, value in project.indicators.items %}
+                {% if value.Type == "timer" %}                
+                  pageProject.addTimer("{{ key }}","{{ value.Description }}", 
+                      "{{ value.Meta.ID }}", "{{ value.Meta.STAT }}");
+                {% endif %}            
+              {% endfor %}
+              showTimers();         
             </script>
             </div>
           </div>
         </div>
 
         <div id="indicators-div" class="content-div">
-            <div style="vertical-align:bottom;">
-              <label for="newindicator">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newindicator">&nbsp;
+            <div id="indicatorElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
+              <label for="newindicator">Create a new indicator: &nbsp; &nbsp;</label><input style="width:300px;" type="text" id="newindicator">&nbsp;
               <span id="newIndicatorButton" class="tooltip-button" data-tooltip="Add" onclick="newIndicator('{{project.name}}')" 
                  style="content:'Add';"><img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>              
+              </span>  
+              <hr>
             </div>
-            <script>registerClickOnEnter("newindicator", "newIndicatorButton");</script>         
-            <hr>
+            <script>
+              registerClickOnEnter("newindicator", "newIndicatorButton");
+              insertNewSubNavbarItem("indicatorElt", "indicatorlink", "indicators-list_panel");
+            </script>         
             <div id="indicators-div">
-            {% for key, value in project.indicators.items %}
-              {% if value.Type != "timer" %}
-                <script>
-                  addIndicatorOnForm("{{ project.name }}", "{{ key }}","{{ value.Description }}","{{ project.source_indicators|get_item:key |escapejs }}");
-                  selectOptionByValue("itype-{{ key }}", "{{ value.Type }}");
-                </script>
-              {% endif %}            
-            {% endfor %}         
+            <script>
+              {% for key, value in project.indicators.items %}
+                {% if value.Type != "timer" %}
+                    pageProject.addIndicator("{{ key }}","{{ value.Description }}", "{{ value.Type }}",
+                        "{{ project.source_indicators|get_item:key   |escapejs }}");
+                {% endif %}            
+              {% endfor %}  
+              showIndicators();       
+            </script>
+
             </div>   
         </div>
 
         <div id="counters-div" class="content-div">
-           <div style="vertical-align:bottom;">
-              <label for="newcounter">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newcounter">&nbsp;
+            <div id="counterElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
+              <label for="newcounter">Create a new counter: &nbsp; &nbsp;</label><input style="width:300px;" type="text" id="newcounter">&nbsp;
               <span id="newCounterButton" class="tooltip-button" data-tooltip="Add" onclick="newCounter('{{project.name}}')" style="content:'Add';">
                   <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>              
+              </span>   
+              <hr>
             </div>
-            <script>registerClickOnEnter("newcounter", "newCounterButton");</script>                     
-            <hr>
+            <script>
+              registerClickOnEnter("newcounter", "newCounterButton");
+              insertNewSubNavbarItem("counterElt", "counterlink", "counters-list_panel");
+            </script>                     
             <div id="counters-div">
-            {% for key, value in project.counters.items %}
-              <script>
-                addCounterOnForm("{{ project.name }}", "{{ key }}","{{ value.Description }}");
-              </script>
-            {% endfor %}         
+            <script>               
+              {% for key, value in project.counters.items %}              
+                  pageProject.addCounter("{{ key }}","{{ value.Description }}");              
+              {% endfor %}  
+              showCounters();       
+            </script>  
             </div>              
         </div>
 
@@ -272,170 +299,65 @@
                 </td>
             </tr></table>
             <script>
-                initCodeMirrorEditor("tools-code-editor", "tools-class", "{{ project.source_tools |escapejs }}", changes.other, "tools");
+                initCodeMirrorEditor("tools-code-editor", "tools-class", "{{ project.source_tools |escapejs }}", changes.other, "tools", undefined,undefined,undefined,true);
+                setFileContent("tools", "{{ project.source_tools |escapejs }}");                
             </script>
         </div>
 
         <div id="algorithms-div" class="content-div">
-            <div style="vertical-align:bottom;">
+            <div id="algorithmElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
               <label for="newalgorithmname">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newalgorithmname">&nbsp;
-              <span id="addAlgorithmButton" class="tooltip-button" data-tooltip="Add" onclick="newAlgorithm('{{project.name}}')" style="content:'Add';">
+              <span id="addAlgorithmButtonB" class="tooltip-button" data-tooltip="Add" onclick="newAlgorithm('{{project.name}}')" style="content:'Add';">
                   <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
               </span>
+              <hr>
             </div>
-            <script>registerClickOnEnter("newalgorithmname", "addAlgorithmButton");</script>
-            <hr>
+            <script>
+              registerClickOnEnter("newalgorithmname", "addAlgorithmButtonB");
+              insertNewSubNavbarItem("algorithmElt", "algorithmlink", "algorithms-list_panel");              
+            </script>
             <div id="algorithms-div"></div>
             <script>
             {% for algorithm in project.algorithms %}
-                addAlgorithmOnForm("{{ project.name|escapejs }}", "{{ algorithm.name|escapejs }}", "{{ algorithm.description|escapejs }}", "{{ algorithm.short_name|escapejs }}", "{{ algorithm.date }}", "{{ algorithm.author }}", "{{ algorithm.language }}", '{{ algorithm.source|escapejs}}', '{{ algorithm.html|escapejs}}'); 
+                pageProject.addAlgorithm("{{ algorithm.name|escapejs }}", "{{ algorithm.eid|escapejs }}", "{{ algorithm.description|escapejs }}", "{{ algorithm.short_name|escapejs }}", "{{ algorithm.date }}", "{{ algorithm.author }}", "{{ algorithm.language }}", '{{ algorithm.source|escapejs}}', '{{ algorithm.html|escapejs}}'); 
             {% endfor %}
+            showAlgorithms();
             </script>            
         </div>
 
     </div>
 </div>
+
 <script>
 
-  var currentMenuItemIndex = 0;
-
-  var contentModified = false;
-
-  function updateDotColor(color) {
-      var dot = document.getElementById('menu-dot');
-      dot.style.backgroundColor = color;
-      if (color == 'red') {
-        dot.style.cursor ='pointer';
-        dot.classList.add("menu-dot-tosave");
-      } else {
-        dot.style.cursor ='auto';
-        dot.classList.remove("menu-dot-tosave");
-      }
-  }
-
-  function setContentModified(modified) {
-    contentModified = modified;
-    updateDotColor(contentModified ? 'red' : 'green');
-  }
-  
-  
-  function hideAllShowOne(clickedItem, className, divIdSuffix) {
-      var contentDivId = clickedItem.getAttribute('href').substring(1) + divIdSuffix;
-      var contentDivs = document.querySelectorAll(className);
-      contentDivs.forEach(function (div) {
-          div.style.display = 'none';
-      });
-      var thisDiv = document.getElementById(contentDivId);
-      if (thisDiv) thisDiv.style.display = 'block'; 
-      return thisDiv;
-  }
-
-  function selectMenuItem(clickedItem) {
-      document.getElementsByName("mi").forEach(function(title) {
-        title.style.color = '#333';
-      });
-      clickedItem.style.color = '#27ae60';
-
-      if (contentModified) saveContent();
-      // Remove 'selected' class from all menu items
-      var menuItems = document.querySelectorAll('#menu span');
-      menuItems.forEach(function (item) {
-          item.classList.remove('selected');
-      });
-      // Add 'selected' class to the clicked menu item
-      clickedItem.classList.add('selected');
-      var thisDiv = hideAllShowOne(clickedItem, '.content-div', '-div');
-      
-      hideAllShowOne(clickedItem, '.submenuitem', '-list');
-      // refresh the height of all editors on this div
-      var allElements = thisDiv.querySelectorAll('[id]');
-      allElements.forEach(function(element) {
-        if (editors.get(element.id)) editors.get(element.id).refresh();
-      });
-      thisDiv.offsetHeight;
-      // Update the current menu item index
-      currentMenuItemIndex = Array.from(menuItems).indexOf(clickedItem);
-
-      // Reset the contentModified flag
-      setContentModified(false);       
-  }
-
-  function navigate(direction) {
-      if (contentModified) saveContent();
-      var menuItems = document.querySelectorAll('#menu a');
-      // Calculate the next index cyclically
-      currentMenuItemIndex = (currentMenuItemIndex + direction + menuItems.length) % menuItems.length;
-      // Trigger the click event for the corresponding menu item
-      menuItems[currentMenuItemIndex].click();
-  }
-
-  function contentChanged(entity, key) {
-    setContentModified(true);
-    entity.add(key);
-  }
-
- 
-  function saveContent() {
-    if (changes.other.has("general")) saveGeneral("{{ project.name }}");
-    if (changes.other.has("input")) 
-      saveFile("{{ project.name }}", "proj/src/Input.java", editors.get("input-code-editor").getValue(), "input");
-    if (changes.other.has("output")) 
-      saveFile("{{ project.name }}", "proj/src/Output.java", editors.get("output-code-editor").getValue(), "output");
-    if (changes.other.has("tools")) 
-      saveFile("{{ project.name }}", "proj/src/Tools.java", editors.get("tools-code-editor").getValue(), "tools");
-
-    if (changes.other.has("algorithms")) 
-      saveFile("{{ project.name }}", "proj/src/Tools.java", editors.get("tools-code-editor").getValue(), "tools");
+  let editProjSection = "editProjectSection";
+  document.getElementById("editProjectButtons").innerHTML += 
+    getOkCancelButtonsHTML(editProjSection, false, "margin-bottom:-10px;margin-right:-10px;");
+  wireButton(editProjSection+"_cancel", editProjectSectionCancel, editProjSection);
+  wireButton(editProjSection+"_ok",     editProjectSectionSave,   editProjSection);
 
 
-    saveParameters("{{ project.name }}");
-    saveGenerators("{{ project.name }}");
-    saveTestsets("{{ project.name }}");
-    saveAlgorithms("{{ project.name }}");
-    saveTimers("{{ project.name }}");            
-    saveIndicators("{{ project.name }}");            
-    saveCounters("{{ project.name }}");
-    
-    setContentModified(false);  
-  }
-
-  window.addEventListener('beforeunload', function (event) {
-      if (contentModified) {
-          // Display a confirmation message when attempting to close the page
-          var message = "You have unsaved changes. Are you sure you want to leave?";
-          event.returnValue = message;
-          return message;
-      }
-  }); 
-
-  function setToday() {
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
-    var yyyy = today.getFullYear();
-    var formattedDate = yyyy + '-' + mm + '-' + dd;
-    document.getElementById('dategrl').value = formattedDate;
-    contentChanged(changes.other, "general");
-  }
-
-  function setEditPageHeight() {
-      var windowHeight = window.innerHeight;
-      var contentDiv = document.getElementById('bodydiv');
-      contentDiv.style.height = (windowHeight - contentDiv.offsetTop - 10) + 'px';
-  }
-  
-  window.onload = window.onresize = function () {
-    setEditPageHeight();  
-  };
+window.addEventListener('beforeunload', function (event) {
+    if (contentModified) {
+        // Display a confirmation message when attempting to close the page
+        var message = "You have unsaved changes. Are you sure you want to leave?";
+        event.returnValue = message;
+        return message;
+    }
+}); 
 
   
-  $(function(){$('.multiselect').select2(select2Options);});
+window.onload = window.onresize = function () {
+  setEditPageHeight();  
+};
 
-  // Select the first menu item initially
-  document.getElementById('menuitems').firstElementChild.click();
+  
+$('.multiselect').each((function() {
+  applySelect2Options(this);
+}));  
 
-  var mac = CodeMirror.keyMap.default == CodeMirror.keyMap.macDefault;
-  CodeMirror.keyMap.default[(mac ? "Cmd" : "Ctrl") + "-Space"] = "autocomplete";
+document.getElementById('menuitems').firstElementChild.click();
+
 </script>
     
     {% else %}

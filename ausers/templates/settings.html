@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/select2.css' %}">
+<link rel="stylesheet" href="{% static 'css/problems/problems.css' %}">
+<link rel="stylesheet" href="{% static 'css/ausers.css' %}">
+
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/select2.js' %}"></script>
+<script src="{% static 'js/main/main.js' %}"></script>
+<script src="{% static 'js/problems/problems.js' %}"></script>
+<script src="{% static 'js/auser.js' %}"></script>
+<script src="{% static 'js/can.js' %}"></script>
+<script src="{% static 'js/edit.js' %}"></script>
+<script src="{% static 'js/countries.js' %}"></script>
+<script src="{% static 'js/settings.js' %}"></script>
+<script src="{% static 'js/permissions.js' %}"></script>
+<script src="{% static 'js/groups.js' %}"></script>
+
+
+</head>
+<body>
+<!-- Left toolbar -->
+<div class="left-toolbar">
+<script>
+var sectionTitle = ['User profile',    'Change password', 'Groups',       'Permissions',    'XC'          ];
+var sections     = ['profile',         'password',        'groups',       'permissions',    'xConsole'    ];
+var sectionIcons = ['fas fa-user-cog', 'fa fa-user-tag',  'fas fa-users', 'fa fa-database', 'fa fa-wrench'];
+var numberOfTopItems = 4;
+
+</script>
+{% include "sidebar.html" %}
+</div>
+
+<!-- Top toolbar -->
+<div class="top-toolbar">
+{% include "ausers-navbar.html" %}
+</div>
+
+{% if request.user.id %}
+  <div id='main'>
+      <div id="profile" style="display: block;">
+          {% include "edit-profile.html" %}
+      </div>
+      <div id="groups" style="display: none;">
+          {% include "manage-group.html" %}
+      </div>      
+      <div id="password" style="display: none;">
+          {% include "change-password.html" %}
+      </div>    
+      <div id="permissions" style="display: none;">
+          <div id="permissions-top"></div>
+          {% include "permissions.html" %}
+      </div>      
+      <div id="xConsole" style="display: none;">
+          <div id="xConsole-top"></div>
+          {% include "xconsole.html" %}
+      </div>
+  </div>
+  
+  <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    showSectionSideNavbar("profile");
+  });
+  </script>
+{% endif %}
+
+{% endblock %}

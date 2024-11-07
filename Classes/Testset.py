@@ -1,8 +1,9 @@
 class Testset:
 
-    def __init__(self, name, short_name="", description="", 
+    def __init__(self, name, eid="", short_name="", description="", 
                    html_description="", n=0, test_repeat=0, time_limit=1, quick_test=0, testset_files=[], description_file=""):
         self.name = name
+        self.eid  = eid
         self.short_name = short_name
         self.description = description
         self.n = n

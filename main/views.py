@@ -1,45 +1,27 @@
 from django.http import JsonResponse
 from django.shortcuts import render
-from users.forms import LoginForm
+
+from ausers.autools import getUID, isAnonymousMode
+from ausers.forms import LoginForm
 from django.contrib.auth.decorators import login_required
 from Classes.ServerConnector import connector
 import json, random, string, os, time, re
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 import ALGatorWeb.settings as settings
 from Classes.GlobalConfig import globalConfig 
+from main.autils import rand_str
 
+@ensure_csrf_cookie
 def index(request):
-    if request.method == 'POST':
-        isEditMode_str = request.POST.get('isEditMode', 'False')
-    else:
-        isEditMode_str = request.GET.get('isEditMode', 'False')
-    isEditMode = (isEditMode_str.lower() == 'true')
-
-
-    return render(request, 'home.html', {'loginForm': LoginForm, 'isEditMode': isEditMode})
+    return render(request, 'home.html')
 
 
 def pAskServer(request): 
     question     = request.POST.get('q', 'status')
 
-    return JsonResponse({"answer" : connector.talkToServer(question), "user":request.user.username})
+    return JsonResponse({"answer" : connector.talkToServer(question, getUID(request))})
 
-@csrf_exempt
-def pAskServerAjax(request):
-    if request.method == 'POST':
-        
-        query = request.POST.get('q')
 
-        server_response = connector.talkToServer(query)
-
-        return JsonResponse({'response': server_response})
-
-    else:
-        return JsonResponse({'error': 'Invalid request method'}, status=400)
-
-def rand_str(length=8):
-    characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
 def append_middlefix(filename, suffix):
     basename, extension = os.path.splitext(filename)
     new_filename = f"{basename}_{suffix}{extension}"
@@ -57,6 +39,7 @@ def removeOldUploadedFiles(upload_path):
     if os.path.isfile(file_path):
         if os.path.getmtime(file_path) < cutoff_time:
             os.remove(file_path)
+
 
 # upload image to temporary webupload folder (to be used during html edit)
 @csrf_exempt
@@ -90,7 +73,7 @@ def replace_staticfiles_and_extract(content):
     def replace_and_extract_fn(match):
         x_value = match.group(1)  
         x_values.append(x_value)  
-        return "%static{" + x_value + "}"  
+        return "\"%static{" + x_value + "}\""
     
     result = re.sub(pattern, replace_and_extract_fn, content)
     return result, x_values
@@ -119,25 +102,19 @@ def moveimages(request):
 
 
 def problems(request):
-    if request.method == 'POST':
-        isEditMode_str = request.POST.get('isEditMode', 'False')
-    else:
-        isEditMode_str = request.GET.get('isEditMode', 'False')
-    isEditMode = (isEditMode_str.lower() == 'true')
-
-    projects_response = connector.talkToServer('getData {"Type":"Projects"}')
+    projects_response = connector.talkToServer('getData {"Type":"Projects"}', getUID(request))
     projects_dict = json.loads(projects_response)
     projects_list = projects_dict.get("Answer", [])
 
     projects_fulDesc = []
     for project in projects_list:
         reqString = 'getData {"Type":"Project", "ProjectName":"'+project+'"}'
-        project_response = connector.talkToServer(reqString)
+        project_response = connector.talkToServer(reqString, getUID(request))
         project_dict = json.loads(project_response).get("Answer", {})
         projects_fulDesc.append(project_dict)
 
     context = {
-        'isEditMode': isEditMode,
+        'isDBMode':   not isAnonymousMode(),
         'projects_fulDesc': projects_fulDesc 
     }
 

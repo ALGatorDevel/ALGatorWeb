@@ -1,0 +1,193 @@
+@font-face {
+    font-family: 'customFont';
+    src: url('../../fonts/Lambda-mLv6V.ttf') format('truetype');
+}
+/* sign up */
+
+.error-message{
+    padding: 4px !important;
+    text-align: center;
+    margin: 20px;
+    background-color: rgb(247, 96, 96);
+    border-radius: 5px;
+}
+
+#signupContainer{
+    margin: 0 auto;
+    margin-top: 60px;
+    /* margin-left: 300px;
+    margin-right: 300px; */
+    border-radius: 5px;
+    width: 40%;
+}
+
+.myLable{
+    font-size: 18px;
+}
+
+/* profile */
+
+.profilContainer{
+    margin: 0 auto;
+    margin-top: 60px;
+    /* margin-left: 200px;
+    margin-right: 200px; */
+    border-radius: 5px;
+    width: 40%;
+}
+
+
+
+.element{
+    font-size: 20px;
+}
+
+.title{
+    font-size: 50px;
+    font-weight: bold;
+    font-family: 'customFont';
+}
+
+/* login */
+#loginTitle{
+    font-size: 40px;
+    margin-top: 60px;
+    margin-bottom: 60px;
+    font-weight: bold;
+    font-family: 'customFont';
+}
+
+.submitButton{
+    margin-top: 40px;
+}
+
+#errorMessage{
+    padding: 2px;
+    margin: 20px;
+    background-color: rgb(247, 96, 96);
+    border-radius: 5px;
+}
+
+.w3-modal-content{
+    border: 1px solid rgb(35, 192, 35);
+    border-radius: 5px;
+    width: 500px;
+    height: 500px;
+}
+
+
+
+.gcontainer {
+  height: 40px;
+  padding-top:4px;
+}
+.gcustom-select {
+    position: relative;
+    display: inline-block;
+}
+.gselect {
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+}
+.ddbutton {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 16px;
+    color: black;
+    xmargin-left: -15px; /* Positioning the X to the right of the input */
+}
+
+.guserbox {
+    border: 1px solid lightgray;
+    padding: 2px 6px 2px 6px;
+    margin: 6px 9px 0px 0px;
+}
+
+
+
+ul {
+    list-style-type: none;
+    padding-left: 10px;
+}
+/* Default icon for items with children (collapsed state is not applied yet) */
+.collapsible.has-children {
+    background-image: url('/static/images/plus.png');
+    background-repeat: no-repeat;
+    background-position: left center;
+    padding-left: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+/* Icon for expanded items (overrides has-children when collapsed class is applied) */
+.collapsible.has-children.collapsed {
+    background-image: url('/static/images/minus.png');
+}
+/* Icon for items with no children */
+.collapsible.no-children {
+    background-image: url("/static/images/item.png");
+    background-repeat: no-repeat;
+    background-position: left center;
+    padding-left: 10px;
+}
+.hidden {
+    display: none;
+}
+/* Additional details are initially hidden */
+.hidden-div {
+    margin-top: 10px;
+}
+/* Ensure the icon is small and properly aligned */
+.collapsible::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
+/* Additional styling for buttons */
+.toggle-div-btn {
+    margin-left: 10px;
+}
+.setrights {
+   margin: 6px 0px 10px 25px;
+   width: 900px;
+   padding: 10px;
+   border: 1px solid #d3d3d3;
+}
+.usergroupspan {
+  width: 190px;
+  display: inline-flex;
+}
+.usergroupcb {
+  margin: 0px 7px 0px 7px;
+}
+.ht {
+    color: black; 
+    background: white;
+    cursor: default; 
+    transition: color 0.3s ease; 
+}
+.ht:hover {
+    background: #f1f8e9;
+    cursor: pointer; /* Change cursor to pointer (hand) on hover */
+}     
+.table-wrapper {
+    position: relative;
+    display: inline-block;
+}
+.small-image {
+    position: absolute;
+    top: 0;
+    right: -20px; 
+    width: 16px;
+    height: 16px;
+    color: brown;
+}  
+.okcancelb {
+  margin: 10px;
+}      

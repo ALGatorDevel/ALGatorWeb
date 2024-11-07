@@ -2,29 +2,43 @@
 
 <link rel="stylesheet" href="{% static 'css/problems/tooltip.css' %}">
 <script src="{% static 'js/problems/tooltip.js' %}"></script>
-<script>
-  createTooltip();
-</script>
-<div id="mySidebar">
+<div id="mySidebar" style="width: 200px;">
 
-  <div class='row' {% if homepoint %} onclick="redirectToUrlWithPathAndParams('/', {})" {% endif %}>
-    <img  class='wide imgA' id='img1' src="{% static 'images/logo_green.png' %}"  alt="ALGator"  {% if not homepoint %}style="cursor:default;" {% endif%}>
-    <img  class='slim imgA' id='img2' src="{% static 'images/algator_icon.png' %}" alt="ALGator" {% if not homepoint %}style="cursor:default;" {% endif%}>
+  <div class='row' {% if homepoint %} onclick="redirectToUrlWithPathAndParams('{%if next%}{{next}}{%else%}/problems{%endif%}', {'homepoint':true})" {% endif %}>
+    <img  class='wide imgA' id='img1' src="{% static 'images/logo_green.png' %}"  alt="ALGator"  
+       style="{% if not homepoint %} cursor:default;{% endif%}">
+    <img  class='slim imgA' id='img2' src="{% static 'images/algator_icon.png' %}" alt="ALGator" 
+       style="display: none;{% if not homepoint %} cursor:default;{% endif%}">
   </div>
 
   <div id="problemNavbarMenuButton" class='row'>
     <p class='sideBarEl wide' onclick="toggleSidebar()" onclick="slimElements()" style="position: fixed; top:-15px; left:0px;">
       <span>
-        <i class="fa-solid fa-bars"></i>
+        <i class="fas fa-bars"></i>
       </span>
     </p>
-    <p class='sideBarEl slim' onclick="toggleSidebar()" onclick="slimElements()" data-tooltip="MENU" onmouseover="showTooltip(event)" onmouseout="hideTooltip()">
+    <p class='sideBarEl slim' onclick="toggleSidebar()" onclick="slimElements()"  style="position:fixed"
+       data-tooltip="MENU" onmouseover="showTooltip(event)" onmouseout="hideTooltip()">
       <span>
-        <i class="fa-solid fa-bars"></i>
+        <i class="fas fa-bars"></i>
       </span>
     </p>
   </div>
+  
+  <!-- vertical gap to prevent icon overlap and obtain same sidebar height in slim and wide mode-->
+  <span class="slim" style="height:82px; display: none;"></span>
 
 </div>
 
-<script>document.getElementById("mySidebar").innerHTML += getSideBarItemsHTML(4);</script>
+<script> 
+  async function updateSidebar() {
+    // if (debugPrint) console.log('Updating sidebar...');
+    const sidebarHTML = await getSideBarItemsHTML(numberOfTopItems);
+    // if (debugPrint) console.log('Sidebar HTML generated:', sidebarHTML);
+    document.getElementById("mySidebar").innerHTML += sidebarHTML;
+    // if (debugPrint) console.log('Sidebar updated');
+  }
+  updateSidebar();
+
+  createTooltip();
+</script>

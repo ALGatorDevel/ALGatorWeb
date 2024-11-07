@@ -6,12 +6,12 @@
   <div class="w3-container myContainer w3-card" style="padding: 25px 10px 10px 20px; margin: 30px 125px 10px 125px;">
     <span style="font-size:18px">Create a new algorithm: </span>
     <input style="width:500px;" type="text" id="newalgorithmtextfield">
-    <span id="addAlgorithmButton" class="tooltip-button" data-tooltip="Create a new algorithm" onclick="newAlgorithm()">
+    <span id="addAlgorithmButtonC" class="tooltip-button" data-tooltip="Create a new algorithm" onclick="newAlgorithm()">
        &nbsp;&nbsp;<img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
     </span>
   </div>
   <script>
-    registerClickOnEnter("newalgorithmtextfield", "addAlgorithmButton");
+    registerClickOnEnter("newalgorithmtextfield", "addAlgorithmButtonC");
     document.addEventListener("DOMContentLoaded", function() {
       const inputField = document.getElementById('newalgorithmtextfield');
       inputField.addEventListener('keypress', preventNonAlphaNumKeys);

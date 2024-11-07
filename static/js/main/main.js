@@ -2,6 +2,9 @@ csrftoken = getCookie('csrftoken');
 
 
 function redirectToUrlWithParams(basePath, params) {
+    // implicit parameter that tell calee that it was called with redirect
+    params["fr"] = 1
+
     if (!params.hasOwnProperty('next')) params["next"] = window.location.pathname;
 
     var form = document.createElement('form');
@@ -15,9 +18,6 @@ function redirectToUrlWithParams(basePath, params) {
     csrfInput.value = csrfToken;
     form.appendChild(csrfInput);
   
-    // implicit parameter for every call
-    params.isEditMode = isEditMode ? "True" : "False";
-
     Object.keys(params).forEach(function(key) {
       var input = document.createElement('input');
       input.type = 'hidden';

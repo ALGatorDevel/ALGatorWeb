@@ -1,7 +1,7 @@
   #bodydiv {
       font-family: Arial, sans-serif;
       margin: 15px;
-      padding: 15px;
+      padding: 10px 10px 0px 10px;
       border: 1px solid #aaaaaa;
       overflow: hidden; /* Hide body overflow to prevent default scrollbars */
   }
@@ -137,11 +137,19 @@
 
 
 /***************** Form components ******************/
+.select2-container--enabled .select2-selection {
+  background-color: #FBFFFB !important;
+  color: black;
+}
+.select2-container--disabled .select2-selection {
+  background-color: red; !important;
+  color: gray;
+}
+
 input[type="text"],
 input[type="number"],
-select,
-
-input[type="checkbox"],
+input[type="password"],
+select, 
 textarea {
  padding: 4px;
  margin-bottom: 15px;
@@ -150,19 +158,26 @@ textarea {
  border-bottom: 1px solid #ccc;
  border-radius: 4px;
  font-size: 14px;
- background-color: #f9f9f9;
+ background-color: #FBFFFB;
  transition: background-color 1s;
 }
+
 input[type="text"]:focus,
 input[type="number"]:focus,
 select:focus,
 input[type="checkbox"]:focus,
 textarea:focus {
  outline: none;
- background-color: #e6e6e6;
+ background-color: #F0FFF0;
 }
 
-
+input[type="text"]:disabled,
+input[type="number"]:disabled,
+select:disabled,
+input[type="checkbox"]:disabled,
+textarea:disabled {
+  background-color: #f5f5f5 
+}
 
 .tooltip-button {
   position: relative;
