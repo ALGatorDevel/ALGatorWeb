@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
 from main.autils import rand_str
 from ausers.auconsts import USER_ROOT
 
@@ -14,7 +15,7 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if not self.uid.startswith('u'):
-            self.uid = (f'u{self.id}_' + str(self.uid))[:14]
+            self.uid = (f'u{self.id}_' + str(self.uid if self.uid else rand_str(10)))[:14]
             super().save(*args, **kwargs)
 
 

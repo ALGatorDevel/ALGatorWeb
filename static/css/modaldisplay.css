@@ -1,0 +1,62 @@
+.modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none; /* Hidden by default */
+        justify-content: center;
+        align-items: center;
+        z-index:5;
+    }
+
+    /* Modal content */
+    .modal-content {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        width: 80vw; /* 80% of viewport width */
+        height: 80vh; /* 80% of viewport height */
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow for 3D effect */
+    }
+
+    /* Modal header */
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #ccc;
+        margin-bottom: 10px;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    /* Close button */
+    .close-btn {
+        font-size: 25px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #aaa;
+        transition: color 0.3s;
+    }
+
+    .close-btn:hover {
+        color: #f00; /* Red when hovered */
+    }
+
+    /* Modal body */
+    .modal-body {
+        overflow:auto;
+        height: calc(100vh - 282px);
+        white-space:  pre; /* Preserve whitespace formatting */
+        font-family: monospace; /* Use monospace font for plain text */
+        color: #333;
+    }

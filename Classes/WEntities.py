@@ -13,7 +13,7 @@ from Classes.ServerConnector import connector
 from problems.utils import replaceStaticLinks
 from problems.utils import traverse_and_transform
 
-def getValue(dictionary, key, default=""):
+def getValue(dictionary, key, default=''):
     return dictionary[key] if key in dictionary.keys() else default
 
 class WEntities(object):
@@ -37,7 +37,8 @@ class WEntities(object):
 
   def get_testsets_list(self, project_name, deep=False, testsets_names=[], uid="__internal__"):
     if not testsets_names:
-      testsets_names = json.loads(connector.talkToServer('getData {"Type":"Project", "ProjectName":"%s"}'%project_name, uid))["Answer"]["TestSets"]
+      resp = json.loads(connector.talkToServer('getData {"Type":"Project", "ProjectName":"%s"}'%project_name, uid))
+      testsets_names = getValue(getValue(resp, "Answer", {}), "TestSets", [])
     testsets_list = []
     for testset_name in testsets_names:
       testsets_list.append(self.read_testset(project_name, testset_name, deep, uid))
@@ -62,63 +63,65 @@ class WEntities(object):
       server_response = json.loads(response)
       server_response = getValue(server_response, "Answer", [])
 
-      project_desc      = server_response['Description']
-      project_author    = server_response['Author']
-      project_date      = server_response['Date']
-      eid               = server_response['eid']
-      
-      project = Project(project_name, eid, project_desc, project_author, project_date)    
+      project_desc      = getValue(server_response, 'Description', '')
+      project_author    = getValue(server_response, 'Author', '')
+      project_date      = getValue(server_response, 'Date', '')
+      eid               = getValue(server_response, 'eid', 'e?')
+
+      project = Project(project_name, eid, project_desc, project_author, project_date)
+      project.algorithms = getValue(server_response, 'Algorithms', [])
+      project.testsets = getValue(server_response, 'Testsets', [])
 
       project.json       = server_response
 
-      project.algorithms = self.get_algorithms_list(project_name, deep, server_response["Algorithms"], uid)
-      project.testsets   = self.get_testsets_list(project_name, deep, server_response["TestSets"], uid)
 
-      # presenterjev ne preberem v objekt; za delo s presenterji se uporabljajo funkcije iz util.py,
-      # presenterji se na stran prenesejo kot JSON string
-      project.mpPresenters = self.get_presenters(project_name, server_response["MainProjPresenters"], uid) if 'MainProjPresenters' in server_response else []
+      if deep:
+        project.algorithms = self.get_algorithms_list(project_name, deep, server_response["Algorithms"], uid) if "Algorithms" in server_response else []
+        project.testsets = self.get_testsets_list(project_name, deep, server_response["TestSets"], uid) if "TestSets" in server_response else []
 
-      if deep:      
+        # presenterjev ne preberem v objekt; za delo s presenterji se uporabljajo funkcije iz util.py,
+        # presenterji se na stran prenesejo kot JSON string
+        if not 'ProjPresenters' in project.json: project.json['ProjPresenters'] = []
+        project.mpPresenters = self.get_presenters(project_name, project.json, uid)
+
         server_response = json.loads(connector.talkToServer('getData {"Type":"ProjectDocs", "ProjectName":"%s"}'%project_name, uid))
         if server_response["Status"]==0:
-          project_docs = server_response["Answer"]
-          project.html_desc             = replaceStaticLinks(base64.b64decode(project_docs["Project"]).decode("UTF-8")   ,project_name)
-          project.algorithms_html_desc  = replaceStaticLinks(base64.b64decode(project_docs["Algorithm"]).decode("UTF-8") ,project_name)
-          project.test_case_html_desc   = replaceStaticLinks(base64.b64decode(project_docs["TestCase"]).decode("UTF-8")  ,project_name)
-          project.test_sets_html_desc   = replaceStaticLinks(base64.b64decode(project_docs["TestSet"]).decode("UTF-8")   ,project_name)
-          project.project_ref_desc      = replaceStaticLinks(base64.b64decode(project_docs["References"]).decode("UTF-8"),project_name)
-          project.doc_resources         = project_docs["Resources"]
+          project_docs = getValue(server_response, 'Answer', {})
+          project.html_desc             = replaceStaticLinks(base64.b64decode(getValue(project_docs,"Project"   , "")).decode("UTF-8") ,project_name)
+          project.algorithms_html_desc  = replaceStaticLinks(base64.b64decode(getValue(project_docs,"Algorithm" , "")).decode("UTF-8") ,project_name)
+          project.test_case_html_desc   = replaceStaticLinks(base64.b64decode(getValue(project_docs,"TestCase"  , "")).decode("UTF-8") ,project_name)
+          project.test_sets_html_desc   = replaceStaticLinks(base64.b64decode(getValue(project_docs,"TestSet"   , "")).decode("UTF-8") ,project_name)
+          project.project_ref_desc      = replaceStaticLinks(base64.b64decode(getValue(project_docs,"References", "")).decode("UTF-8") ,project_name)
+          project.doc_resources         = getValue(project_docs, "Resources")
 
         server_response = json.loads(connector.talkToServer('getData {"Type":"ProjectSources", "ProjectName":"%s"}'%project_name, uid))
         if server_response["Status"]==0:
-          project_src = server_response["Answer"]
-          project.source_input                = base64.b64decode(project_src["Input"] or "").decode("utf-8")
-          project.source_output               = base64.b64decode(project_src["Output"] or "").decode("utf-8")
-          project.source_algorithm            = base64.b64decode(project_src["Algorithm"] or "").decode("utf-8")
-          project.source_tools                = base64.b64decode(project_src["Tools"] or "").decode("utf-8")
+          project_src = getValue(server_response, "Answer", "")
+          project.source_input                = base64.b64decode(getValue(project_src, "Input", "") or "").decode("utf-8")
+          project.source_output               = base64.b64decode(getValue(project_src, "Output", "") or "").decode("utf-8")
+          project.source_algorithm            = base64.b64decode(getValue(project_src, "Algorithm", "") or "").decode("utf-8")
+          project.source_tools                = base64.b64decode(getValue(project_src, "Tools", "")     or "").decode("utf-8")
           
           project.source_generators           = {}
-          for genType in project_src["Generators"]:
+          for genType in getValue(project_src, "Generators", []):
             project.source_generators[genType] = base64.b64decode(project_src["Generators"][genType] or "").decode("utf-8")
           
           project.source_indicators           = {}
-          for indName in project_src["Indicators"]:
+          for indName in getValue(project_src, "Indicators", []):
             project.source_indicators[indName] = base64.b64decode(project_src["Indicators"][indName] or "").decode("utf-8")
-            
-
 
         server_response = json.loads(connector.talkToServer('getData {"Type":"ProjectProps", "ProjectName":"%s"}'%project_name, uid))
         if server_response["Status"]==0:
           project_props = server_response["Answer"]
-          project.parameters  = project_props["Parameters"] or []
-          project.generators  = project_props["Generators"] or []
-          project.indicators  = project_props["EM indicators"] or []
-          project.counters    = project_props["CNT indicators"] or []
+          project.parameters  = getValue(project_props,"Parameters",     [])
+          project.generators  = getValue(project_props,"Generators",     [])
+          project.indicators  = getValue(project_props,"EM indicators",  [])
+          project.counters    = getValue(project_props,"CNT indicators", [])
         
       return project
       
     except Exception as exi:
-      return Project(project_name)
+      return Project("")
 
 
     # reads the algorithm and returns an object of type Algorithm. If deep = True all the information about the algorithm

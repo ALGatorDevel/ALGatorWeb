@@ -1,67 +1,61 @@
 {% extends "base.html" %}
 {% load static %}
+{% block headcss %}
+  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/problems/problems.css' %}">
+
+{% endblock %}
+{% block headjs %}
+  <script src="{% static 'js/edit.js' %}"></script>   
+  <script src="{% static 'js/problems/problems.js' %}"></script>     
+{% endblock %}
+
 
 {% block content %}
-{% include "mainNavbar.html" %}
+{% include "navbar.html" %}   
+<div class="mp-content">
+  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 60px); width:100%;display: flex; justify-content: center;">
+    <div style="width:60%">
+      <h1 class="p-header">
+          Projects
+          <span style="display:flex; align-items:center">
+              <i class="fas fa-filter filter-icon" style="font-size:20px; color:gray; margin-right:20px; cursor:pointer;" onclick="switchSearchPanel()"></i>
+              <a id="new_project_button" class="p-add-text" onclick="newProject()">New project ...</a>
+          </span>
+      </h1>
+      <hr class="hr">
 
-<link rel="stylesheet" href="{% static 'css/main/main.css' %}">
-<link rel="stylesheet" href="{% static 'css/edit.css' %}">
-<script src="{% static 'js/main/main.js' %}"></script>
-<script src="{% static 'js/edit.js' %}"></script>
-<script src="{% static 'js/auser.js' %}"></script>
-<script src="{% static 'js/can.js' %}"></script>
-
-<script>
-  window.CSRF_TOKEN = "{{ csrf_token }}";
-  askServerURL = "{% url 'main:pAskServer' %}";
-</script>
-
-
-<div class="tooltip"></div>
-
-<div style="width: 100%; overflow:overlay; height:100vh">
-  <div style="height:30px"></div>
-
-  <div id="new_project_panel" class="w3-container myContainer w3-card" 
-       style="padding: 25px 10px 10px 20px; margin: 30px 125px 10px 125px; display:none;">
-    <span style="font-size:18px">Create a new project: </span>
-    <input style="width:500px;" type="text" id="newprojecttextfield">
-    <span id="addProjectButton" class="tooltip-button" data-tooltip="Create a new project" onclick="newProject()">
-       &nbsp;&nbsp;<img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-    </span>
-  </div>
-  <script>
-    registerClickOnEnter("newprojecttextfield", "addProjectButton");
-    document.addEventListener("DOMContentLoaded", async function() {
-      const inputField = document.getElementById('newprojecttextfield');
-      inputField.addEventListener('keypress', preventNonAlphaNumKeys);
-
-      let showNewProjectPanel = await can("e0_P", "can_add_project");
-      document.getElementById("new_project_panel").style.display = showNewProjectPanel ? "" : "none";
-    });
-  </script>
-
-  <hr>
-
-
-  <div class="w3-container myContainer">
-    {% for project in projects_fulDesc %}
+      <div class="p-search-panel" id="projectSearchPanel">
+        <input id="projectSearchInput" class="search-input" type="text" placeholder="Search..." oninput="printCards()">  
         
-        <div class="w3-panel w3-card-2 myCard" onclick="redirectToUrlWithParams('/problem/{{ project.Name }}', {homepoint: true });">
-            <header class="w3-container">
-                <h2 class='cardHeader'>{{ project.Name }} [{{ project.eid }}]</h2>
-            </header>
-
-            <div class="w3-container cardDesc">
-                <p>{{ project.Description }}</p>
-            </div>
-        </div>
+        <span>
+          <input id="show_only_my" type=checkbox onclick="printCards()"> Only my projects
+        </span> 
         
-    {% empty %}
-        <p>No problems available.</p>
-    {% endfor %}
-    
+        <span style="display:flex; align-items: center;"> 
+          Sort by &nbsp;
+          <select id="projectSearchSortby" onchange="printCards()">
+            <option value="name">Name</option>
+            <option value="modified">Date modified</option>
+            <!--option value="pop">Popularity</option-->
+          </select>&nbsp;&nbsp;
+          <input id="projectSearchDesc" type=checkbox value="desc" onchange="printCards()">&nbsp;Descending
+        </span>  
+      </div>
+
+      <div id="projectCardsContainer" class="w3-container myContainer">
+        {% for project in projects_description %}   
+          <script>
+            addProject('{{ project.eid }}', '{{ project.Name }}', '{{ project.St }}', '{{ project.De }}', {{ project.Tg | safe}}, 
+                {{ project.Mo }}, {{ project.Na }}, {{ project.Nt }}, '{{ project.Ow }}', '{{ project.On }}', {{ project.Po }});
+          </script> 
+        {% empty %}
+            <p>No projects available.</p>
+        {% endfor %}
+      </div>
+    </div>
   </div>
-<div>
+  {% include "footer.html" %}   
+</div>
 
 {% endblock %}

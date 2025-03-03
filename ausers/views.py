@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 
-from .autools import getUID
+from .autools import getUID, isAnonymousMode
 from .forms import LoginForm, SignupForm, EditUserForm
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
@@ -53,14 +53,23 @@ def userSignup(request):
         form = SignupForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
             password1 = form.cleaned_data['password1']
-            password2 = form.cleaned_data['password2']
-            form.save()
-            if next_page:
-                return HttpResponseRedirect(next_page)
-            else:
-                return redirect('main:home')
+            try:
+              form.save()
+
+              user = authenticate(request, username=username, password=password1)
+              if user is not None:
+                  login(request, user)
+
+              if next_page:
+                  return HttpResponseRedirect(next_page)
+              else:
+                  return redirect('main:home')
+            except Exception as e:
+                if "for key 'ausers_user.email'" in str(e):
+                    form.add_error('email', "A user with this email already exists.")
+                else:
+                    form.add_error(None, "An unexpected error occurred: " + str(e))
     else:
         form = SignupForm()
     return render(request, 'signup.html', {'form': form, 'form_resubmitted': request.POST.get('fr', '1') != '1'})
@@ -71,7 +80,8 @@ def userLogout(request):
     return redirect('main:home')
 
 
-
+def who(request):
+    return ausers.who(request)
 
 def can(request):
     data = QueryDict.dict(request.GET)
@@ -109,7 +119,6 @@ def add_permission(request):
 def remove_permission(request):
     data = QueryDict.dict(request.POST)
     return ausers.remove_permission(request, data)
-
 
 def get_groups(request):
     return ausers.get_groups(request)
@@ -158,9 +167,10 @@ def settings(request):
 
     return render(request, 'settings.html',
         {
-          'user' : user,
+          'user'      : user,
            'homepoint': homepoint,
-           'next'     : next
+           'next'     : next,
+           'isDBMode' : not isAnonymousMode(),
         },
     )
 
@@ -172,5 +182,10 @@ def xc(request):
           'uid' : uid 
         },
     )
+
+
+def sendmail(request):
+    data = QueryDict.dict(request.POST)
+    return ausers.sendmail(request, data)
 
 

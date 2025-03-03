@@ -42,9 +42,7 @@ class Project(object):
         self.algorithms = []
         self.testsets = []
         self.ProjPresenters = []
-        self.MainProjPresenters = []
-        self.AlgPresenters = []
-        self.MainAlgPresenters = []
+        self.AlgPresenters  = []
         self.algorithmReports = []    
 
 

@@ -1,11 +1,85 @@
-// ids of tmp presenters (to be stored in presenterJSONs during new/edit process)
+class PagePresenters extends PageData {
+  services = {
+    'get_presenters': {
+      'endpoint': '/projects/get_presenters',
+      'method'  : 'GET',
+      'params'  : ["ProjectName"],
+      'comment' : ''
+    }
+  };
+
+  constructor() {
+    super();
+
+    this.projectPresenters = [];
+    this.presenterJSONs    = new Map();
+    this.navbar            = [];
+  }
+
+  setVar(type, value) {
+    switch (type) {
+      case "get_presenters": this.storePresenters(value); break;  
+    }
+  }
+
+  storePresenters(value) {
+    this.projectPresenters = value[0];
+
+    Object.keys(value[1]).forEach(pName => this.presenterJSONs.set(pName, value[1][pName]));
+  }
+}
+
+pp = new PagePresenters();
+presentersShown = false;
+
+
+async function showPresenters() {
+  if (!presentersShown) {
+    await pp.waitForDataToLoad(["get_presenters"], false, {'ProjectName': projectName}); 
+    let presentersDiv = document.getElementById("presenters");
+    pp.projectPresenters.forEach(pName => {
+      try {
+        let presenter = pp.presenterJSONs.get(pName);
+        presentersDiv.innerHTML += getPresenterDivHtml(pName, presenter.Title, true, false);
+        let flc = 0;
+        presenter.Layout.forEach(row => { 
+          document.getElementById(`views_${pName}`).innerHTML += `<div class="w3-row" id="${pName}_${++flc}_container"></div>`;
+          row.forEach(cell => {
+              document.getElementById(`${pName}_${flc}_container`).innerHTML += getViewOuterHtml(pName,cell);
+              createNewView(pName, cell);
+          });
+        });
+        document.getElementById(`myPlusDropdownIcon_${pName}`).addEventListener("click", function() {
+          var dropdownContent = document.getElementById(`myPlusDropdownContent_${pName}`);
+          dropdownContent.style.display = (dropdownContent.style.display === "block") ? "none" : "block";
+        });
+        document.getElementById(`myPlusDropdownContent_${pName}`).innerHTML += getViewsDropDownItems(pName);
+        addPresenterToNavbar(pName, presenter.ShortTitle);
+      } catch (e){}      
+    });
+    await populatePrivatnessSpans("presenter");
+    showHidePrivatenessIcons();
+    if (pp.projectPresenters.length > 0) scrollToPresenter(pp.projectPresenters[0]);
+    document.getElementById("nopresenters").innerHTML = pp.projectPresenters.length == 0 ? "No presenters available." : "";
+    presentersShown = true;
+  }
+  
+  enableEditMode(isEditMode);
+
+  fillReportData(projectName);
+  repaintViews();
+  MathJax.typeset();
+}
+
+
+// ids of tmp presenters (to be stored in pp.presenterJSONs during new/edit process)
 newPresenterID  = "newPresenter";
 editPresenterID = "editPresenter";
 
 function getQueryDefaultJSON(){
     return {
             "Algorithms": ["*"],
-            "ComputerID": "F0.C0",
+            "ComputerID": "",
             "Count": false,
             "Filter": [],
             "GroupBy": [],
@@ -19,13 +93,15 @@ function getQueryDefaultJSON(){
 
 function getPresenterDefaultJSON(name){
     return {
-          "Name": `${name}`,
-          "eid": "",
-          "Title": `New presenter`,
-          "ShortTitle": `${name}`,
+          "Name"       : name,
+          "Author"     : current_user_username,
+          "Date"       : getCurrentFormattedDate(),
+          "eid"        : "",
+          "Title"      : `New presenter`,
+          "ShortTitle" : name,
           "Description": "",
-          "Query": getQueryDefaultJSON(),
-          "Layout": [],
+          "Query"      : getQueryDefaultJSON(),
+          "Layout"     : [],
     }  
 }
 
@@ -51,8 +127,8 @@ function wirePControl(presenterID, selector, json, property, action, doAction) {
 
 function getPresenterEID(pName) {
     try {
-        let eid = presenterJSONs.get(pName).eid;
-        return  eid ? eid : "";
+        let eid = pp.presenterJSONs.get(pName).eid;
+        return  eid ? eid : "e?";
     } catch (e) {
         return "";
     }
@@ -62,26 +138,28 @@ function getPresenterTitleDivHTML(pName, pTitle, editButtonsQ, okCancelQ) {
   let pEID = getPresenterEID(pName);
 
   let editButtons = !editButtonsQ ? "" : `
-    <div id="presenterEditButtons_${pName}" class='editMode' style="float:right;">
+    <div id="presenterEditButtons_${pName}" w="${pEID} cw" class='editMode' style="float:right;">
         
-        
-      <div class="myPlusDropdown" id="myPlusDropdown_${pName}">
-          <img id="myPlusDropdownIcon_${pName}" src="/static/images/new.png" style="width:18px;" />
-          <!--i class="far fa-plus-square icon" id="myPlusDropdownIcon_${pName}"></i-->
-          <div class="myPlusDropdown-content" id="myPlusDropdownContent_${pName}" style="left: -140px;">
-              <span style="padding-top: 10px; padding-left: 10px; border-bottom: 1px solid black; width:100%;">Add:</span>
-          </div>
+      <div>
+        <span name="privateness_span_holder" key="${pEID}" ename="${pName}">#</span>        
+        <i class="far fa-edit icon" style="margin-bottom: 2px;" title="Edit presenter data" onclick="editPresenter('${pName}')"></i>        
+        <div class="myPlusDropdown" id="myPlusDropdown_${pName}">
+            <!--img id="myPlusDropdownIcon_${pName}" src="/static/images/new.png" style="width:18px;" -->
+            <i class="far fa-plus-square icon" title="Add presenter view" id="myPlusDropdownIcon_${pName}"></i>
+            <div class="myPlusDropdown-content" id="myPlusDropdownContent_${pName}" style="left: -140px;">
+                <span style="padding-top: 10px; padding-left: 10px; border-bottom: 1px solid black; width:100%;">Add:</span>
+            </div>
+        </div>
+        <i class="fas fa-times icon" title="Remove presenter" onclick="deletePresenter('${pName}')"></i>
+        &nbsp;
       </div>
-      <i class="far fa-edit icon" onclick="editPresenter('${pName}')"></i>
-      <i class="fas fa-times icon" onclick="deletePresenter('${pName}')"></i>
-      &nbsp;
     </div>
   `;
   let okCancelButtons = getOkCancelButtonsHTML(pName, okCancelQ);
   return `
-    <div class='w3-row ptitle' id="title_${pName}">
+    <div class='w3-row' id="title_${pName}">
       <div class='w3-col s8'>
-        <h2 class="ptitleh2" id='presenterTitle_${pName}'>${pTitle} [${pEID}]</h2>
+        <h2 class="ptitleh2" id='presenterTitle_${pName}'>${pTitle} ${printEID ? " ["+pEID+"]" : ""}</h2>
       </div>
       <div class='w3-col s4' style="float:inline-end;">                   
          ${editButtons}${okCancelButtons}
@@ -90,33 +168,51 @@ function getPresenterTitleDivHTML(pName, pTitle, editButtonsQ, okCancelQ) {
   `; 
 }
 
-function getPresenterHTML(id) {
+function getPresenterHTML(id, author, date) {
   return `
     <div class='w3-container'>
       <div class='box'>
-          <div class='w3-row'>
-              <label for="presenterMTitle_${id}">Presenter title:</label>
-              <input id='presenterMTitle_${id}'  class="w3-input w3-border w3-round" type="text" style="width: 100%; height: 30px">
-          </div>
-          <div class='w3-row'>
-              <label for="presenterSTitle_${id}">Presenter short title:</label>
-              <input id='presenterSTitle_${id}' class="w3-input w3-border w3-round" type="text" style="width: 100%; height: 30px">
-          </div>
-          <div class='w3-row'>
-              <label for="presenterDesc_${id}">Presenter description:</label>
-              <input id='presenterDesc_${id}' class="w3-input w3-border w3-round" type="text" style="width: 100%; height: 30px">
-          </div>
+        <table style="width:100%; padding: 15px;">
+          <tr><td class="gentd"><label for="alauthor-__key__">Author of implementation</label></td>
+             <td><input class="almostW pEdit" disabled disabled readonly type="text" id="alauthor-__key__" value="${author}">
+          </td></tr>         
+          <tr><td class="gentd"><label for="aldate-__key__">Creation Date</label></td>
+             <td><input class="almostW pEdit" disabled disabled readonly type="text" id="aldate-__key__" value="${date}">
+          </td></tr>
+
+          <tr><td class="gentd"><label for="presenterMTitle_${id}">Presenter title:</label></td>
+              <td><input id='presenterMTitle_${id}'  class="almostW" type="text" >
+          </td></tr>
+          
+          <tr><td class="gentd"><label for="presenterSTitle_${id}">Presenter short title:</label></td>
+              <td><input id='presenterSTitle_${id}' class="almostW" type="text">
+           </td></tr>
+
+          <tr><td class="gentd"><label for="presenterDesc_${id}">Presenter description:</label></td>
+              <td><textarea id='presenterDesc_${id}' class="almostW" style="margin-bottom:-20px;" type="text"></textarea>
+          </td></tr>
+
+        </table>  
       </div>
     </div>
   `;
 }
-function getQueryHTML(id) {
+function getQueryHTML(id, clock=false) {
+  let clockButtons = !clock ? "" : `
+    <div class='w3-row'>
+      <img id="clockOn-playground" onclick="playgroundClockOnOff(0);" src="/static/images/clock48_1.png" style="width:20px;margin-right:5px; float:right;display:none">
+      <img id="clockOf-playground" onclick="playgroundClockOnOff(1);" src="/static/images/clock48_0.png" style="width:20px;margin-right:5px; float:right;">
+    </div>
+  `;
+  let indInfoButton = infoButton("indicators");
   return `
     <div class='w3-container'>
+        ${clockButtons}
         <div class='box'>
             <div class='w3-row'>
                 <h2 id="queryTitle_${id}" style='font-family: customFont'>Select results</h2>
             </div>
+
             <div class='w3-row'>
                 <div class='w3-col s6'>
                     <div class='box' style='margin-left: 5px; margin-right: 5px;'>
@@ -139,7 +235,7 @@ function getQueryHTML(id) {
                             </select>
                         </div>
                         <div class='w3-row'>
-                            <label for="qIndicators_${id}">Indicators:</label>
+                            <label for="qIndicators_${id}">Indicators:</label>${indInfoButton}
                             <select id="qIndicators_${id}" multiple="multiple" style="width: 100%;">
                                 <option value="*"  value="*">*</option>  
                             </select>
@@ -214,7 +310,7 @@ function getOKCancelButtonsDiv(id) {
 function getPresenterDivHtml(pName, pTitle, editB, okcancelB) {
   let pTitleDivHTML = getPresenterTitleDivHTML(pName, pTitle, editB, okcancelB);
   return `
-    <div id="${pName}" class="presenterTab">
+    <div id="${pName}" class="presenterTab ptitle">
         ${pTitleDivHTML}
         <div id='editPresenter_${pName}' style='display: none'></div>
         
@@ -244,15 +340,15 @@ function getProjectParameters() {
 }
 function getProjectIndicators() {
   let result = ["*EM", "*CNT", "*JVM"];
-  pageProject.indicators.forEach(function(i){result.push(i);});
-  pageProject.timers.forEach(function(i){result.push(i);});
-  pageProject.counters.forEach(function(i){result.push(i);});
+  pageProject.indicators.forEach(function(i){result.push(i.name);});
+  pageProject.timers.forEach(function(i){result.push(i.name);});
+  pageProject.counters.forEach(function(i){result.push(i.name);});
   return result;
 }
 
 function fillAndWireQuery(json, presenterID, refreshAction) {
-    var algs = projectJSON["Algorithms"].slice(); if (!algs.includes("*")) algs.unshift("*");
-    var tsts = projectJSON["TestSets"].slice();   if (!tsts.includes("*")) tsts.unshift("*");
+    var algs =  Array.from(pageProject.algorithms.keys());  if (!algs.includes("*")) algs.unshift("*");
+    var tsts =  Array.from(pageProject.testsets.keys());    if (!tsts.includes("*")) tsts.unshift("*");
 
     fillSelector(algs, json["Query"]["Algorithms"], "qAlgorithms_"+presenterID, "Select ...")
     wirePControl(presenterID, "qAlgorithms", json["Query"], "Algorithms",   "change", refreshAction);
@@ -275,7 +371,7 @@ function fillAndWireQuery(json, presenterID, refreshAction) {
     fillSelector(getProjectParameters(), json["Query"]["SortBy"],   "qSortby_"+presenterID, "Select ...")
     wirePControl(presenterID, "qSortby", json["Query"], "SortBy",   "change", refreshAction);
 
-    fillSelector(projectJSON["Computers"], json["Query"]["ComputerID"],   "qComputerID_"+presenterID, "")
+    fillSelector(['', "F0", ...projectComputers], [""]/*json["Query"]["ComputerID"]*/,   "qComputerID_"+presenterID, "")
     wirePControl(presenterID, "qComputerID", json["Query"], "ComputerID",   "change", refreshAction);
 
     wirePCheckbox(presenterID, "qCount", json["Query"], "Count", refreshAction);
@@ -283,11 +379,14 @@ function fillAndWireQuery(json, presenterID, refreshAction) {
 
 
 function fillPresenterDiv(presenterID, divID, okAction, cancelAction, refreshAction) {
-  var json = presenterJSONs.get(presenterID);
+  var json = pp.presenterJSONs.get(presenterID);
   var div = document.getElementById(divID);
   if (div != null) {
+    let author = json.Author ? json.Author : "algator";
+    let date   = json.Date   ? json.Date   : "00/00/0000";
+
     div.innerHTML =  getPresenterTitleDivHTML(presenterID, json["Title"], false, true);
-    div.innerHTML += getPresenterHTML(presenterID);
+    div.innerHTML += getPresenterHTML(presenterID, author, date);
     div.innerHTML += getQueryHTML(presenterID);
     div.innerHTML += getDataTableDivHTML(presenterID);
     // div.innerHTML += getOKCancelButtonsDiv(presenterID);
@@ -316,7 +415,7 @@ function cancelNewPresenter() {
 
 async function createNewPresenter() {
     var pJSON = getPresenterDefaultJSON(newPresenterID);
-    presenterJSONs.set(newPresenterID, pJSON);
+    pp.presenterJSONs.set(newPresenterID, pJSON);
 
     fillPresenterDiv(newPresenterID, "newPresenter", newPresenterDone, cancelNewPresenter, refreshNewPresenterData);
 
@@ -335,7 +434,7 @@ function refreshEditPresenterData() {
 }
 
 async function refreshData(presenterID) {
-  let json = presenterJSONs.get(presenterID);
+  let json = pp.presenterJSONs.get(presenterID);
   let queryJson = (json != null) ? json["Query"] : {};
   let newPresenterData = await getData(url, projectName, json);
   presenterData.set(presenterID, newPresenterData);
@@ -344,39 +443,54 @@ async function refreshData(presenterID) {
 
 
 function addNewPresenter() {
-    return new Promise((resolve, reject) => {
-        
+    return new Promise((resolve, reject) => {  
       var param = {
           csrfmiddlewaretoken: window.CSRF_TOKEN, 
-          q: `alter {"Action":"NewPresenter", "ProjectName":${projectName}, "PresenterType":0}`
+          q: `alter {"Action":"NewPresenter", "ProjectName":${projectName}, "PresenterType":0, 'Author':'${current_user_username}', 'Date':'${getCurrentFormattedDate()}'}`
       };
       $.post(url, param, function(response) {
           var answer = response.answer; //!response->answer 
-          let res = answer;
-          try {res = JSON.parse(answer).Answer;} catch (e) {}
-          resolve(res);
-          return;
+          try {
+            let res = JSON.parse(answer);
+            if (res.Status == 0)
+                resolve(res.Answer);
+            else
+                resolve(res.Message);
+          } catch (e) {
+            resolve(answer);
+          }
       }).fail(reject);
     });
 }
 
+function addPresenterToNavbar(newPresenterName, shortTitle) {
+  pp.navbar.push(newPresenterName);
+  var navBarElHtml = `
+    <a id="navBarEl${newPresenterName}" class="w3-bar-item navBarEl" 
+       style="background-color: white; color:black;" onclick="scrollToPresenter('${newPresenterName}')">${shortTitle}
+    </a>
+  `;
+  $('#presentersCont').append(navBarElHtml);
+}
+
 async function newPresenterDone() {
     let newPresenter =  await addNewPresenter();
+    // check correctness of answer
+    if (!(newPresenter && typeof newPresenter === 'object')) {
+      showPopup(newPresenter);
+      closeNewPresenterView();
+      return;
+    }
+
     let newPresenterName = newPresenter.Name;
     let newPresenterEID = newPresenter.eid;
 
-    let presenterJSON = presenterJSONs.get(newPresenterID);
+    let presenterJSON = pp.presenterJSONs.get(newPresenterID);
 
     presenterJSON["Name"]  = newPresenterName;
     presenterJSON["eid"]  = newPresenterEID;
-    navBars.results.push({'sectionId': newPresenterName})
-    var navBarElHtml = `¸
-      <a id="navBarEl${newPresenterName}" class="w3-bar-item navBarEl" 
-         style="background-color: white;" onclick="scrollToPresenter('${newPresenterName}')">
-            ${presenterJSON["ShortTitle"]}
-      </a>
-    `;
-    $('#presentersCont').append(navBarElHtml);
+
+    addPresenterToNavbar(newPresenterName,presenterJSON["ShortTitle"]);
 
     var param = {
         csrfmiddlewaretoken: window.CSRF_TOKEN, 
@@ -387,26 +501,41 @@ async function newPresenterDone() {
         var answer = response.answer; //!response->answer 
   
         if(answer.includes('"Status":0')){
-            presenterJSONs.set(newPresenterName, presenterJSON);
+            pp.presenterJSONs.set(newPresenterName, presenterJSON);
             presenterData.set(newPresenterName, presenterData.get(newPresenterID));
-            projectJSON["MainProjPresenters"].push(newPresenterName);
+            pp.projectPresenters.push(newPresenterName);
+            add_entity('et4', newPresenterEID, newPresenterName, true);
+
 
             closeNewPresenterView();
             let pHTML = getPresenterDivHtml(newPresenterName, presenterJSON["Title"], true, false);
             $('#presenters').append(pHTML);
             document.getElementById("myPlusDropdownContent_"+newPresenterName).innerHTML += 
               getViewsDropDownItems(newPresenterName);
+
+            addLockersToNewPresenter(newPresenterName);
+
             scrollToPresenter(newPresenterName);
-            document.getElementById("nopresenters").style.display="none";
+
+            var nopresentersDiv = document.getElementById("nopresenters");
+            if (nopresentersDiv) nopresentersDiv.style.display="none";
         }
         else console.log("Error adding presenter!")
     });
 }
 
+async function addLockersToNewPresenter(newPresenterName) {
+  let privatnessHolder = document.getElementById("presenterEditButtons_"+newPresenterName);
+  if (privatnessHolder) {
+    await populatePrivatnessSpans("presenter", privatnessHolder);
+    showHidePrivatenessIcons(privatnessHolder);
+  }
+}
+
 
 function editPresenter(presenterName) {
-  var pJSON = presenterJSONs.get(presenterName);
-  presenterJSONs.set(editPresenterID, pJSON);
+  var pJSON = pp.presenterJSONs.get(presenterName);
+  pp.presenterJSONs.set(editPresenterID, pJSON);
 
   fillPresenterDiv(editPresenterID, "editPresenter_"+presenterName, editPresenterDone, cancelEditPresenter, refreshEditPresenterData);
   refreshEditPresenterData();
@@ -429,12 +558,12 @@ function resotrePresenterViewAfterEdit(presenterName) {
 }
 
 function cancelEditPresenter() {
-  let presenterName = presenterJSONs.get(editPresenterID)["Name"];
+  let presenterName = pp.presenterJSONs.get(editPresenterID)["Name"];
   resotrePresenterViewAfterEdit(presenterName);
 }
 
 function editPresenterDone() {
-    let presenterJSON = presenterJSONs.get(editPresenterID);
+    let presenterJSON = pp.presenterJSONs.get(editPresenterID);
     let pData         = presenterData.get(editPresenterID);
     let presenterName = presenterJSON["Name"];
     resotrePresenterViewAfterEdit(presenterName);
@@ -454,7 +583,7 @@ function editPresenterDone() {
           let elTitle = document.getElementById(`presenterTitle_${presenterName}`);
           if (elTitle != null) elTitle.innerHTML = presenterJSON["Title"];
 
-          presenterJSONs.set(presenterName, presenterJSON);
+          pp.presenterJSONs.set(presenterName, presenterJSON);
           presenterData. set(presenterName, pData);
 
           scrollToPresenter(presenterName);
@@ -464,8 +593,6 @@ function editPresenterDone() {
           showPopup(anwser);
     });
 }
-
-
 
 
 function freezOtherDivs(presenter, selectorID) {
@@ -484,7 +611,7 @@ function unfreezDivs(selectorID) {
 
 
 async function fillReportData(projectName) {
-  for (let [presenterName, presenterJSON] of presenterJSONs) {
+  for (let [presenterName, presenterJSON] of pp.presenterJSONs) {
     let data = await getData(url, projectName, presenterJSON);
     presenterData.set(presenterName, data);
     populatePresenterDiv(data, presenterJSON);
@@ -509,13 +636,11 @@ function populatePresenterDiv(data, presenterJson) {
     
     row.forEach(function (viewName) {
       let viewID = `${presenterName}_${viewName}`;
-      let viewJSON = presenterJSONs.get(presenterName)[viewName];
+      let viewJSON = pp.presenterJSONs.get(presenterName)[viewName];
       let element = document.getElementsByName(viewID + "_outer")[0];
       if(element != null) {
-        console.log(viewID + element.classList);
         removeSClasses(element); 
         element.classList.add(widthClass);
-        console.log(viewID + element.classList);
         getView(presenterName, viewName).drawView(viewJSON, "view_"+viewID);
       }
     });
@@ -523,41 +648,21 @@ function populatePresenterDiv(data, presenterJson) {
 }
 
 
-function showSection(sectionId, sections) {
-  sections.forEach(function(section) {
-    document.getElementById(section.sectionId).style.display = 'none';
-    document.getElementById("navBarEl"+section.sectionId).style.color = '#333';
+function highlightTitle(presenterName) {
+  pp.navbar.forEach(function(title) {
+    let titEl = document.getElementById("navBarEl"+title);
+    if (titEl) titEl.style.color = '#333';
   });
-  document.getElementById("navBarEl"+sectionId).style.color = '#27ae60';
-  document.getElementById(sectionId).style.display = 'block';
+  let totEl = document.getElementById("navBarEl"+presenterName);
+  if (totEl) totEl.style.color = "var(--submenu_color)";
 }
 
 
 function scrollToPresenter(presenterName){
+ highlightTitle(presenterName);
 
-  if(document.getElementById("navBarEl"+presenterName) !== null){
-    navBars.results.forEach(function(section) {
-      document.getElementById("navBarEl"+section.sectionId).style.color = '#333';
-    });
-    document.getElementById("navBarEl"+presenterName).style.color = '#27ae60';
-  }
-  
-  let topOffset = 0;
-  
-  for (let index = 0; index < presentersDataJSON.length; index++) {
-
-    if(presenterName === presentersDataJSON[index].Name)
-      break;
-    
-    var divElement = document.getElementById(presentersDataJSON[index].Name);
-    var height = divElement.clientHeight;
-    topOffset += height;
-  }
-
-  $("#presentersContent").animate({
-    scrollTop: topOffset
-  }, 800); 
-
+ var prDiv = document.getElementById(presenterName);
+ if (prDiv) prDiv.scrollIntoView({behavior: "smooth",  block: "nearest"});
 }
 
 
@@ -568,7 +673,7 @@ function deletePresenterView(presenterName, viewName) {
 function deletePresenterViewPhase2(answer, presenterName, viewName) {
   if (answer != 0) return;
 
-  let presenterJSON = presenterJSONs.get(presenterName);
+  let presenterJSON = pp.presenterJSONs.get(presenterName);
   removeElementFromArray(presenterJSON.Layout, viewName);
   delete presenterJSON[viewName];
   savePresenter(projectName, presenterName, presenterJSON, null);
@@ -598,16 +703,15 @@ function deletePresenterPhase2(answer, presenterName){
 
     if(answer.includes('"Status":0')){
       $('#'+presenterName).remove();
+    
       $('#navBarEl'+presenterName).remove();
-      navBars.results = navBars.results.filter(function(item) {
-        return item.sectionId !== presenterName;
-      });
-
-      presenterJSONs.delete(presenterName);
+      pp.navbar = pp.navbar.filter(element => element !== presenterName);
+    
+      pp.presenterJSONs.delete(presenterName);
       presenterData.delete(presenterName);
-      let idx = projectJSON["MainProjPresenters"].indexOf(presenterName);
+      let idx = pp.projectPresenters.indexOf(presenterName);
       if (idx !== -1) 
-        projectJSON["MainProjPresenters"].splice(idx, 1);
+        pp.projectPresenters.splice(idx, 1);
     }
 
 

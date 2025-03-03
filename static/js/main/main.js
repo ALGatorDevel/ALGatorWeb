@@ -30,8 +30,8 @@ function redirectToUrlWithParams(basePath, params) {
     form.submit();
   }
 
-function redirectToUrlWithPathAndParams(basePath, params) {
-  if (!basePath.endsWith('/')) {
+function redirectToUrlWithPathAndParams(basePath, params, addSlash=true) {
+  if (addSlash && !basePath.endsWith('/')) {
     basePath += '/';
   }
   redirectToUrlWithParams(basePath,params);
@@ -61,4 +61,10 @@ function preventNonAlphaNumKeys(event) {
     !(charCode >= 48 && charCode <= 57) && // 0-9
     charCode !== 95)  // underscore
   event.preventDefault();
+}
+
+function preventNonNumKeys(event) {
+  const charCode = event.which || event.keyCode; 
+  if (!(charCode >= 48 && charCode <= 57))  
+    event.preventDefault();
 }

@@ -1,32 +1,40 @@
 // populates given select element with all users (text=username, value=uid)
-async function populateUserGroupList(selectElement, uid_to_select, printUsers=false, printGroups=false, addPrefix=true) {
-  await waitForUserDataToLoad(["get_users", "get_groups"]);
+async function populateUserGroupList(selectElement, uid_to_select, printUsers=false, printGroups=false, addPrefix=true, addEveryone=false) {
+  await ausers.waitForDataToLoad(["get_users", "get_groups"]);
 
   var users = [];
   var firstSelectableGroup;
-  if (printGroups) for (const key in ausers.groups) {
-    var groupName = ausers.groups[key].name;
-    users.push([key, (addPrefix ? "g: " : "") + groupName]);
-    if (!firstSelectableGroup && groupName!='everyone' && groupName!='anonymous' )
-      firstSelectableGroup = key;
+  var hasEveryone = false;
+  if (printGroups) {
+    for (const key in ausers.groups) {
+      var groupName = ausers.groups[key].name;
+      if (groupName == "everyone") hasEveryone = true;
+      users.push([key, (addPrefix ? "g: " : "") + groupName]);
+      if (!firstSelectableGroup && groupName!='everyone' && groupName!='anonymous' )
+        firstSelectableGroup = key;
+    }
+    if (addEveryone && !hasEveryone) users.push(['g2_ev26hedn7', (addPrefix ? "g: " : "") + "everyone"]);
   }
   if (printUsers && printGroups && users.length != 0) users.push(["", "──────────"]);
   if (printUsers) for (const key in ausers.users) 
     users.push([key, (addPrefix ? "u: " : "") + ausers.users[key].username]);
 
 
-  if (selectElement) selectElement.innerHTML = "";
-  users.forEach(function(user) {
-    const option = document.createElement('option');    
-    option.value = user[0];  
-    option.innerHTML = user[1];  
-    if (user[0] == "") option.disabled = true;
-    selectElement.appendChild(option);  
-  });
+  if (selectElement) {
+    selectElement.innerHTML = "";
   
-  // if no prefered selectable user/group was defined, select first group that is not 'everyone' or 'anonymous'
-  if (printGroups && !uid_to_select) uid_to_select=firstSelectableGroup;  
-  selectElement.value = uid_to_select;
+    users.forEach(function(user) {
+      const option = document.createElement('option');    
+      option.value = user[0];  
+      option.innerHTML = user[1];  
+      if (user[0] == "") option.disabled = true;
+      selectElement.appendChild(option);  
+    });
+
+    // if no prefered selectable user/group was defined, select first group that is not 'everyone' or 'anonymous'
+    if (printGroups && !uid_to_select) uid_to_select=firstSelectableGroup;  
+    selectElement.value = uid_to_select;
+  }
 } 
 
 function getEditProfileHTML(uid, username, email, first_name, last_name, affiliation, address, country, is_active, is_staff, is_superuser, countries) {
@@ -101,7 +109,7 @@ function saveUserProfile() {
   if (document.getElementById('is_staff'))
     newProfile['is_active']=document.getElementById('is_active').checked;
   
-  runNamedService("edit_user", newProfile, (result) => {
+  runNamedService(ausers.services, "edit_user", newProfile, (result) => {
     showPopup(result.Answer);
     if (result.Status==0)
       enableUserSave(false);
@@ -151,7 +159,7 @@ function askRemoveUser() {
 }
 function removeUser(answer, uid) {
   if (answer == 0) {
-    runNamedService("remove_user", {"uid":uid}, (result) => {
+    runNamedService(ausers.services, "remove_user", {"uid":uid}, (result) => {
       showPopup(result.Answer);
       if (result.Status==0)
         ausers.loadData(["get_users"]);
@@ -221,7 +229,7 @@ function createNewUser() {
   var u1 = document.getElementById("new_uname");
   var p1 = document.getElementById("new_pswd");
   var e1 = document.getElementById("new_email");
-  runNamedService("add_user", {"username":u1.value, "email":e1.value, "password":p1.value}, (result) => {  
+  runNamedService(ausers.services, "add_user", {"username":u1.value, "email":e1.value, "password":p1.value}, (result) => {  
       showPopup(result.Answer);
       if (result.Status==0) {
         ausers.loadData(["get_users"]);
@@ -267,7 +275,7 @@ function changePassword() {
   var op1 = document.getElementById("old_pswd");
   var np1 = document.getElementById("new_pswd");
   var uid = document.getElementById('cp_user_list').value;  
-  runNamedService("edit_user", {'uid': uid, "old_password":op1 ? op1.value : "", "new_password":np1.value}, (result) => {  
+  runNamedService(ausers.services, "edit_user", {'uid': uid, "old_password":op1 ? op1.value : "", "new_password":np1.value}, (result) => {  
       showPopup(result.Answer);
       if (result.Status==0) {
         ausers.loadData(["get_users"]);

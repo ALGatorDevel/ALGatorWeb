@@ -1,0 +1,172 @@
+.scr_tab_cont {
+  width:100%;
+  height:100%;
+  overflow: auto; /* Enable scrolling */
+  background-color: white;
+  /*
+            background-image: 
+                linear-gradient(to right, #eee 1px, transparent 1px),
+                linear-gradient(to bottom, #eee 1px, transparent 1px);
+            background-size: 250px 70px; 
+   */
+}
+
+.algtd {
+    height: 70px;
+    vertical-align: baseline;
+    text-align: center;
+    min-width: 300px;
+    color: black;
+}
+
+.tsttd {
+	height: 70px;
+    min-width: 150px;
+    text-align: center;
+    color: black;
+}
+table.alt_color {
+  border-collapse: collapse;
+  xmargin: 20px 0;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+table.alt_color tr:nth-child(odd) td{
+  background-color: #ffffff; /* #7bc240; */
+}
+table.alt_color tr:nth-child(even) td{
+  background-color: #e6e6e6; /*#dff0d8;*/
+}
+table.alt_color th,
+table.alt_color td:first-child {
+  background-color: #404040; 
+  color: #ffffff; 
+  font-weight: bold;
+  position:sticky;
+  top:0;
+  left:0;
+  z-index: 1;
+}
+
+input[type="radio"] {
+  accent-color: #7bc240; /* Greenish color */
+  width: 14px; /* Optional: increase size */
+  height: 14px;
+}
+
+.resf {
+  color: black; /* Default link color */
+  text-decoration: none; /* Remove underline by default */
+  cursor: pointer; /* Change cursor to a pointer */
+}
+
+.resf:hover {
+  color: #1c7430; /* Darker color on hover */
+  text-decoration: underline; /* Underline text on hover */
+}
+
+.checkbox-leftup {
+  position: absolute;
+  top: 0px;
+  left: 4px;
+  margin: 0;
+  padding: 0;
+}
+
+
+.algtsttd {
+  border:1px solid white; 
+  vertical-align: top;
+}
+
+/*   round checkbox with checkmark */
+.algtstcb {
+  height:14px;
+}
+
+.rcbc input[type="checkbox"] {
+    margin-top:4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 35%; /* Makes the checkbox rounded */
+    cursor: pointer;
+    appearance: none; /* Removes default checkbox styling */
+    -webkit-appearance: none; /* For Safari */
+    outline: none;
+    border: 2px solid #606060; /* #7bc240 Border color */
+    background-color: white; /* Background color */
+}
+.rcbc input[type="checkbox"]:checked {
+    background-color: #606060; /* Background when checked */
+    border-color: #606060;
+    position: relative;
+}
+.rcbc input[type="checkbox"]:checked::after {
+    content: 'x'; /* ✓ Checkmark */
+    font-size: 12px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 54%;
+    transform: translate(-50%, -50%);
+}
+
+
+
+.actbtn {
+    color: #7bc240; /* Link color */
+    text-decoration: none; /* No underline initially */
+    font-weight: normal; /* Normal font weight */
+    cursor: pointer; /* Default cursor to indicate clickable element */
+    transition: color 0.2s, font-weight 0.2s, text-decoration 0.2s; /* Smooth transition for hover effect */
+}
+
+.actbtn:hover {
+    color: #6a9e2d; /* Darker blue color on hover */
+    text-decoration: underline; /* Underline on hover */
+}
+
+.actbtn[dsbl] {
+    color: #d6d6d6; /* Disabled text color */
+    cursor: auto; /* Change cursor to indicate it's disabled */
+    text-decoration: none; /* No underline when disabled */
+    font-weight: normal; /* Keep font weight normal for disabled state */
+}
+
+/* select for all results */
+.custom-select {
+    position: relative;
+    display: inline-block;
+    width: 10px;
+    height: 10px; /* Ensures square shape */
+    overflow: hidden;
+}
+/* Hide the default select but keep it functional */
+.myselect {
+    appearance: none;
+    background: transparent;
+    border: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0; /* Fully hide text */
+    cursor: pointer;
+}
+/* Custom arrow */
+.custom-select::after {
+    content: "▾"; /* Small downward arrow */
+    font-size: 22px;
+    color: black;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the arrow */
+    pointer-events: none;
+}
+/* Style the dropdown options */
+.myselect option {
+    font:Arial;
+    padding: 8px; /* Adds spacing inside dropdown */
+}

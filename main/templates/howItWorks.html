@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% block headcss %}
+  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+{% endblock %}
+{% block content %}
+
+{% include "navbar.html" %}   
+<div class="mp-content">
+  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 260px); width:100%;display: flex; justify-content: center;">
+     <div style="width:65%">
+       {% include "how_algator_works.html" %}   
+     </div>
+  </div>
+  {% include "footer.html" %}   
+</div>
+     
+
+{% endblock %}

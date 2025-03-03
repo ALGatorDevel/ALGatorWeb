@@ -1,0 +1,362 @@
+<style>
+    .code {
+        font-family: 'Courier New', monospace;
+        font-size: smaller;
+    }
+
+    p {
+        text-align: justify;
+        padding: 5px 0px;
+    }
+
+    ol, ul {
+        padding-left: 35px;
+    }
+    li {
+        padding: 6px 0;
+    }
+
+    .primer {
+        margin: 15px;
+        border: 1px;
+        padding: 5px;
+        width: 90%;
+        border-style: solid;
+        background-color: lightgray;
+    }
+</style>
+                
+        <h1 style="margin: 0px;">How&nbsp;<span class=algator>ALGator</span>&nbsp;works</h1><hr class="hr">
+        
+        <p>
+            The <span class=algator>ALGator</span> system is used for evaluating the quality of algorithms for solving
+            various problems. <span class=algator>ALGator</span> runs selected algorithms on chosen test data, and
+            performance indicators (execution time, result quality, etc.) are recorded in output files. With the help of
+            additional tools in the <span class=algator>ALGator</span> system, users can analyze the output data and prepare
+            reports in the form of tables and graphs.
+        </p>
+    
+        <p>
+            To solve a specific problem (e.g., sorting numbers, matrix multiplication, shortest path in a graph, traveling
+            salesman, etc.), the user of the <span class=algator>ALGator</span> system creates a project. Using text
+            configuration files and Java classes, the user defines:
+        </p>
+        <ol>
+            <li>properties of the input,
+            <li>properties of the output,
+            <li>test case generators,
+            <li>test sets (concrete inputs and expected outputs),
+            <li>performance indicators, and
+            <li>algorithms for solving the given problem.
+        </ol>
+    
+        <p>
+            In a prepared project, the user can later add new test sets and implement new algorithms. The <span
+                class=algator>ALGator</span> system ensures that all implemented algorithms are executed on all inputs
+            defined in the test sets.
+        </p>
+        <p>
+            In the continuation of this document, we describe in more detail the above-listed project features.
+        </p>
+    
+        <a name="o2a"></a>
+        <h2>1. Properties of the Input</h2>
+    
+        <p>The input to the algorithm is defined by a set of parameters and a data part.
+        </p>
+    
+        <a name="o2ai"></a>
+        <h3>1.a Input Parameters</h3>
+        <p>Input parameters (<span class=code>InputParameters</span>) determine the nature of the input (e.g., table size,
+            graph density, number of input bits, etc.) and are used in the automatic execution phase of algorithms (e.g.,
+            finding the input size limit that the algorithm can process in 1 second) and in result analysis (e.g., when
+            plotting the complexity graph depending on the input size). The user specifies parameters in the <span
+                class=code>proj/testcase.json</span> file - lists the names in the <span class=code>"InputParameters"</span>
+            table and describes the parameters precisely in the <span class=code>"Parameters"</span> table (for each
+            parameter, it provides its type and range - minimum, maximum, and default value). The order in the <span
+                class=code>"InputParameters"</span> table is important, as the parameters will be printed in this order in
+            the output file.
+        </p>
+    
+        <div class=primer>
+            <b>Example:</b> In the <span class=code>BasicSort</span> project, the <span class=code>testcase.json</span> file
+            describes a parameter that determines the size of the input table as follows:
+            <span class=code>
+                <pre>
+    {
+      "Name":        "N",             
+      "Description": "The size of the test (number of elements to be sorted)", 
+      "Type":        "int",
+      "Meta":        {"Min":1000, "Max": 1000000000000, "Step":1000, "Default": 5000}      
+    }
+    </pre>
+            </span>
+        </div>
+    
+        <a name="o2aii"></a>
+        <h3>1.b Data Part of Input</h3>
+        <p>
+            The data part of the input is defined in the Java class <span class=code>proj/src/Input.java</span> as an
+            attribute, which is the data carrier of the input. The attribute's type depends on the type of input data (if
+            the input is a table of numbers, the attribute type will be <span class=code>int[]</span>; if the input is an
+            integer two-dimensional matrix, the attribute type will be <span class=code>int[][]</span>, ...). For easier
+            handling of the input, the <span class=code>Input.java</span> class usually also defines a constructor.
+        </p>
+        <div class=primer>
+            <b>Example:</b> In the <span class=code>BasicSort</span> project, the data carrier and constructor in the
+            <span class=code>Input.java</span> class are defined as follows:
+            <span class=code>
+                <pre>
+     public int [] arrayToSort;
+    
+     public BasicSortInput(int [] data) {    
+        this.arrayToSort = data;
+      }
+    </pre>
+            </span>
+        </div>
+    
+        <a name="o2b"></a>
+        <h2>2. Properties of the Output</h2>
+    
+        <p>The output of the algorithm is represented by the <span class=code>src/Output.java</span> class. The data part of
+        the output is usually stored in one attribute. The type of this attribute depends on the type of output created by
+        the algorithm (if the output is an integer, the attribute type will be <span class=code>int</span>; if the output
+        is a string, the attribute type will be <span class=code>String</span>, ...). For easier handling of the output,
+        the <span class=code>Output.java</span> class usually defines a constructor.</p>
+    
+        <div class=primer>
+            <b>Example:</b> In the <span class=code>BasicSort</span> project, the data carrier and constructor in the
+            <span class=code>Output.java</span> class are defined as follows:
+    
+            <p class=code>
+            <pre>
+      public int [] sortedArray;
+      
+      public BasicSortOutput(int [] data) {
+        sortedArray = data;
+      }
+            </pre>
+            </p>
+        </div>
+    
+    
+        <a name="o2c"></a>
+        <h2>3. Test Case Generators</h2>
+        
+        <p>
+            A test case (an object of the <span class=code>TestCase</span> class) in the <span class=algator>ALGator</span> system
+            consists of an input (an object of the <span class=code>Input</span> class) and (optionally) an expected output (an
+            object of the <span class=code>Output</span> class).
+            During the execution of algorithms, test cases are created using generators - these are methods that receive a set
+            of generating parameters and return a test case (an object of the <span class=code>TestCase</span> class) that
+            corresponds to these parameters.
+            <br>
+            A project can have multiple generators. The basic generator (which must be present) is the generator of type 0 (<span
+                class=code>Type0</span> generator). This is a generator that receives all input parameters as generating
+            parameters.
+        </p>
+        <div class=primer>
+            <b>Example:</b> In the <span class=code>BasicSort</span> project, we have two input parameters: <span class=code>N</span>
+            (determining the input size) and <span class=code>DIST</span> (describing how "shuffled" the data is in the table).
+            The type 0 generator creates an input of size <span class=code>N</span> with distribution <span class=code>DIST</span>
+            based on the parameter values.
+        </div>
+        
+        <p>
+            In addition to the basic generator, a project may contain other generators (i.e., generators of types 1, 2, 3, ...),
+            which receive a different set of generating parameters. Their task is to create a test case based on the values of
+            these parameters, i.e., to determine the values of input parameters and "populate" their data part.
+        </p>
+        
+        <div class=primer>
+            <b>Example:</b> In the <span class=code>BasicSort</span> project, we can also create input by reading data to be
+            sorted from a file. In this case, the generator needs only one generating parameter - the file name. When the
+            generator reads data from the file, it will create a data part (read data) and at the same time set the values of
+            input parameters: <span class=code>N</span>=number of read data, <span class=code>DIST=RND</span> (data in the file
+            is randomly shuffled).
+        </div>
+        
+        <p>
+            A generator can equip the input with additional properties that will be used for data filtering during analysis. For
+            example, input properties could include the type of generator that created it or the name of the file from which the
+            data was read.
+        </p>
+        
+        <p>
+            Generators of type <span class=code>i</span> are defined in the file <span
+                class=code>proj/src/TestCaseGenerator_Typei.java</span> in the method <span
+                class=code>generateTestCase(Variables generatingParameters)</span>.
+        </p>
+        
+        <p>
+            Information about defined generators (which types of generators exist and what generating parameters they require) is
+            written in the file <span class=code>proj/testcase.json</span> in the <span class=code>"Generators"</span> table. The
+            properties of generating parameters (name, type, etc.) are also defined in the same file in the <span
+                class=code>"Parameters"</span> table.
+        </p>
+
+        <a name="o2d"></a>
+        <h2>4. Test Sets</h2>
+        <p>
+            Test cases in the <span class=algator>ALGator</span> system are grouped into so-called test sets (TestSet), which
+            are the basic units of algorithm execution (usually, the algorithm is run on all test cases of one test set). A
+            test set is defined by two files: <span class=code>tests/&lt;T&gt;.json</span> and <span class=code>tests/&lt;T&gt;.txt</span>,
+            where <span class=code>&lt;T&gt;</span> is the name of the test set (for example, <span class=code>TestSet1</span>).
+            In the first file, in addition to administrative data (set name, short name, description), the following data is
+            recorded:
+        
+            <ul>
+                <li><span class=code>"N"</span> ... the number of inputs in this test set,
+                <li><span class=code>"TestRepeat"</span> ... the number of repetitions of each input, and
+                <li><span class=code>"TimeLimit"</span> ... the maximum allowed execution time for one input (if the time is
+                    exceeded, the algorithm's execution is automatically stopped).
+            </ul>
+        </p>
+        
+        <p>
+            In the file <span class=code>tests/&lt;T&gt;.txt</span>, individual test cases are recorded - each line describes
+            one test case. The number of actual lines (non-comments) in this file must match the value of <span
+                class=code>"N"</span> from the <span class=code>json</span> file. A test case is presented with a single text
+            line (testcase_description_line), containing the following data:
+        </p>
+        <p>
+            <span class=code>type:test_name:generating_parameters</span>
+        </p>
+        
+        where:
+        <ul>
+            <li><span class=code>type</span>: the type of the generator that will create the test case (default: <span
+                    class=code>Type0</span>),
+            <li><span class=code>test_name</span>: the name of the test (default: ""), and
+            <li><span class=code>generating_parameters</span>: the parameters that will be passed to the generator creating the
+                test case; the order of generating parameters and their meaning are provided in the <span class=code>testcase.json</span>
+                file at the definition of the generator.
+        </ul>
+        <div class=primer>
+            <b>Example:</b> In the <span class=code>BasicSort</span> project, two test cases are described in the file <span
+                class=code>TestSet1.txt</span> with the following lines:
+            <p class=code>
+            <pre>
+          Type0:test1:10:SOR
+          Type1:test3:numbers.rnd
+        </pre>
+            The first test case will create the default generator (parameter values: <span class=code>N=10, DIST=SOR</span>),
+            and the second test case will create a generator of type 1 (parameter values: <span class=code>filename="numbers.rnd"</span>).
+            </p>
+        </div>
+        
+        Additional files used for test generation (for example, the file <span class=code>numbers.rnd</span> from the above
+        example) are located in the <span class=code>tests</span> directory and its subdirectories. They are referenced
+        relative to the <span class=code>tests</span> directory in the generator method using the generating parameter <span
+            class=code>TESTS_PATH</span>.
+
+
+            <a name="o2e"></a>
+<h3>4.a Expected Algorithm Output</h3>
+<p>
+    When checking the correctness of the result returned by an algorithm, knowledge of the correct result (expected output)
+    is necessary. The user can ensure that it is generated by a generator and saved as part of a test case. When checking
+    the correctness of the result, both the algorithm's output and the expected output will be available, allowing for
+    comparison.
+    <br>
+    For example, in a matrix multiplication project to verify the correctness of the result, we need matrix <span
+        class=code>C</span> (to compare it with the algorithm's output). Since it would be time-consuming to calculate
+    matrix <span class=code>C</span> every time we want to check the correctness of an algorithm, we can create matrix
+    <span class=code>C</span> (once and for all) and save it in a file presented to the system as part of the test case. The
+    file is then read by the appropriate test case generator, and the data is stored in <span class=code>expectedOutput</span>
+    (an object of the <span class=code>Output</span> class). When checking the correctness of the algorithm's output,
+    we will compare the matrix generated by the algorithm with the matrix stored in <span class=code>expectedOutput</span>.
+</p>
+<div class=primer>
+    <b>Example:</b> In the <span class=code>BasicMatrixMul</span> project, a generator of type 1 is defined with the
+    following generating parameters:
+
+    <p class=code>
+        "GeneratingParameters": ["N", "FilenameA", "FilenameB", "FilenameC"]
+    </p>
+
+    The description of the test case (line in the <span class=code>&lt;T&gt;.txt</span> file) provides the sizes of the
+    matrices and the names of three files (the first two contain matrices to be multiplied, and the third contains
+    the result), like this:
+
+    <p class=code>
+        Type1:test1:100:ts1/rnd-100-2-A:ts1/rnd-100-2-B:ts1/rnd-100-2-C
+    </p>
+
+    Generator of type 1 reads all three matrices
+
+    <p class=code>
+<pre>
+    int [][] A = BasicMatrixMulTools.readMatrixS(path, filenameA);
+    int [][] B = BasicMatrixMulTools.readMatrixS(path, filenameB);
+    int [][] C = BasicMatrixMulTools.readMatrixS(path, filenameC);
+</pre>
+    </p>
+
+    and stores the input (matrices <span class=code>A</span> and <span class=code>B</span>) and the expected output
+    (matrix C) in the test case:
+
+</div>
+
+<a name="o2f"></a>
+<h2>5. Performance Indicators</h2>
+<p>
+    The quality of an individual algorithm is measured using execution indicators (such as time, used space, number of
+    steps, ...). For values that measure the execution time, <span class=algator>ALGator</span> provides them automatically,
+    while other indicators must be defined and calculated by the user.
+</p>
+
+<h3>5.a Time Consumption Indicators</h3>
+<p>
+    <span class=algator>ALGator</span> runs each algorithm multiple times on a given test case (parameter <span class=code>TestRepaet</span>
+    in the file <span class=code>tests/&lt;T&gt;.json</span>) and records various times (time of the first execution (<span class=code>FIRST</span>),
+    average execution time (<span class=code>AVG</span>), maximum execution time (<span class=code>MAX</span>), etc.). The user
+    must specify in the <span class=code>result_em.json</span> file which of these times should be displayed in the execution
+    results using the settings.
+    <div class=primer>
+        <b>Example:</b> In the <span class=code>BasicSort</span> project, we are interested in the time of the first execution
+        of the algorithms, so in the <span class=code>"Indicators"</span> table in the <span class=code>result_em.json</span>
+        file, among other things, the indicator <span class=code>Tfirst</span> is defined as follows:
+<pre>
+    {
+      "Name"         : "Tfirst",             
+      "Description"  : "Sorting FIRST time",             
+      "Type"         : "timer",          
+      "Meta"         : {"ID" : 0, "STAT": "FIRST"}    
+    }
+</pre>
+The parameter name <span class=code>Tfirst</span> is also specified in the <span class=code>"IndicatorsOrder"</span> table
+(determining the position of this parameter in result files).
+    </div>
+</p>
+
+<h3>5.b Other Indicators</h3>
+<p>
+    For other indicators (measuring, for example, the quality of the output), the user must provide both definitions in
+    the mentioned <span class=code>json</span> file and the source code that calculates the indicator value based on the
+    test case data and the algorithm's output. The code for calculating the value of the <span class=code>&lt;ind&gt;</span>
+    indicator is written in the file <span class=code>proj/src/IndicatorTest_&lt;ind&gt;</span> in the <span class=code>getValue()</span>
+    method.
+</p>
+
+<a name="o2g"></a>
+<h2>6. Algorithm for Solving the Given Problem</h2>
+
+<p>
+    The core of the algorithm in the <span class=algator>ALGator</span> system is a method that receives an object of the
+    <span class=code>Input</span> class as input and returns an object of the <span class=code>Output</span> class.
+</p>
+Algorithm <span class=code>&lt;A&gt;</span> is defined in the <span class=code>algs/ALG-&lt;A&gt;</span> directory,
+specifically with the configuration file <span class=code>algorithm.json</span> and the Java file <span
+    class=code>src/Algorithm.java</span>, in which the method is defined as follows:
+<pre>
+<span class=code>Output execute(Input input) {...}</span>
+</pre>
+The task of this method is to create and return the output based on the received input. The execution time of this method
+is considered as the execution time of the algorithm.
+</p>
+
+</body>
+
+</html>

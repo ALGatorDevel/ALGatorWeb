@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block headcss %}
+  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+{% endblock %}
+
+{% block content %}
+
+{% include "navbar.html" %}   
+<div class="mp-content">
+  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 256px); width:100%;display: flex; justify-content: center;">
+     <div style="width:65%">
+       <h1 style="margin: 0px;">About &nbsp;<span class=algator>ALGator</span>&nbsp;</h1><hr class="hr">
+       <p class="pa"><span class="algator">ALGator</span> automates the algorithm evaluation process by executing algorithm implementations on predefined test case sets and analyzing various performance indicators.</p>
+       <p class="pa">To use <span class="algator">ALGator</span>, the user must define a project that includes the problem definition, test case sets, input parameters, output indicators, and evaluation criteria for algorithm quality. Once a project is set up, multiple algorithm implementations can be added. Upon request, the system executes all implemented algorithms, verifies their correctness, and compares the quality of their results.</p>
+       <p class="pa">With <span class="algator">ALGator</span>, users can define additional quality criteria, generate graphs, and conduct evaluations and comparisons of the implemented algorithms.</p>
+       <p class="pa">For more information see the <a href="/howItWorks">how it works</a> section.</p>
+     </div>
+  </div>
+  {% include "footer.html" %}   
+</div>
+     
+
+{% endblock %}

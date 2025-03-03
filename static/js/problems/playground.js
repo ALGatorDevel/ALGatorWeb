@@ -2,15 +2,31 @@ let playgroundID = "playground";
 let numberOfViews = 1;
 let playgroundViews = new Map();
 
+let playgroundTimer = 0;
+
+function playgroundClockOnOff(onOff) {
+  let nonactiveClock = document.getElementById('clockOf-playground');
+  let activeClock    = document.getElementById('clockOn-playground');
+  
+  nonactiveClock.style.display = onOff==0 ? ''     : 'none';
+  activeClock   .style.display = onOff==0 ? 'none' : '';
+
+  if (onOff==0) { // stop timer
+    clearInterval(playgroundTimer);
+    playgroundTimer = 0;
+  } else { // start timer
+    playgroundTimer = setInterval(queryChanged, 5000);
+  }
+}
+
 function fillPlaygroundDiv() {
   let qElt = document.getElementById('queryEditorDiv');
   if (qElt != null) {
     qElt.innerHTML = '<div style="height:20px;"></div>'
-    qElt.innerHTML += getQueryHTML(playgroundID);
-    //qElt.innerHTML += getDataTableDivHTML(playgroundID);
+    qElt.innerHTML += getQueryHTML(playgroundID, true);
     
     let playgroundJSON  = getPresenterDefaultJSON();
-    presenterJSONs.set(playgroundID, playgroundJSON);
+    pp.presenterJSONs.set(playgroundID, playgroundJSON);
 
     fillAndWireQuery(playgroundJSON, playgroundID, queryChanged);
     queryChanged();
@@ -32,7 +48,7 @@ function getQueryViewsDropItems(pName) {
 }
 
 async function queryChanged() {
-  let playgroundJSON = presenterJSONs.get(playgroundID);
+  let playgroundJSON = pp.presenterJSONs.get(playgroundID);
   let queryPresenterData = await getData(url, projectName, playgroundJSON);
   presenterData.set(playgroundID, queryPresenterData);
   drawTable(queryPresenterData, `presenterTable_${playgroundID}`, "350px");
@@ -94,9 +110,7 @@ function scrollToQueryView(tag) {
   $('.qeELt').each(function(i, qeElt) {
     qeElt.style.color = '#333';
   });
-  document.getElementById("qeElt_"+tag).style.color = '#27ae60';
-  
-
+  document.getElementById("qeElt_"+tag).style.color = "var(--submenu_color)";
 
   var myElement = document.getElementById(tag);
   var topPos = myElement.offsetTop;

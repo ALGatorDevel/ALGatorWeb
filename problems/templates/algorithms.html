@@ -3,34 +3,30 @@
 {% block content %}
 
 <div style="height:50px;"></div>
-<div id="algorithm_panel" style="height:calc(100vh - 50px); display:flex; flex-direction: column;">
-  <div id="algorithm_panel_list">  
-    <div id="new_algorithm_panel" 
-         style="padding: 25px 10px 10px 20px; margin: 30px 125px 10px 125px; display:none;">
-      <span style="font-size:18px">Add a new algorithm: </span>
-      <input style="width:500px;" type="text" id="newalgorithmtextfield">
-      <span id="addAlgorithmButtonA" class="tooltip-button" data-tooltip="Add a new algorithm" onclick="addAlgorithm()">
-         &nbsp;&nbsp;<img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-      </span>
-    </div>
-    <script>
-      registerClickOnEnter("newalgorithmtextfield", "addAlgorithmButtonA");
-      document.addEventListener("DOMContentLoaded", async function() {
-        const inputField = document.getElementById('newalgorithmtextfield');
-        inputField.addEventListener('keypress', preventNonAlphaNumKeys);
-  
-        let showNewAlgorithmPanel = await can(projectEID, "can_add_algorithm");
-        document.getElementById("new_algorithm_panel").style.display = showNewAlgorithmPanel ? "" : "none";
-      });
-    </script>
-  
-    <hr>
-    <div style="flex: 1; display: flex; flex-direction: column; overflow: auto;">
-      <div id="list_of_algorithms_panel" style="flex: 1; overflow-y: auto;">      
-      </div>
-    </div>
+
+<div id="AlgorithmsSubNavBar" class="subNavBar">
+  <div class="editMode" w="{{ project.eid }} cat" onclick="askForNewAlgorithmName()" title="Create an algorithm">
+    <i class="far fa-plus-square icon"></i>&nbsp;&nbsp;
+  </div>  
+  <div id="algorithmsNavBarDiv">
+     <span class="w3-bar-item navBarEl bw" href="algorithms_panel" onclick="showAlgorithmsSubpage(this);">Algorithms</span>
   </div>
-  <div id="algorithm_panel_detail" style="flex: 1; display: flex; flex-direction: column; overflow: auto;"></div>  
 </div>
+
+<div id="algorithms_main_panel">
+<div id="algorithm_panel" style="">         
+  <div id="loading_algorithms_div" style="padding: 15px;">... loading</div>
+  <div id="no_algorithms_div" style="padding: 15px; display:none">No algorithms defined.</div>
+  <div id="algorithms_div"    style="display:none">
+    <div id="list_of_algorithms_panel" style="padding: 15px 0px 0px 20px; height:42px;">
+       <span style="font-size:20px;">
+          Algorithm: </span>
+        <select id="select_algorithm_element" style="width:200px;" onchange="showSelectedAlgorithm();"></select>      
+    </div>
+    <div id="algorithm_panel_detail" style="margin-bottom:10px; margin-top:-40px; height:300px;"></div>  
+  </div>
+</div>
+</div>
+
 
 {% endblock %}

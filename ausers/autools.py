@@ -1,6 +1,6 @@
 from django.db import connection
 from django.http import HttpResponse
-import re, json
+import re, json, string, random
 
 from Classes.ServerConnector import connector
 from .models import User, Group, Group_User, EntityPermissionUser, PermissionType, Entities, EntityPermissionGroup
@@ -35,7 +35,10 @@ def can(uid: str, eid: str, codename: str) -> bool:
 
     try:
         user = User.objects.get(uid=uid)
-        e    = Entities.objects.get(pk=eid)
+        try: ## ce entiteta ne obstaja v bazi, potem ima nad njo vsak vso pravico
+          e    = Entities.objects.get(pk=eid)
+        except:
+          return True
         p    = PermissionType.objects.get(codename=codename)
 
         if not (user and p):
@@ -59,7 +62,6 @@ def au_response(content, error_status=0) -> HttpResponse:
     response.content        = json.dumps(response_data)
     return response
 
-    
 # returns all permissions (integer) that user has over a given entity
 #   - method calculates effective permissions (using explicit and implicit rules)
 #   - groups=set of groups that user belongs to; if groups=None, method will construct this set

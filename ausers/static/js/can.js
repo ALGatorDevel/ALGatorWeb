@@ -47,6 +47,8 @@ function canPY(checkdata) {
 }
 
 
+const pShorts = new Map([['cr', 'can_read'],['cw', 'can_write'],['cap', 'can_add_project'],['cat', 'can_add_testset'],['caa', 'can_add_algorithm'], ['car', 'can_add_presenter']]);
+
 function containsRight(id, p) {
     return (id & p) == p;
 }
@@ -63,8 +65,8 @@ async function can(eid, action) {
   // eid and action should not be empty or null
   if (!eid || !action) return false;
 
-  if (ausers.permissionsChanged || !ausers.dataLoaded["get_permissions"]) 
-    await waitForUserDataToLoad(["get_permissions"], ausers.permissionsChanged);
+  if (ausers.permissionsChanged || !ausers.dataLoaded["get_permissions"] || !ausers.dataLoaded["get_all_permission_types"]) 
+    await ausers.waitForDataToLoad(["get_permissions", "get_all_permission_types"], ausers.permissionsChanged);
 
 /*
   podatki so v ausers.permissions (npr: ausers.permissions['e0_S']=257) in v 
@@ -77,6 +79,23 @@ async function can(eid, action) {
    }
   } else  // if eid is not in permissions, eid is not in database, so user has full rights over it
     return true;
+}
+
+
+// is entity private? Results is determined by looking to "ausers.entites" data structure
+async function isPrivate(eid) {
+  if (!ausers.dataLoaded["get_entities"]) 
+    await ausers.waitForDataToLoad(["get_entities"], false);
+  let entity = find_entity(ausers.entities, eid);
+  return entity ? entity.is_private : false;
+}
+
+async function isOwner(eid) {
+  if (!ausers.dataLoaded["get_entities"]) 
+    await ausers.waitForDataToLoad(["get_entities"], false);
+  let entity = find_entity(ausers.entities, eid);
+  let iO = entity ? (current_user_is_superuser || (entity.owner == current_user_uid)) : true; 
+  return iO;
 }
 
 

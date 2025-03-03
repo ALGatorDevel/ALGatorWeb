@@ -4,16 +4,14 @@
 {% block content %}
 
 <link rel="stylesheet" href="{% static 'css/select2.css' %}">
-<link rel="stylesheet" href="{% static 'css/problems/problems.css' %}">
+<link rel="stylesheet" href="{% static 'css/problems/problem.css' %}">
 <link rel="stylesheet" href="{% static 'css/ausers.css' %}">
 
 <script src="{% static 'js/jquery.min.js' %}"></script>
 <script src="{% static 'js/select2.js' %}"></script>
 <script src="{% static 'js/main/main.js' %}"></script>
-<script src="{% static 'js/problems/problems.js' %}"></script>
-<script src="{% static 'js/auser.js' %}"></script>
-<script src="{% static 'js/can.js' %}"></script>
 <script src="{% static 'js/edit.js' %}"></script>
+<script src="{% static 'js/problems/problem.js' %}"></script>
 <script src="{% static 'js/countries.js' %}"></script>
 <script src="{% static 'js/settings.js' %}"></script>
 <script src="{% static 'js/permissions.js' %}"></script>
@@ -39,7 +37,6 @@ var numberOfTopItems = 4;
 {% include "ausers-navbar.html" %}
 </div>
 
-{% if request.user.id %}
   <div id='main'>
       <div id="profile" style="display: block;">
           {% include "edit-profile.html" %}
@@ -65,6 +62,6 @@ var numberOfTopItems = 4;
     showSectionSideNavbar("profile");
   });
   </script>
-{% endif %}
+
 
 {% endblock %}

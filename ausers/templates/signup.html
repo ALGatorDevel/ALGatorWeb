@@ -5,9 +5,10 @@
 <link rel="stylesheet" href="{% static 'css/w3.css' %}">
 
 
+<div style="height: 100%;display: flex;align-items: center;justify-content: center;">
 <div class="w3-container w3-card-4" id='signupContainer'>
   <div style="padding: 10px; text-align: center;">
-    <a href="{% if request.POST.next %}{{ request.POST.next }}{% else %}/problems{% endif %}">
+    <a href="{% if request.POST.next %}{{ request.POST.next }}{% else %}/projects{% endif %}">
        <img src="{% static 'images/logo.png' %}" id="logo"/></a>
   </div>
 
@@ -16,9 +17,6 @@
       <input type="hidden" name="fr"   value="0"> 
 
       {% csrf_token %}
-
-{{ form_resubmitted }}
-
       {% for field in form %}
             <div class='w3-margin'> 
                 <label for="{{ field.id_for_label }}" class="myLable" 
@@ -38,12 +36,20 @@
             </div>
         {% endfor %}
 
+       {% if form.non_field_errors %}
+        <ul class="non-field-errors">
+            {% for error in form.non_field_errors %}
+                <li style="color: red">{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
       
       <div class='w3-margin'>
         <button type="submit" class="w3-button w3-block w3-section w3-green w3-ripple w3-padding">Sign up</button>
       </div>
       <br>
   </form>
+</div>
 </div>
 
 

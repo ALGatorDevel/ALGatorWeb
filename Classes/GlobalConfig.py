@@ -1,4 +1,5 @@
-from ALGatorWeb import settings
+from django.conf import settings
+
 import os
 import logging
 
@@ -29,6 +30,7 @@ class GlobalConfig(object):
         self.logger.info("ALGator WebPage connected with ALGatorServer " + str(self.getALGatorServerConnectionData()))
 
         print("ALGatorServer: " + str(self.getALGatorServerConnectionData()))
+        print('DB engine: ' + settings.DATABASES['default']['ENGINE'])
 
     def getALGatorServerConnectionData(self):
       return (settings.ALGATOR_SERVER['Hostname'], settings.ALGATOR_SERVER['Port'])

@@ -3,8 +3,15 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="home"),
-    path("problems/", views.problems, name="problems"),
+    path("projects", views.problems, name="problems"),
     path('pAskServer', views.pAskServer, name='pAskServer'),
     path('uploadimage', views.uploadimage, name='uploadimage'),
     path('moveimages', views.moveimages, name='moveimages'),
+
+    path("download",      views.download,      name="download"),
+    path("howItWorks",    views.howItWorks,    name="howItWorks"),
+    path("about",         views.about,         name="about"),
+    path("faq",           views.faq,           name="faq"),
+    path("screenshots",   views.screenshots,   name="screenshots"),
+    path("contact",       views.contact,       name="contact"),
 ]

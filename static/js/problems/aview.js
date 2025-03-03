@@ -67,7 +67,7 @@ class AView {
   // in overriden method set all html fields values and wire changes
   initEditMode() {
     this.mode = 1;
-    this.viewJSON = presenterJSONs.get(this.presenterName)[this.viewName];
+    this.viewJSON = pp.presenterJSONs.get(this.presenterName)[this.viewName];
   }
 
   initNewMode() {
@@ -79,7 +79,7 @@ class AView {
   // sicer v div z id=view_viewID
   draw() {
     if (this.mode == 0) { // draw view in a given presenter
-      this.drawView(presenterJSONs.get(this.presenterName)[this.viewName], "view_"+this.viewID);
+      this.drawView(pp.presenterJSONs.get(this.presenterName)[this.viewName], "view_"+this.viewID);
     } else if (this.hasPreview){ // draw view in edit mode in preview 
       this.drawView(this.viewJSON, "preview_"+this.viewID);
     }
@@ -119,6 +119,7 @@ class TextboxView extends AView {
         ${htmltext}
       </div>`;
     }
+    MathJax.typeset();
   }
 
   fillDataAndWireControls(onChange) {
@@ -211,11 +212,8 @@ class GraphView extends AView {
 
       let grafData = generateXColumns(data, xAxis, yAxes);
 
-      let chart = drawChart(grafData, viewJSON, viewDIV);    
-    
-      // remember chart only if not in edit mode
-      //if (this.mode == 0)
-        this.chart = chart;
+      let chart = drawChart(grafData, viewJSON, viewDIV);        
+      this.chart = chart;
     } catch {}
   }
 
@@ -231,9 +229,11 @@ class GraphView extends AView {
     let data = presenterData.get(this.presenterName);
     let xAxis = this.viewJSON["xAxis"];
     let yAxes = this.viewJSON["yAxes"];
-    let yData = addGroupAsterisks(data[0]);
     
-    fillSelector(data[0], xAxis, 'selected_x_'+this.viewID, "");
+    let xData = data ? data[0]                    : "";
+    let yData = data ? addGroupAsterisks(data[0]) : "";
+    
+    fillSelector(xData, xAxis, 'selected_x_'+this.viewID, "");
     wireControl(this, "selected_x", "xAxis", "change");
 
 
@@ -255,7 +255,8 @@ class GraphView extends AView {
   }
 
   repaint() {
-    this.chart.flush()
+    if (this.chart)
+      this.chart.flush()
   }
     
   getEditorControls(id) {
@@ -384,7 +385,7 @@ class TableView extends AView {
         <div class='box'>
             <div class='w3-row'>
                 <div class='w3-col s12'>
-                    <label for='selected_columns'>Columns:</label>
+                    <label for="selected_columns_${id}">Columns:</label>
                     <select name="selected_columns" id="selected_columns_${id}" multiple="multiple" style="width: 100%;">
                     </select> 
                 </div>
@@ -401,6 +402,8 @@ class ALayout {
   }
 }
 let aLayout = new ALayout();
+
+
 
 function getViewID(presenterName, viewName) {
   return presenterName + "_" + viewName;
@@ -490,7 +493,7 @@ function editViewOK(event) {
   var viewName = contDiv.getAttribute("viewname"); 
   var mode     = contDiv.getAttribute("viewmode"); 
   
-  let presenterJSON = presenterJSONs.get(presenterName);
+  let presenterJSON = pp.presenterJSONs.get(presenterName);
 
   let view;
   if (mode == "1") {
@@ -524,15 +527,17 @@ function savePresenter(projectName, presenterName, presenterJSON, actionPhase2) 
 }
 
 
-// uporabljam v layout.html (za postavitev obstoječih) in tu (za nov) view
+// uporabljam v results.html (za postavitev obstoječih) in tu (za nov) view
 function getViewOuterHtml(presenterName, viewName) {
+  let pEID = getPresenterEID(presenterName);
+
   return `
     <div class="w3-col" name="${presenterName}_${viewName}_outer">
       <div class='drop-target presenterBox' data-presenter-name="${presenterName}">
         <div class='draggable' data-presenter-name="${presenterName}"> 
           <div>
             <div class='icons-container'>
-              <div class='editMode'>
+              <div class='editMode' w="${pEID} cw">
                 <i class="far fa-edit icon " 
                   onclick="editView('${presenterName}', '${viewName}', 1)"></i>
                 <i class="fas fa-times icon"
@@ -554,7 +559,7 @@ function addViewHtmlToPresenter(presenterName, viewName) {
 }
 
 function startNewView(viewType, presenterName) {
-    let number = getNextViewNumber(presenterJSONs.get(presenterName), viewType);
+    let number = getNextViewNumber(pp.presenterJSONs.get(presenterName), viewType);
     let viewName = viewType + "_" + number;
     newViewObject = getViewOfType(viewType, presenterName, viewName); 
     newViewObject.initNewMode();

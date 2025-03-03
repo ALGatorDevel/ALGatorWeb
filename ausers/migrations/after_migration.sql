@@ -1,6 +1,8 @@
 USE algator;
 
 ALTER TABLE ausers_entities CHANGE COLUMN is_private is_private BOOL NOT NULL DEFAULT TRUE;
+-- in more recent versions of mysql (like 5.7) instead of "DROP CONSTRAINT" use "DROP FOREIGN KEY"
+-- to get FOREIGN KEY name, use SHOW CREATE TABLE ausers_entities;
 ALTER TABLE ausers_entities DROP CONSTRAINT ausers_entities_parent_id_d8ac38f0_fk_ausers_entities_id;
 ALTER TABLE ausers_entities ADD CONSTRAINT entiteta_omejitev FOREIGN KEY(parent_id) REFERENCES ausers_entities(id) ON DELETE CASCADE ON UPDATE CASCADE;
 

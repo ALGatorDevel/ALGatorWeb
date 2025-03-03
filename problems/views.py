@@ -1,67 +1,85 @@
 import json
+
+from django.http import QueryDict
 from django.template.defaulttags import register
 from django.shortcuts import render
 
-from ausers.autools import getUID, isAnonymousMode
-from .utils import (getPresentersData,  updateResourcesIfNeeded)
+from Classes.NEntities import read_project, getValue
+from Classes.ServerConnector import connector
+from ausers.ausers import try_get_user
+from ausers.autools import isAnonymousMode, can
+from . import aproblems
 
-from Classes.WEntities import WEntities 
+def get_computer_familes(request):
+    return aproblems.get_computer_familes(request)
+
+def get_project_general_data(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_project_general_data(request, data)
+
+def get_project_properties(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_project_properties(request, data)
+
+def get_project_html_description(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_project_html_description(request, data)
+
+def get_testsets(request):
+  data = QueryDict.dict(request.GET)
+  return aproblems.get_testsets(request, data)
+
+def get_testset_files(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_testset_files(request, data)
+
+def get_testsets_common_files(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_testsets_common_files(request, data)
+def get_testset_file(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_testset_file(request, data)
+
+def remove_testset_file(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.remove_testset_file(request, data)
+
+def get_algorithms(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_algorithms(request, data)
+
+def get_presenters(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_presenters(request, data)
+
 
 def project (request, problemName):
     homepoint = request.POST.get('homepoint', False) # ce je True, potem se s klikom na ALGator ikono vračam na ALGator hp, sicer ne
 
-    resultsNavBar = []
     try:
-      uid       = getUID(request)
-      wentities = WEntities()
-      project   = wentities.read_project(problemName, True, uid)
-      updateResourcesIfNeeded(project.doc_resources, problemName, uid)
+      uid       = try_get_user(request)
+      project   = read_project(problemName, uid)
 
-      projectDataDICT = project.json # getProjectData(problemName)
-      [presentersDataDICT, presentersDataString] = getPresentersData(projectDataDICT, problemName, uid)
+      if (project.get("name", "") != problemName) or not can(uid, getValue(project, "eid", ""), "can_read"):
+        return render(request, 'error.html', {'error': 'No project data available due to one of the following reasons: server is down, project configuration files are invalid or access denied.'})
 
-      if "MainProjPresenters" in projectDataDICT:
-        for pre in projectDataDICT["MainProjPresenters"]:
-          for prst in presentersDataDICT:
-            if prst["Name"] == pre:
-               resultsNavBar.append({'sectionId': pre, 'shortTitle': prst["ShortTitle"]})
-               break
-      else:
-          return render(request, 'error.html', {'error': f"project '{problemName}' does not exist or can not be read."})
-    except Exception as e:
-      return render(request, 'error.html', {'error': str(e)})
-
-    navBars = {
-        "results": resultsNavBar,
-        "projectDescription": [
-            {'sectionId': 'problemDescription', 'display': 'Problem Description'},
-            {'sectionId': 'testCases',          'display': 'Test cases'},
-            {'sectionId': 'testSets',           'display': 'Test sets'},
-            {'sectionId': 'projDescAlgorithms', 'display': 'Algorithms'},
-            {'sectionId': 'references',         'display': 'References'},
-        ],
-        "implementation": [
-            {'sectionId': 'input',         'display': 'Input'},
-            {'sectionId': 'output',        'display': 'Output'},
-            {'sectionId': 'algorithm',     'display': 'Algorithm'},
-            {'sectionId': 'tools',         'display': 'Tools'},
-        ]
-    }
- 
-
-    context = {
+      context = {
         'isDBMode'  : not isAnonymousMode(),
         'homepoint': homepoint,
 
-        'navBars': navBars,
-        'projectDataDICT': projectDataDICT,
-        'presentersDataDICT': presentersDataDICT,     # uporabimo za prikaz v html datoteki
-        'presentersDataString': presentersDataString, # uporabnimo v js datotekah kjer rabimo json objekte
-        
-        'project': project,
-    }
+        'ALGatorServerURL' : connector.get_server_url(),
 
-    return render(request, 'problem.html', context)
+        'projectPresenters': [],
+        'presentersDataDICT': [],
+        'presentersDataString': [],
+
+
+        'project': project,
+      }
+      return render(request, 'problem.html', context)
+    except Exception as e:
+      return render(request, 'error.html', {'error': str(e)})
+
 
 def problem(request):
     if request.method == 'POST':

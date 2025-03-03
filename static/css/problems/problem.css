@@ -1,0 +1,236 @@
+@font-face {
+    font-family: 'customFont';
+    src: url('../../fonts/Lambda-mLv6V.ttf') format('truetype');
+}
+
+/* SIDEBAR */
+
+#mySidebar {
+    padding-top: 5px;
+    height: 100%;
+    position: fixed;
+    border-right: 0px solid #e1dede;
+    transition: width 0.5s ease-in-out;
+    background-color: var(--navbar_background);
+    box-shadow: 0px 0px 9px rgba(0, 0, 0, 0.2);
+}
+
+
+#main {
+    margin-left: 15%;
+    transition: margin-left 0.5s;
+    x_padding: 16px;
+}
+
+.row {
+    text-align: center; 
+}
+
+.sideBarEl{
+    margin: 30px auto;
+    font-size: 16px;
+    xfont-family: 'customFont', sans-serif;
+    font-family: Arial, sans-serif;
+    text-align: left;
+    padding-left:15px; 
+    color: var(--navbar_fontcolor);
+}
+.sideBarEl:hover {
+    text-decoration: underline;
+    text-underline-offset: 5px;
+    color: #7bc240;
+    cursor: pointer;
+}
+.sideBarEl:hover .du {
+  text-decoration: none;
+  display: inline-block; /* Prevent underline inheritance */
+}
+
+#img1{
+    margin-left: 20px;
+    padding: 10px 0px 0px 0px;
+}
+
+#img2{
+    margin: 0 auto;
+    height: auto;
+    padding: 16px 0px 0px 0px;
+}
+
+.imgA:hover{
+    cursor: pointer;
+}
+
+
+hr{
+    margin: 0;
+    border: none; 
+    height: 1px; 
+    background-color: #ccc;
+}
+
+
+.box:non(:empty) {
+    margin: 30px;
+    background-color: #fff; 
+    padding: 10px; 
+    border-radius: 5px;
+}
+.box:empty {
+    margin: 0px;
+    border: 0px;
+    height:0px;
+}
+
+
+.pdbox {
+    margin: 30px;
+    background-color: #fff; 
+    padding: 10px; 
+    border-radius: 5px;
+    border: 1px solid lightgray;
+    margin: 0px 30px 15px 30px;
+}
+.pdh2 {
+  margin: 20px 0px 0px 30px;
+}
+
+
+a{
+    color: #27ae60; 
+    text-decoration: none;
+}
+
+.sectionNavbar{
+    background-color: #f5f9f0;
+    border-radius: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-bottom: 10px;
+}
+
+#quickInfo {
+    display: block;
+    /* height: calc(100vh - 210px);  */
+    overflow-y: scroll; 
+    margin-top: 50px; 
+}
+
+/* projectDescription */
+
+.presenterBox {
+    padding: 20px;
+    height: 450px;
+    margin: 10px;
+    border: solid;
+    border-width: 1px;
+    border-color: lightgrey;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+.ptitle {
+    border-style: outset; 
+    margin: 10px; 
+    padding-left: 10px;
+  }
+.ptitleh2 {
+    font-size: 28px; 
+    font-family: customFont, sans-serif;
+}
+
+  
+  .icons-container {
+    margin-bottom: 20px;
+    text-align: right;
+  }
+  
+.icon { 
+    vertical-align: middle;
+    margin-left: 5px; 
+}
+.icon:hover {
+    color: #27ae60; 
+    cursor: pointer;
+}
+
+
+
+
+.codeBox{
+    border-radius: 5px;
+    background-color: #faf9f9;
+}
+
+
+/* dropdown menu for + button in Presenter */
+    .myPlusDropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .myPlusDropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        z-index: 1;
+    }
+    .myPlusDropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+    .myPlusDropdown-content a:hover {
+        background-color: #f1f1f1;
+    }
+    .myPlusDropdown:hover .myPlusDropdown-content {
+        display: block;
+    }
+/* dropdown menu for + button in Presenter */
+
+
+
+
+/* Style for left toolbar */
+    .left-toolbar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 50px; /* Set the maximum width */
+        height: 100vh; /* Set the full height of the viewport */
+        background-color: #000;
+        color: white;
+        padding: 0px;
+        box-sizing: border-box;
+    }
+
+    /* Style for top toolbar */
+    .top-toolbar {
+        position: fixed;
+        top: 0;
+        left: 200px; /* Adjust left position to accommodate left toolbar */
+        width: calc(100% - 200px); /* Subtract left toolbar width from full width */
+        max-height: 50px; /* Set the maximum height */
+        background-color: #000;
+        color: white;
+        padding: 0px;
+        box-sizing: border-box;
+        overflow: hidden; /* Hide overflow content */
+        z-index: 1;
+    }
+
+    /* Content style */
+    .content {
+        margin-top: 50px; /* Adjust margin top to accommodate top toolbar height */
+        margin-left: 200px; /* Adjust margin left to accommodate left toolbar width */
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /* Adjust content width */
+    .content-inner {
+        max-width: calc(100% - 200px); /* Subtract left toolbar width from full width */
+    }

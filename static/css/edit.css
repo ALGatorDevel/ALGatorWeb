@@ -199,3 +199,69 @@ textarea:disabled {
   font-size: 12px;
   visibility: visible;
 }
+
+
+  .grayed-icon {
+    opacity: 0.3;
+    cursor: cross;
+  }
+
+
+
+  .separator {
+    border-top: 3px solid #000; /* Simulate a horizontal line */
+    border-bottom: 3px solid #000; /* Optional: bottom border for a more defined line */
+    background-color: #f0f0f0; /* Optional: background color for the separator */
+    height: 1px; /* Optional: set height to a very small value */
+  }
+
+
+
+.container-box {
+  background-color: #FBFFFB; 
+  border: 2px solid #ccc; 
+  padding: 7px; 
+  min-height: 100px; 
+}
+.container-box[disabled] {
+  background-color: #f5f5f5; 
+}
+
+.framed-span {
+  display: inline-block; /* Ensures proper padding and border are visible */
+  border: 2px solid #7c8475; /* Main theme green color for the border */
+  padding: 5px 10px; /* Padding inside the frame */
+  border-radius: 5px; /* Rounded corners (optional) */
+  background-color: white; /* Background color */
+  color: #404040; /* Text color matching your theme */
+  font-size: 14px; /* Adjust font size as needed */
+  font-family: Arial, sans-serif; /* Font family */
+  margin: 2px 0px 2px 0px;
+}
+
+.clickable-span {
+  cursor: pointer; /* Changes the mouse pointer to a hand */
+  text-decoration: none; /* Removes underline by default */
+  color: #404040; /* Text color matching your theme */
+}
+.clickable-span:hover {
+  text-decoration: underline; /* Underline text on hover */
+  color: #7bc240; /* Optional: Change text color on hover */
+}
+
+.icon[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+
+.smallDot {
+      cursor: pointer;
+      height: 10px;
+      width: 10px;
+      border-radius: 50%;
+      margin-left: 10px;
+      position: absolute;
+      top: 0;
+      right: 0;
+}

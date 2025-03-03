@@ -1,0 +1,50 @@
+/* SPLIT buttons (with dropdown menu) */ 
+
+.double-button {
+    display: inline-flex;
+    align-items: center;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    border: 1px solid #ccc;
+   border-radius: 4px;
+}
+.button-lr {
+    border:none;
+    height:22px;
+    xpadding: 5px;
+    min-width: 25px;
+}
+.double-button .hc:hover {
+    background-color: #ccc;
+}
+.db-dropdown-menu {
+    display: none;
+    position: absolute;
+    margin-top: 5px;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    width:max-content;
+    z-index: 1000;
+}
+.db-dropdown-menu a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: #404040;
+    font-family: Arial, sans-serif;            
+}
+.db-dropdown-menu a:hover {
+    background-color: #f2f2f2;
+}
+.double-button-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.double-button-wrapper[disabled] {
+   opacity: 0.5; /* Makes it look faded */
+   pointer-events: none; /* 
+}
+

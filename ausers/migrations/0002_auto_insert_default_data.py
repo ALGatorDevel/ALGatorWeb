@@ -2,13 +2,15 @@
 from django.contrib.auth.hashers import make_password
 from django.db import migrations
 
-from ausers.auconsts import USER_ROOT, USER_ANONYMOUS, USER_ALGATOR, GROUP_EVERYONE, GROUP_ANONYMOUS, GROUP_ROOT
+from ausers.auconsts import USER_ROOT, USER_ANONYMOUS, USER_ALGATOR, GROUP_EVERYONE, GROUP_ANONYMOUS, GROUP_ROOT, \
+    USER_CLIENT
 
 
 class Migration(migrations.Migration):
     def insert_default_data(apps, schema_editor):
-        # Users
         UserD = apps.get_model('ausers', 'User')
+
+        # root (superuser & staff)
         root_u = UserD.objects.create(
             id=1,
             email='root@algator.com',
@@ -20,6 +22,8 @@ class Migration(migrations.Migration):
             uid=USER_ROOT
         )
         root_u.save()
+
+        # anonymous (non-logged in user)
         anonymous_u = UserD.objects.create(
             id=2,
             email='anonymous@algator.com',
@@ -31,6 +35,8 @@ class Migration(migrations.Migration):
             uid=USER_ANONYMOUS
         )
         anonymous_u.save()
+
+        # algator (superuser)
         algator_u = UserD.objects.create(
             id=3,
             email='algator@algator.com',
@@ -42,6 +48,19 @@ class Migration(migrations.Migration):
             uid=USER_ALGATOR
         )
         algator_u.save()
+
+        # client (superuser) ... used to identify TaskClients
+        client_u = UserD.objects.create(
+            id=4,
+            email='task.client@algator.com',
+            username='task_client',
+            password=make_password('task_client'),
+            is_superuser=False,
+            is_staff=False,
+            is_active=False,
+            uid=USER_CLIENT
+        )
+        client_u.save()
 
         # EntityType
         EntityType = apps.get_model('ausers', 'EntityType')
@@ -87,6 +106,8 @@ class Migration(migrations.Migration):
         can_edit_rights_pt    .save()   
         can_edit_users_pt     = PermissionType(id='p8',    name='Can edit users?',      codename='can_edit_users',      value=256)
         can_edit_users_pt     .save()
+        can_edit_clients_pt   = PermissionType(id='p9',    name='Can edit clients?',    codename='can_edit_clients',    value=512)
+        can_edit_clients_pt   .save()
         full_control_pt       = PermissionType(id='pFFFF', name='Full control',         codename='full_control',        value=0xFFFF)
         full_control_pt       .save()
 
@@ -107,11 +128,13 @@ class Migration(migrations.Migration):
         e0_P = Entities(id='e0_P', name='Projects', entity_type=projects_et, is_private=False, owner=root_u, parent_id=e0_S.id)
         e0_P.save()
 
+        Entity_permission_user = apps.get_model('ausers', 'EntityPermissionUser')
+        Entity_permission_user(entity=e0_S, user=client_u, value=can_edit_clients_pt.value).save()
+        Entity_permission_user(entity=e0_P, user=client_u, value=can_read_pt.value | can_execute_pt.value).save()
 
         Entity_permission_group = apps.get_model('ausers', 'EntityPermissionGroup')
         Entity_permission_group(entity=e0_S, group=everyone_g, value=can_read_pt.value | can_edit_users_pt.value).save()
         Entity_permission_group(entity=e0_P, group=everyone_g, value=can_read_pt.value | can_add_project_pt.value).save()
-        
 
         # Entity permission
         Entity_permission = apps.get_model('ausers', 'Entity_permission')
@@ -120,6 +143,7 @@ class Migration(migrations.Migration):
         Entity_permission(entity_type=system_et,    permission_type=can_read_pt).save()
         Entity_permission(entity_type=system_et,    permission_type=can_edit_rights_pt).save()
         Entity_permission(entity_type=system_et,    permission_type=can_edit_users_pt).save()
+        Entity_permission(entity_type=system_et,    permission_type=can_edit_clients_pt).save()
         Entity_permission(entity_type=system_et,    permission_type=full_control_pt).save()
 
         Entity_permission(entity_type=project_et,   permission_type=can_read_pt).save()
@@ -146,6 +170,7 @@ class Migration(migrations.Migration):
 
         
         Entity_permission(entity_type=test_set_et,  permission_type=can_read_pt).save()
+        Entity_permission(entity_type=test_set_et,  permission_type=can_execute_pt).save()
         Entity_permission(entity_type=test_set_et,  permission_type=can_write_pt).save()
         Entity_permission(entity_type=test_set_et,  permission_type=can_edit_rights_pt).save()
         Entity_permission(entity_type=test_set_et,  permission_type=full_control_pt).save()

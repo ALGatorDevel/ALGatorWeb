@@ -196,18 +196,9 @@ function initializeDroppables(selector) {
                 originalDropTarget[0].parentNode.setAttribute('name',name1);
 
 
-                let pJSON = presenterJSONs.get(presenter);
+                let pJSON = pp.presenterJSONs.get(presenter);
                 pJSON.Layout = newLayout;
                 updatePresenterLayout(pJSON, presenter);
-
-/*
-                for (let index = 0; index < presentersDataJSON.length; index++) {
-                    if(presentersDataJSON[index].Name === presenter){
-                        presentersDataJSON[index].Layout = newLayout;
-                        updatePresenterLayout(presentersDataJSON[index], presenter)
-                    }                    
-                }
-*/                
             }
     
             droppedItem.css({

@@ -5,14 +5,3 @@
 <div id="ProblemDescriptionSubNavBar" class="subNavBar"></div>
 <div class="innerContent" id="descriptionInnerContent"></div>
 
-<script>
-
-  {% for item in navBars.projectDescription %}
-    document.getElementById("ProblemDescriptionSubNavBar").innerHTML += `
-      <a  id="navBarEl{{item.sectionId}}"  class="w3-bar-item navBarEl bw pdElt"  
-          onclick="scrollToDescriptionDiv('{{item.sectionId}}');">{{item.display}} </a>              
-    `;
-    addAndWireProblemDescriptionTitleDiv("{{item.sectionId}}", "{{item.display}}");
-  {% endfor %}
-  scrollToDescriptionDiv("{{ navBars.projectDescription.0.sectionId }}")
-</script>

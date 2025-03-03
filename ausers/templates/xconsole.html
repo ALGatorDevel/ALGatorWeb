@@ -105,9 +105,9 @@ function printValues() {
 
 function runSelectedService() {
   var serviceName = document.getElementById("service_select_list").value;
-  var endpoint = auservices[serviceName]["endpoint"]  
+  var endpoint    = services[serviceName]["endpoint"]  
   var dataToSend  = JSON.parse(document.getElementById("params_val").value);
-  var method = auservices[serviceName]["method"];
+  var method      = services[serviceName]["method"];
 
   document.getElementById("service_result").value = "... loading";
   runService(endpoint, method, dataToSend, (result) => {
@@ -158,13 +158,15 @@ async function getCan() {
 
 var ents;
 
+const services = {...ausers.services, ...pageProject.services, ...pp.services};
+
 document.addEventListener('DOMContentLoaded', async function() {
-  var serviceList = getServiceListAsSelect();
+  var serviceList = getServiceListAsSelect(services);
   document.getElementById("services_select").appendChild(serviceList);  
   serviceList.addEventListener("change", function() {
-    var parsArray = auservices[serviceList.value]["params"];
+    var parsArray  = services[serviceList.value]["params"];
     var jsonObject = parsArray.reduce((obj, key) => {obj[key] = ""; return obj;}, {});
-    var comment    = auservices[serviceList.value]["comment"];
+    var comment    = services[serviceList.value]["comment"];
 
     document.getElementById("params_val").value = JSON.stringify(jsonObject, null, 2);    
     document.getElementById("service_commment").innerHTML = comment
@@ -174,7 +176,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   let ents = await getEntitiesKeysAsSet();
   fillSelectWithKeys("can_eid", ents);
 
-  await waitForUserDataToLoad(["get_all_permission_types"]);
+  await ausers.waitForDataToLoad(["get_all_permission_types"]);
   fillSelectWithKeys("can_action", new Set(Object.keys(ausers.permission_types)));
 
 
