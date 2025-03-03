@@ -7,6 +7,8 @@ urlpatterns = [
     path("logout/", views.userLogout, name="logout"),
     path("signup/", views.userSignup, name="signup"),
 
+    path("who",       views.who, name="who"),
+
     path('get_users', views.get_users, name='get_users'),
     path('add_user', views.add_user, name='add_user'),
     path('remove_user', views.remove_user, name='remove_user'),
@@ -32,6 +34,8 @@ urlpatterns = [
     #path('users/get_groups', views.get_groups, name='get_groups'),
 
     path('can', views.can, name='can'),
+
+    path('sendmail', views.sendmail, name='sendmail'),
 
     path('xc', views.xc, name='xc'),
     path('settings/', views.settings, name='settings'),

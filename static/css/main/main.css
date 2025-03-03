@@ -3,6 +3,15 @@
     src: url('../../fonts/Lambda-mLv6V.ttf') format('truetype');
 }
 
+.algator {
+    font-family: 'Courier New', monospace;
+    font-variant: small-caps;
+}
+
+.pa {
+  text-align: justify;
+  padding: 10px 0;
+}
 
 #myContainer{
     margin-left: 100px;
@@ -11,41 +20,6 @@
     margin-top: 80px;
 }
 
-/* PROBLEMS */
-
-.myCard{
-    margin: 30px;
-    border-radius: 8px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    background-color: #f5f9f0;
-}
-
-.myCard:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-}
-
-.myContainer{
-    margin-top: 30px;
-    margin-left: 80px;
-    margin-right: 80px;
-}
-
-.cardHeader{
-    color: #27ae60; 
-    font-size: 27px;
-    margin-bottom: 10px;
-    font-family: customFont;
-}
-
-.cardDesc{
-    font-size: 19px;
-    color: #333; 
-    line-height: 1.5;
-    margin-bottom: 15px;
-}
 
 
 
@@ -54,8 +28,8 @@
 .switch {
     position: relative;
     display: inline-block;
-    width: 45px;
-    height: 25px;
+    width: 30px;
+    height: 22px;
   }
   
   /* Hide default HTML checkbox */
@@ -81,8 +55,8 @@
   .slider:before {
     position: absolute;
     content: "";
-    height: 13px;
-    width: 13px;
+    height: 10px;
+    width: 10px;
     left: 4px;
     bottom: 4px;
     background-color: white;
@@ -91,7 +65,7 @@
   }
   
   input:checked + .slider {
-    background-color: var(--navbar_fontcolor);
+    background-color: #7bc240;
   }
   
   input:focus + .slider {
@@ -99,14 +73,14 @@
   }
   
   input:checked + .slider:before {
-    -webkit-transform: translateX(20px);
-    -ms-transform: translateX(20px);
-    transform: translateX(20px);
+    -webkit-transform: translateX(12px);
+    -ms-transform: translateX(12px);
+    transform: translateX(12px);
   }
   
   /* Rounded sliders */
   .slider.round {
-    border-radius: 34px;
+    border-radius: 30px;
   }
   
   .slider.round:before {
@@ -132,4 +106,41 @@
         background-color: #f4f4f4; /* Light background color */
     padding: 2px 4px; /* Add some padding for readability */
     border-radius: 4px; /* Optional: add rounded corners */
+}
+
+
+.icon-overlay {
+  position: relative;
+  display: flex;
+  font-size: 16px; 
+}
+.icon-overlay .icon {
+  color: #7bc240; /* Icon color */
+}
+.icon-overlay .overlay-x {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px; /* Adjust size for the 'X' */
+  color: red; /* 'X' color */
+  font-weight: bold;
+}
+
+.icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; /* Adjust size as needed */
+  height: 16px; /* Adjust size as needed */
+  border-radius: 50%; /* Makes the div circular */
+  background-color: white; /* Circle background color */
+  color: black; /* Icon color */
+  font-size: 20px; /* Adjust icon size */
+}
+
+
+.pre-text {
+    white-space: pre;
+    font-family: 'Courier New', Courier, monospace;
 }

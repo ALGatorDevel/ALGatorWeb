@@ -24,7 +24,7 @@
     Algorithms of the project: 
     {% for algorithm in project.algorithms %}
          
-        <div class="w3-panel w3-card-2 myCard" onclick="redirectToUrlWithParams('/problem/{{ algorithm }}', {homepoint: true });">
+        <div class="w3-panel w3-card-2 myCard" onclick="redirectToUrlWithParams('/project/{{ algorithm }}', {homepoint: true });">
             <header class="w3-container">
                 <h2 class='cardHeader'>{{ algorithm.name }}</h2>
             </header>

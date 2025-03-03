@@ -1,3 +1,5 @@
+{% extends "base.html" %}
+
 {% load static %}
 
 {% block content %}
@@ -5,30 +7,28 @@
 <link rel="stylesheet" href="{% static 'css/w3.css' %}">
 
 
-
-<div class="w3-container w3-card-4" id='signupContainer'>
-  <div style="padding: 10px; text-align: center;">
-    <a href="{{ request.POST.next }}"><img src="{% static 'images/logo.png' %}" id="logo"/></a>
+<div style="height: 100%;display: flex;align-items: center;justify-content: center;">
+  <div class="w3-container w3-card-4" id='signupContainer'>
+    <div style="padding: 10px; text-align: center;">
+      <a href="{{ request.POST.next }}"><img src="{% static 'images/logo.png' %}" id="logo"/></a>
+    </div>
+    <form method="POST" class="w3-container">
+      {% csrf_token %}
+      <div class='w3-margin' style="text-align: left;"> 
+        <label class='myLable' for="username">Username:</label>
+        <input type="text" name="username" class="w3-input" id="username">
+      </div>
+      <div class='w3-margin' style="text-align: left;"> 
+        <label class='myLable' for="password">Password:</label>
+        <input type="password" name="password" class="w3-input" id="password">
+      </div>
+      <input type="hidden" name="next" value="{{ request.POST.next }}">
+      <div class="w3-center w3-margin">
+        <button type="submit" class="w3-button w3-block w3-section w3-green w3-ripple w3-padding">Log In</button>
+      </div>
+        <br>
+    </form>
   </div>
-
-  <form method="POST" class="w3-container">
-    {% csrf_token %}
-
-    <div class='w3-margin' style="text-align: left;"> 
-      <label class='myLable' for="username">Username:</label>
-      <input type="text" name="username" class="w3-input" id="username">
-    </div>
-    
-    <div class='w3-margin' style="text-align: left;"> 
-      <label class='myLable' for="password">Password:</label>
-      <input type="password" name="password" class="w3-input" id="password">
-    </div>
-    <input type="hidden" name="next" value="{{ request.POST.next }}">
-    <div class="w3-center w3-margin">
-      <button type="submit" class="w3-button w3-block w3-section w3-green w3-ripple w3-padding">Log In</button>
-    </div>
-      <br>
-  </form>
 </div>
 
 

@@ -191,3 +191,11 @@ ul {
 .okcancelb {
   margin: 10px;
 }      
+
+
+.holNode {
+  text-decoration: underline;
+}
+.entNode {
+  color: darkgreen;
+}

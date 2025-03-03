@@ -38,12 +38,16 @@ class ServerConnector(object):
       return json.dumps({"answer":"TalkToServer error: " + repr(e)})
 
 
-  def send_static_files_to_server(self, project_name, files_path, file_list):
+  def send_static_files_to_server(self, project_name, files_path, file_list, uid=USER_ANONYMOUS):
     status = ""
     sid    = 0    # status id (0=ok)
     try:
       request_url = self.get_server_url() + "uploadstatic"
-      headers = {"Content-Type": "multipart/form-data; charset=utf-8"}
+      headers = {
+        "Content-Type": "multipart/form-data; charset=utf-8",
+        "burden": uid 
+      } 
+      
       for file_name in file_list:
           if self.sent_files.contains(file_name): continue
           file_content = file_to_base64(os.path.join(files_path, file_name))

@@ -1,0 +1,28 @@
+{% load static %} 
+<link rel="stylesheet" href="{% static 'css/main/navbar.css' %}">
+<link rel="stylesheet" href="{% static 'css/main/main.css' %}">
+<script src="{% static 'js/main/main.js' %}"></script>
+<script src="{% static 'js/main/base.js' %}"></script>
+
+<div class='w3-container myContainerNavbar w3-top'>
+
+  <div class="w3-row">
+    <div class="w3-col s6 w3-left-align">
+        <span onclick="redirectToUrlWithPathAndParams('/', { })" class='navBarEl' style='padding-right: 20px'>
+            <img src="{% static 'images/algator_icon.png' %}" height="20px">
+        </span>
+        <span onclick="redirectToUrlWithPathAndParams('/problems', {}, false)" class='navBarEl'> 
+            <i class="fas fa-puzzle-piece"></i> Problems
+        </span>
+    </div>
+
+
+    <div class="w3-col s6 w3-right-align">
+      <span class="navBarEl" style='padding-right: 20px;'></span>
+      {% include "usermenu.html" %}   
+    </div>        
+  </div>
+</div>
+
+
+

@@ -1,0 +1,62 @@
+{% load static %}
+
+{% block content %}
+
+<div style="height:50px;"></div>
+<div id="awr_testing"></div><!-- if this div is not visible, auto-refresh (ever 1sec) is disabled-->
+<div id="awWaiting_panel" style="padding:15px">... waiting for properties to load</div>
+<div id="awResults_panel" style="height:calc(100vh - 330px); display:none; overflow: none;">  
+  <div id="awParameters_panel" style="padding:10px;">
+    <h2>Testing results</h2>
+    <table style="width:100%; table-layout: fixed;">
+      <tr><td style="width:200px;padding:10px">  
+        <label for="awr_algorithms"><b>Algorithms</b></label>
+      </td>
+      <td style="width:auto">
+        <select id="awr_algorithms" name="awr_algorithms" multiple style="width:100%;"></select>
+      </td></tr>
+      <tr><td style="width:200px;padding:10px">
+        <label for="awr_testsets"><b>Testsets</b></label>
+      </td>
+      <td style="width:auto">
+        <select id="awr_testsets" name="awr_testsets" multiple style="width:100%;"></select>
+      </td></tr>
+      <tr><td style="width:200px;padding:10px">
+        <label for="awr_testsets"><b>Test type</b></label>
+      </td>
+      <td style="width:auto">
+        <label>
+            <input type="radio" name="awr_mtype_radio" id="awr_mtype_em" value="EM" checked>
+            EM (regular tests)
+        </label>&nbsp;&nbsp;&nbsp;
+        <label>
+            <input type="radio" name="awr_mtype_radio" id="awr_mtype_cnt" value="CNT">
+            CNT (counters)
+        </label>        
+      </td></tr>   
+      <tr><td colspan=2><hr></td></tr>   
+      <tr><td style="width:200px;padding:10px">
+        <label for="awr_actions"><b>With selected:</b></label>
+      </td>
+      <td id="with_selected_btns" style="width:auto">
+        <!--span class="actbtn" dsbl onclick="doWithSelected('run')">Run</span> |
+        <span class="actbtn" dsbl onclick="doWithSelected('cancel')">Cancel</span> | 
+        <span class="actbtn" dsbl onclick="doWithSelected('pause')">Pause</span --> 
+
+      </td></tr>
+      <tr><td colspan=2><hr></td></tr>   
+    </table>
+  </div>
+  <div id="awShowResults_panel" 
+    style="padding: 15px;overflow: auto; height:calc(100vh - 330px)">
+  </div>
+</div>
+
+<script>
+  document.getElementById("with_selected_btns").innerHTML += getDoubleButtonWithMenu("mainRunBut",  "▶ Run",           [["Run selected",    "runSelectedTasks", ""], ["Run selected outdated",    "runSelectedOutdatedTasks", ""], ["Run selected with computer ...", "readFamilyAndRunSelectedTasks"]], true);
+  document.getElementById("with_selected_btns").innerHTML += getDoubleButtonWithMenu("cancelBut",   "&#x2716; Cancel",  [["Cancel selected", "changeSelectedTasksStatus", "cancel"]], true);
+  document.getElementById("with_selected_btns").innerHTML += getDoubleButtonWithMenu("pauseBut",    "&#x23EF;  Pause",  [["Pause selected",  "changeSelectedTasksStatus", "pause" ]], true);
+  document.getElementById("with_selected_btns").innerHTML += getDoubleButtonWithMenu("resumeBut",   "▷ Resume",        [["Resume selected", "changeSelectedTasksStatus", "resume"]], true);  
+</script>
+
+{% endblock %}

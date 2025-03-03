@@ -97,7 +97,7 @@ function getManageGroupHTML(group) {
 
 async function loadGroupsPage(group_id) {
   let data = ["get_users", "get_groups", "get_groupsuser"];
-  await waitForUserDataToLoad(data, true);
+  await ausers.waitForDataToLoad(data, true);
   
   const selectElement = document.getElementById('groups_list');
   await populateUserGroupList(selectElement, group_id, false, true, false);
@@ -156,7 +156,7 @@ function checkNewGroupDataOK() {
 function createNewGroup() {
   var u1 = document.getElementById("new_gname").value
   var u2 = document.getElementById("new_gdesc").value;   
-  runNamedService("add_group", {"groupname":u1, "description":u2}, (result) => {  
+  runNamedService(ausers.services, "add_group", {"groupname":u1, "description":u2}, (result) => {  
       showPopup(result.Answer);
       if (result.Status==0) {
         ausers.loadData(["get_groups"]);
@@ -176,7 +176,7 @@ function deleteGroup(id) {
 
 function deleteGroupPhase2(answer, id) {   
   if (answer == 0)
-    runNamedService("remove_group", {"id":id}, (result) => {  
+    runNamedService(ausers.services, ausers.services, "remove_group", {"id":id}, (result) => {  
       showPopup(result.Answer);
       if (result.Status==0) {
         ausers.loadData(["get_groups"]);
@@ -190,10 +190,10 @@ async function addUsersToGroup(gid) {
   let selectedUsers = Array.from(selectElement.options)
                           .filter(option => option.selected)
                           .map(option => option.text);
-  runNamedService("add_groupusers", {"gid":gid, "users":selectedUsers}, (result) => {  
+  runNamedService(ausers.services, "add_groupusers", {"gid":gid, "users":selectedUsers}, (result) => {  
       showPopup(result.Answer);
       if (result.Status==0) {
-        waitForUserDataToLoad(["get_groupsuser"], true); 
+        ausers.waitForDataToLoad(["get_groupsuser"], true); 
         ausers.permissionsChanged = true;
         loadGroupsPage(gid); 
       }
@@ -201,10 +201,10 @@ async function addUsersToGroup(gid) {
 }
 
 async function removeUserFromGroup(group, user) {
-  runNamedService("remove_groupuser", {"gid":group, "uid":user}, (result) => {  
+  runNamedService(ausers.services, "remove_groupuser", {"gid":group, "uid":user}, (result) => {  
       showPopup(result.Answer);
       if (result.Status==0) {
-        waitForUserDataToLoad(["get_groupsuser"], true);
+        ausers.waitForDataToLoad(["get_groupsuser"], true);
         ausers.permissionsChanged = true;
         loadGroupsPage(group); 
       }

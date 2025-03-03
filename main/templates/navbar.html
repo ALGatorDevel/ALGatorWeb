@@ -1,0 +1,15 @@
+{% load static %}
+
+<div class="hp-top-banner">
+  <div class="hp-logo"><a href="/"><img src="{% static 'images/logo_large_notext.png' %}" style="height:35px" alt="ALGator"></a></div>
+  <div class="hp-menu">
+      <a href="/"            class="navBarEl">ALGator</a>
+      <a href="/projects"    class="navBarEl">Projects</a>
+      <a href="/download"    class="navBarEl">Download</a>
+      <a href="/screenshots" class="navBarEl">Screenshots</a>
+  </div>
+  <div class="w3-right-align">
+    <span class="navBarEl" style='padding-right: 20px;'></span>
+    {% include "usermenu.html" %}   
+  </div>
+</div>

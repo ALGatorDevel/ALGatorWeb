@@ -22,7 +22,6 @@
   addImgPath    = "{% static 'images/add.png' %}";
 
   window.CSRF_TOKEN = "{{ csrf_token }}";
-  askServerURL = "{% url 'main:pAskServer' %}";
 </script>
 
 <div style="height: 50px"></div>    
@@ -33,12 +32,10 @@
   <span name="mi" class="w3-bar-item navBarEl bw" href="#output"      onclick="selectMenuItem(this)">Output</span>
   <span name="mi" class="w3-bar-item navBarEl bw" href="#parameters"  onclick="selectMenuItem(this)">Parameters</span>
   <span name="mi" class="w3-bar-item navBarEl bw" href="#generators"  onclick="selectMenuItem(this)">Generators</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#testset"     onclick="selectMenuItem(this)">TestSets</span>
   <span name="mi" class="w3-bar-item navBarEl bw" href="#timers"      onclick="selectMenuItem(this)">Timers</span>
   <span name="mi" class="w3-bar-item navBarEl bw" href="#indicators"  onclick="selectMenuItem(this)">Indicators</span>
   <span name="mi" class="w3-bar-item navBarEl bw" href="#counters"    onclick="selectMenuItem(this)">Counters</span>
   <span name="mi" class="w3-bar-item navBarEl bw" href="#tools"       onclick="selectMenuItem(this)">Tools</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#algorithms"  onclick="selectMenuItem(this)">Algorithms</span>
 
 
   <div id="menu-dot" style="top:57px; right:5px;" onclick="saveContent()"></div>
@@ -46,8 +43,10 @@
 </div> 
 
 <div class="innerContent" id="editProjectContent">
-  <div id="editProjectButtons" class="editMode" style="display: flex;flex-direction: row-reverse;margin-right: 10px;">
-    <i id="Edit_editProjectSection" class="far fa-edit icon" onclick="editSection()"></i>
+  <div id="editOkCancelPanel">
+    <div id="editProjectButtons" class="editMode" w="{{ project.eid }} cw" style="display: flex;flex-direction: row-reverse;margin-right: 10px;">
+      <i id="edit_editProjectSection" class="far fa-edit icon" onclick="editSection()"></i>
+    </div>
   </div>
 
   <div id=bodydiv style="margin: 5px 10px 0px 10px;">
@@ -74,11 +73,6 @@
         <span id="generators-list_panel"></span>
       </div>
 
-      <div id="testset-list" class="submenuitem">
-        <hi>Testsets</hi> 
-        <span id="testsets-list_panel"></span>
-      </div>
-
       <div id="timers-list" class="submenuitem">
         <hi>Timers</hi> 
         <span id="timers-list_panel"></span>
@@ -97,25 +91,11 @@
         <hi>Tools</hi> 
         <span id="tools-list_panel"></span>
       </div>        
-
-      <div id="algorithms-list" class="submenuitem">
-        <hi>Algorithms</hi> 
-        <span id="algorithms-list_panel"></span>
-      </div>
     </div>
 
     <div id="lower-section">
         
-        <div id="general-div" class="content-div">
-            <script>
-              setGeneralData(
-                "{{ project.name }}", "{{ project.eid }}", "{{ project.description }}", "{{ project.author }}", "{{ project.date }}", 
-                "{% for algorithm in project.algorithms %}{{ algorithm.name }}{% if not forloop.last %},{% endif %}{% endfor %}", 
-                "{% for testset in project.testsets %}{{ testset.name }}{% if not forloop.last %},{% endif %}{% endfor %}"
-              );
-              showGeneralData();
-            </script>
-        </div>
+        <div id="general-div" class="content-div"></div>
 
         <div id="input-div" class="content-div">
             <table style="width:100%;">
@@ -124,9 +104,8 @@
                     <div class="CodeMirror" disabled id="input-code-editor"></div>
                 </td>
             </tr></table>
-            <script>
-                initCodeMirrorEditor("input-code-editor", "input-class", "{{ project.source_input |escapejs }}", changes.other, "input", undefined,undefined,undefined,true);
-                setFileContent("input", "{{ project.source_input |escapejs }}");
+            <script>  
+              initCodeMirrorEditor("input-code-editor","input-class","",changes.other,"input",undefined,undefined,undefined,true);
             </script>
         </div>
 
@@ -137,9 +116,8 @@
                     <div class="CodeMirror" id="output-code-editor"></div>
                 </td>
             </tr></table>
-            <script>
-                initCodeMirrorEditor("output-code-editor", "output-class", "{{ project.source_output |escapejs }}", changes.other, "output", undefined,undefined,undefined,true);
-                setFileContent("output", "{{ project.source_output |escapejs }}");                
+            <script>  
+              initCodeMirrorEditor("output-code-editor","output-class","",changes.other,"output",undefined,undefined,undefined,true);
             </script>
         </div>
 
@@ -153,6 +131,7 @@
 
               <script>
                 registerClickOnEnter("newparname", "addParamButton");
+                registerClickOnEnter("isInputP", "addParamButton");
                 insertNewSubNavbarItem("parameterElt", "parameterlink", "parameters-list_panel");
               </script>
               <hr>
@@ -160,14 +139,6 @@
 
             <div id="inputParameters"><h4>Input Parameters</h4></div>
             <div id="otherParameters"><h4>Other Parameters</h4></div>
-            <script>
-              {% for key, value in project.parameters.items %}
-                pageProject.addParameter("{{ key }}", "{{ value.IsInputParameter }}", "{{ value.Description }}", "{{ value.Meta.Default }}",
-                    "{{ value.Meta.Min }}", "{{ value.Meta.Max }}", "{{ value.Meta.Step }}", "{{ value.Meta.Values }}", "{{ value.Type }}"
-                );
-              {% endfor %}
-              showParameters();
-            </script>            
         </div>
 
         <div id="generators-div" class="content-div">
@@ -184,36 +155,7 @@
               insertNewSubNavbarItem("generatorElt", "generatorlink", "generators-list_panel");
             </script>
 
-            <div id="generators-div">
-            <script>
-              {% for key, value in project.generators.items|dictsort:0 %}
-                 pageProject.addGenerator("{{ key }}","{{ value.Description }}", "{{ value.GeneratingParameters }}", 
-                    "{{ project.source_generators|get_item:key |escapejs }}");
-              {% endfor %}
-              showGenerators();
-            </script>
-            </div>
-        </div>
-
-        <div id="testset-div" class="content-div">
-            <div id="testsetElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
-              <label for="newtestsetname">Create a new testset: &nbsp; &nbsp;</label><input style="width:300px;" type="text" id="newtestsetname">&nbsp;
-              <span id="addTestsetButton" class="tooltip-button" data-tooltip="Add" onclick="newTestset('{{project.name}}')" style="content:'Add';">
-                  <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>
-            <hr>
-            </div>
-            <script>
-              registerClickOnEnter("newtestsetname", "addTestsetButton");
-              insertNewSubNavbarItem("testsetElt", "testsetlink", "testsets-list_panel");
-            </script>
-            <div id="testsets-div"></div>
-            <script>
-              {% for testset in project.testsets %}
-                pageProject.addTestset("{{ testset.name|escapejs }}", "{{ testset.eid |escapejs }}", "{{ testset.description|escapejs }}", "{{ testset.short_name|escapejs }}", {{ testset.n }}, {{ testset.test_repeat }}, {{ testset.time_limit }}, '{{ testset.description_file|escapejs}}'); 
-              {% endfor %}
-              showTestsets();              
-            </script>            
+            <div id="generators-div"></div>
         </div>
 
         <div id="timers-div" class="content-div">
@@ -229,17 +171,7 @@
               registerClickOnEnter("newtimer", "newTimerButton");
               insertNewSubNavbarItem("timerElt", "timerlink", "timers-list_panel");
             </script>
-            <div id="timers-div">
-            <script>  
-              {% for key, value in project.indicators.items %}
-                {% if value.Type == "timer" %}                
-                  pageProject.addTimer("{{ key }}","{{ value.Description }}", 
-                      "{{ value.Meta.ID }}", "{{ value.Meta.STAT }}");
-                {% endif %}            
-              {% endfor %}
-              showTimers();         
-            </script>
-            </div>
+            <div id="timers-div"></div>
           </div>
         </div>
 
@@ -255,18 +187,7 @@
               registerClickOnEnter("newindicator", "newIndicatorButton");
               insertNewSubNavbarItem("indicatorElt", "indicatorlink", "indicators-list_panel");
             </script>         
-            <div id="indicators-div">
-            <script>
-              {% for key, value in project.indicators.items %}
-                {% if value.Type != "timer" %}
-                    pageProject.addIndicator("{{ key }}","{{ value.Description }}", "{{ value.Type }}",
-                        "{{ project.source_indicators|get_item:key   |escapejs }}");
-                {% endif %}            
-              {% endfor %}  
-              showIndicators();       
-            </script>
-
-            </div>   
+            <div id="indicators-div"></div>   
         </div>
 
         <div id="counters-div" class="content-div">
@@ -281,14 +202,7 @@
               registerClickOnEnter("newcounter", "newCounterButton");
               insertNewSubNavbarItem("counterElt", "counterlink", "counters-list_panel");
             </script>                     
-            <div id="counters-div">
-            <script>               
-              {% for key, value in project.counters.items %}              
-                  pageProject.addCounter("{{ key }}","{{ value.Description }}");              
-              {% endfor %}  
-              showCounters();       
-            </script>  
-            </div>              
+            <div id="counters-div"></div>              
         </div>
 
         <div id="tools-div" class="content-div">
@@ -298,34 +212,11 @@
                     <div class="CodeMirror" id="tools-code-editor"></div>
                 </td>
             </tr></table>
-            <script>
-                initCodeMirrorEditor("tools-code-editor", "tools-class", "{{ project.source_tools |escapejs }}", changes.other, "tools", undefined,undefined,undefined,true);
-                setFileContent("tools", "{{ project.source_tools |escapejs }}");                
-            </script>
-        </div>
-
-        <div id="algorithms-div" class="content-div">
-            <div id="algorithmElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
-              <label for="newalgorithmname">Name: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newalgorithmname">&nbsp;
-              <span id="addAlgorithmButtonB" class="tooltip-button" data-tooltip="Add" onclick="newAlgorithm('{{project.name}}')" style="content:'Add';">
-                  <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>
-              <hr>
-            </div>
-            <script>
-              registerClickOnEnter("newalgorithmname", "addAlgorithmButtonB");
-              insertNewSubNavbarItem("algorithmElt", "algorithmlink", "algorithms-list_panel");              
-            </script>
-            <div id="algorithms-div"></div>
-            <script>
-            {% for algorithm in project.algorithms %}
-                pageProject.addAlgorithm("{{ algorithm.name|escapejs }}", "{{ algorithm.eid|escapejs }}", "{{ algorithm.description|escapejs }}", "{{ algorithm.short_name|escapejs }}", "{{ algorithm.date }}", "{{ algorithm.author }}", "{{ algorithm.language }}", '{{ algorithm.source|escapejs}}', '{{ algorithm.html|escapejs}}'); 
-            {% endfor %}
-            showAlgorithms();
+            <script>  
+              initCodeMirrorEditor("tools-code-editor","tools-class","",changes.other,"tools",undefined,undefined,undefined,true);
             </script>            
         </div>
-
-    </div>
+      </div>
 </div>
 
 <script>
@@ -355,8 +246,6 @@ window.onload = window.onresize = function () {
 $('.multiselect').each((function() {
   applySelect2Options(this);
 }));  
-
-document.getElementById('menuitems').firstElementChild.click();
 
 </script>
     

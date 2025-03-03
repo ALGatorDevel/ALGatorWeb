@@ -1,21 +1,43 @@
+function getValue(dict, key, defValue) {
+  try {
+    if (dict[key]) return dict[key]; else return defValue;
+  } catch (e) {return defValue;}
+}
+function defined(value) {
+  return (typeof value !== 'undefined' && value !== null);
+}
 
 function scrollIntoView(id) {
   var elt = document.getElementById(id);
   if (elt) elt.scrollIntoView({ behavior: "smooth"});
 }
 
-class GeneralData {
-  constructor(projectName, eid, projDesc, author, date, algorithms, testsets) {
-    this.setProps(projectName, eid, projDesc, author, date, algorithms, testsets);
+class ComputerFamilies {
+  constructor(value) {
+    this.setProps(value);
   }
-  setProps(projectName, eid, projDesc, author, date, algorithms, testsets) {
+  setProps(value) {
+    this.families = value;
+  }
+}
+
+class GeneralData {
+  constructor(projectName, eid, shortTitle, projDesc, author, date, projectJARs, lastModified, execFamily, tags) {
+    this.author = "algator";     // default (unknown) author
+    this.date   = "00/00/0000";  // default (unknown) date    
+    this.setProps(projectName, eid, shortTitle, projDesc, author, date, projectJARs, lastModified, execFamily, tags);
+  }
+  setProps(projectName, eid, shortTitle, projDesc, author, date, projectJARs, lastModified, execFamily, tags) {
     this.name       = projectName; 
-    if (eid)         this.eid        = eid; 
-    if (projDesc)    this.projDesc   = projDesc;
-    if (author)      this.author     = author;
-    if (date       ) this.date       = date;
-    if (algorithms ) this.algorithms = algorithms;
-    if (testsets   ) this.testsets   = testsets;
+    if (defined(eid)        )  this.eid          = eid; 
+    if (defined(shortTitle) )  this.shortTitle   = shortTitle;
+    if (defined(projDesc)   )  this.projDesc     = projDesc;
+    if (defined(author)     )  this.author       = author;
+    if (defined(date       ))  this.date         = date;
+    if (defined(projectJARs))  this.projectJARs  = projectJARs;
+    if (defined(lastModified)) this.lastModified = lastModified;
+    if (defined(execFamily))   this.execFamily   = execFamily;
+    if (defined(tags))         this.tags         = tags;
   }
 }
 class Parameter {
@@ -24,14 +46,14 @@ class Parameter {
   }
   setProps(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType) {
     this.name        = parameterName; 
-    if (isInput)    this.isInput     = isInput;
-    if (desc)       this.desc        = desc;
-    if (defValue)   this.defValue    = defValue;
-    if (metaMin)    this.metaMin     = metaMin;
-    if (metaMax)    this.metaMax     = metaMax;
-    if (metaStep)   this.metaStep    = metaStep;
-    if (metaValues) this.metaValues  = metaValues;
-    if (vType)      this.vType       = vType;
+    if (defined(isInput)   ) this.isInput     = isInput;
+    if (defined(desc)      ) this.desc        = desc;
+    if (defined(defValue)  ) this.defValue    = defValue;
+    if (defined(metaMin)   ) this.metaMin     = metaMin;
+    if (defined(metaMax)   ) this.metaMax     = metaMax;
+    if (defined(metaStep)  ) this.metaStep    = metaStep;
+    if (defined(metaValues)) this.metaValues  = metaValues;
+    if (defined(vType)     ) this.vType       = vType;
   }
 }
 class Generator {
@@ -40,24 +62,30 @@ class Generator {
   }
   setProps(generatorName, description, parameters, sourcecode) {
     this.name        = generatorName; 
-    if (description) this.description = description;
-    if (parameters)  this.parameters  = parameters;
-    if (sourcecode)  this.sourcecode  = sourcecode;
+    if (defined(description)) this.description = description;
+    if (defined(parameters) ) this.parameters  = parameters;
+    if (defined(sourcecode) ) this.sourcecode  = sourcecode;
   }
 }
 class Testset {
-  constructor(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent) {
-    this.setProps(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent);
+  constructor(testsetName, author, date, testsetEID, description, shortname, n, repeat, limit, fileContent, filesList, lastModified) {
+    this.author = "algator";     // default (unknown) author
+    this.date   = "00/00/0000";  // default (unknown) date
+    this.setProps(testsetName, author, date, testsetEID, description, shortname, n, repeat, limit, fileContent, filesList, lastModified);
   }
-  setProps(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent) {
+  setProps(testsetName, author, date, testsetEID, description, shortname, n, repeat, limit, fileContent, filesList, lastModified) {
     this.name        = testsetName; 
-    if (testsetEID)  this.eid         = testsetEID;
-    if (description) this.description = description;
-    if (shortname)   this.shortname   = shortname;
-    if (n)           this.n           = n;
-    if (repeat)      this.repeat      = repeat;
-    if (limit)       this.limit       = limit;
-    if (fileContent) this.fileContent = fileContent;
+    if (defined(testsetEID) )  this.eid          = testsetEID;
+    if (defined(author)     )  this.author       = author;
+    if (defined(date)       )  this.date         = date;
+    if (defined(description))  this.description  = description;
+    if (defined(shortname)  )  this.shortname    = shortname;
+    if (defined(n)          )  this.n            = n;
+    if (defined(repeat)     )  this.repeat       = repeat;
+    if (defined(limit)      )  this.limit        = limit;
+    if (defined(fileContent))  this.fileContent  = fileContent;
+    if (defined(filesList))    this.filesList    = filesList;    
+    if (defined(lastModified)) this.lastModified = lastModified;
   }
 }
 class Timer {
@@ -66,9 +94,9 @@ class Timer {
   }
   setProps(timerName, desc, timerID, timerSTAT) {
     this.name      = timerName; 
-    if (desc)      this.desc      = desc;
-    if (timerID)   this.timerID   = timerID;
-    if (timerSTAT) this.timerSTAT = timerSTAT;
+    if (defined(desc)     ) this.desc      = desc;
+    if (defined(timerID)  ) this.timerID   = timerID;
+    if (defined(timerSTAT)) this.timerSTAT = timerSTAT;
   }
 }
 class Indicator {
@@ -77,9 +105,9 @@ class Indicator {
   }
   setProps(indicatorName, desc, type, code) {
     this.name = indicatorName; 
-    if (desc) this.desc = desc;
-    if (type) this.type = type;
-    if (code) this.code = code;
+    if (defined(desc)) this.desc = desc;
+    if (defined(type)) this.type = type;
+    if (defined(code)) this.code = code;
   }
 }
 class Counter {
@@ -88,38 +116,213 @@ class Counter {
   }
   setProps(counterName, desc) {
     this.name = counterName; 
-    if (desc) this.desc = desc;
+    if (defined(desc)) this.desc = desc;
   }
 }
 class Algorithm {
-  constructor(name, eid, description, shortname, date, author, language, fileContent, htmlContent) {
-    this.setProps(name, eid, description, shortname, date, author, language, fileContent, htmlContent)
+  constructor(name, eid, description, shortname, date, author, language, fileContent, htmlContent, lastModified) {
+    this.author = "algator";     // default (unknown) author
+    this.date   = "00/00/0000";  // default (unknown) date    
+    this.setProps(name, eid, description, shortname, date, author, language, fileContent, htmlContent, lastModified)
   }
-  setProps(name, eid, description, shortname, date, author, language, fileContent, htmlContent) {
+  setProps(name, eid, description, shortname, date, author, language, fileContent, htmlContent, lastModified) {
     this.name        = name;
-    if (eid)         this.eid         = eid;
-    if (author)      this.author      = author;
-    if (date)        this.date        = date;
-    if (shortname)   this.shortname   = shortname;
-    if (description) this.description = description;
-    if (language)    this.language    = language;
-    if (fileContent) this.fileContent = fileContent;
-    if (htmlContent) this.htmlContent = htmlContent;    
+    if (defined(eid)        )  this.eid          = eid;
+    if (defined(author)     )  this.author       = author;
+    if (defined(date)       )  this.date         = date;
+    if (defined(shortname)  )  this.shortname    = shortname;
+    if (defined(description))  this.description  = description;
+    if (defined(language)   )  this.language     = language;
+    if (defined(fileContent))  this.fileContent  = fileContent;
+    if (defined(htmlContent))  this.htmlContent  = htmlContent;    
+    if (defined(lastModified)) this.lastModified = lastModified;
   }
 }
 
-class PageProject {
+class PageProject extends PageData {
+  services = {
+    
+    'get_computer_familes': {
+      'endpoint': '/projects/get_computer_familes',
+      'method'  : 'GET',
+      'params'  : [],
+      'comment' : 'Get list of registered computer families.'
+    },
+
+    'get_project_html_description': {
+      'endpoint': '/projects/get_project_html_description',
+      'method'  : 'GET',
+      'params'  : ["ProjectName"],
+      'comment' : ''
+    },
+    
+    'get_project_general_data': {
+      'endpoint': '/projects/get_project_general_data',
+      'method'  : 'GET',
+      'params'  : ["ProjectName"],
+      'comment' : ''
+    },
+
+    'get_project_properties': {
+      'endpoint': '/projects/get_project_properties',
+      'method'  : 'GET',
+      'params'  : ["ProjectName"],
+      'comment' : ''
+    },    
+
+    'get_testsets': {
+      'endpoint': '/projects/get_testsets',
+      'method'  : 'GET',
+      'params'  : ["ProjectName"],
+      'comment' : ''
+    }, 
+
+    'get_testset_files': {
+      'endpoint': '/projects/get_testset_files',
+      'method'  : 'GET',
+      'params'  : ["ProjectName", "TestsetName"],
+      'comment' : ''
+    },
+
+    'get_testsets_common_files': {
+      'endpoint': '/projects/get_testsets_common_files',
+      'method'  : 'GET',
+      'params'  : ["ProjectName"],
+      'comment' : ''
+    },
+
+    'get_testset_file': {
+      'endpoint': '/projects/get_testset_file',
+      'method'  : 'GET',
+      'params'  : ["ProjectName", "TestsetName", "FileName"],
+      'comment' : ''
+    },
+    
+    'get_algorithms': {
+      'endpoint': '/projects/get_algorithms',
+      'method'  : 'GET',
+      'params'  : ["ProjectName"],
+      'comment' : ''
+    }
+  };
+
   constructor() {
-    this.generalData = new GeneralData();
-    this.srcFiles    = new Map();
-    this.parameters  = new Map();
-    this.timers      = new Map();
-    this.indicators  = new Map();
-    this.counters    = new Map();
-    this.generators  = new Map();
-    this.testsets    = new Map();
-    this.algorithms  = new Map(); 
+      super();
+
+      this.generalData   = new GeneralData();
+      this.srcFiles      = new Map();
+      this.parameters    = new Map();
+      this.timers        = new Map();
+      this.indicators    = new Map();
+      this.counters      = new Map();
+      this.generators    = new Map();
+      this.testsets      = new Map();
+      this.tsCommonFiles = {};
+      this.algorithms    = new Map(); 
+
+      this.project_html_descriptions = {}   // html content for "Problem overview" page
   }
+
+  
+  setVar(type, value) {
+    switch (type) {
+      case "get_computer_familes":                  this.storeComputerFamilies(value);      break;         
+      case "get_project_html_description":          this.project_html_descriptions = value; break;  
+      case "get_project_general_data":              this.storeGeneralData(value);           break; 
+      case "get_project_properties":                this.storeProjectProperties(value);     break 
+      case "get_testsets":                          this.storeTestsets(value);              break;     
+      case "get_testsets_common_files":             this.storeTestsetsCommonFiles(value);   break;             
+      case "get_algorithms":                        this.storeAlgorithms(value);            break;             
+    }
+  }
+
+  storeComputerFamilies(value) {
+    pageProject.computerFamilies = new ComputerFamilies(value);
+  }
+
+
+  storeGeneralData(value) {
+    setGeneralData(projectName, value.eid, value.ShortTitle, value.Description, value.Author, value.Date, value.ProjectJARs, value.LastModified, value.EMExecFamily, value.Tags);
+  }
+
+  storeProjectProperties(value) {
+    setFileContent("input",  value.Sources.Input);  
+    setFileContent("output", value.Sources.Output); 
+    setFileContent("tools",  value.Sources.Tools);  
+
+
+    Object.keys(value.Props.Parameters).sort((k1,k2)=>{ // first list input then other parameters
+        let o1 = 0+getValue(value.Props.Parameters[k1], "IsInputParameter", false);
+        let o2 = 0+getValue(value.Props.Parameters[k2], "IsInputParameter", false);
+        return o2-o1}).forEach(k=>{
+      let par = value.Props.Parameters[k];
+      let meta = getValue(par, "Meta", {});
+      this.addParameter(k, getValue(par, "IsInputParameter", false), getValue(par, "Description", ""), getValue(meta, "Default",""),
+          getValue(meta, "Min", 0), getValue(meta, "Max", 0), getValue(meta, "Step", 0), 
+          JSON.stringify(getValue(meta, "Values", [])), getValue(par, "Type", "int")
+      );
+    });
+
+    Object.keys(value.Props.Generators).sort().forEach(k=>{
+      try {
+        let gen = value.Props.Generators[k];
+        let genPar = JSON.stringify(getValue(gen, "GeneratingParameters", []));
+        let source = value.Sources.Generators[k];
+        this.addGenerator(k,getValue(gen, "Description", ""), genPar, source);
+      } catch(e){}
+    });
+
+
+    Object.keys(value.Props["EM indicators"]).forEach(k => {
+      try {
+        let ind = value.Props["EM indicators"][k];
+        let typ = getValue(ind, "Type", "int");
+        if (typ == "timer") {
+          let meta = getValue(ind, "Meta", {});
+          this.addTimer(k, getValue(ind, "Description", ""), getValue(meta, "ID", 0), getValue(meta, "STAT", "MIN"));
+        } else {
+            let source = value.Sources.Indicators[k];
+           this.addIndicator(k, getValue(ind, "Description", ""), typ, source);
+        }
+      } catch(e){}
+    });
+
+    Object.keys(value.Props["CNT indicators"]).forEach(k => {
+      try {
+        let cnt = value.Props["CNT indicators"][k];
+        this.addCounter(k, getValue(cnt, "Description", ""));              
+      } catch (e) {}
+    });
+  }
+
+  // store "value" (result obtained by calling service get_testsets) into pageProject's testests
+  storeTestsets(value) {
+    try {
+      Object.keys(value).forEach(t => {
+        let ts = value[t].Properties;
+        this.addTestset(t, ts.Author, ts.Date, ts.eid, ts.Description, ts.ShortName, ts.N, ts.TestRepeat, ts.TimeLimit, value[t].FileContent, value[t].FilesList, ts.LastModified);
+      })
+    } catch (e) {}
+  }
+  storeTestsetsCommonFiles(value) {
+    try {
+      Object.keys(value).forEach(tf => {
+        this.tsCommonFiles[tf]=value[tf];
+      })
+    } catch (e) {}
+  }
+  // store "value" (result obtained by calling service get_algorithms) into pageProject's algorithms
+  storeAlgorithms(value) {
+    try {
+      Object.keys(value).forEach(a => {
+        let al = value[a].Properties;
+        this.addAlgorithm(a, al.eid, al.Description, al.ShortName, al.Date, al.Author, al.Language, value[a].FileContent, value[a].HtmlFileContent, al.LastModified);
+      })
+    } catch (e) {}
+  }
+
+
+
   getListElement(eltID, key, linkID) {  
     var newListElement = document.createElement('span'); 
     newListElement.innerHTML = `
@@ -133,10 +336,6 @@ class PageProject {
   addSubmenuItem(key, eltID, linkID, eltList) {
     var newListElement = this.getListElement(eltID, key, linkID);
     document.getElementById(eltList).appendChild(newListElement);
-  }
-  removeSubmenuItem(key, linkID) {
-    var element = document.getElementById(`${linkID}_${key}`);
-    if (element) element.parentNode.removeChild(element);
   }
 
   addElt(key, elt, eltMap) {
@@ -166,8 +365,8 @@ class PageProject {
   removeGenerator(key) {
     this.removeElt(key, this.generators, "generatorlink");
   }
-  addTestset(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent) {
-    var testset = new Testset(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent);
+  addTestset(testsetName, author, date, testsetEID, description, shortname, n, repeat, limit, fileContent, filesList, lastModified) {
+    var testset = new Testset(testsetName, author, date, testsetEID, description, shortname, n, repeat, limit, fileContent, filesList, lastModified);
     this.addElt(testsetName, testset, this.testsets);
   }
   removeTestset(key) {
@@ -194,8 +393,8 @@ class PageProject {
   removeCounter(key) {
     this.removeElt(key, this.counters, "counterlink");
   }
-  addAlgorithm(algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent) {
-    var algorithm = new Algorithm(algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent);
+  addAlgorithm(algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent, lastModified) {
+    var algorithm = new Algorithm(algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent, lastModified);
     this.addElt(algorithmName, algorithm, this.algorithms);
   }
   removeAlgorithm(key) {
@@ -210,8 +409,6 @@ class Changes {
     constructor() {
         this.parameters = new Set();
         this.generators = new Set();
-        this.testsets   = new Set(); 
-        this.algorithms = new Set(); 
         this.timers     = new Set();    
         this.indicators = new Set();
         this.counters   = new Set();   
@@ -230,6 +427,15 @@ class Changes {
     }
     add(set, key) {
       set.add(key);
+    }
+
+    clearAll() {
+      this.parameters .clear();
+      this.generators .clear();
+      this.timers     .clear();    
+      this.indicators .clear();      
+      this.counters   .clear();
+      this.other      .clear(); 
     }
 }
 changes = new Changes();
@@ -281,17 +487,20 @@ function addOption(multiSelectElt, value, selected) {
 }
 function setValueOfMultiSelect(multiSelectId, valuesString) {
   try {
-      var multiSelectElt = document.getElementById(multiSelectId);
       var values = JSON.parse(valuesString.replaceAll("'", "\""));
-      values.forEach(function(val){
-        addOption(multiSelectElt, val, true);
-      });
-    } catch (error) {}
+      setValueOfMultiSelectFromArray(multiSelectId, values);
+  } catch (error) {}
+}
+function setValueOfMultiSelectFromArray(multiSelectId, valuesArray) {
+  if (valuesArray) {
+    var multiSelectElt = document.getElementById(multiSelectId);
+    valuesArray.forEach(function(val){
+      addOption(multiSelectElt, val, true);
+    });  
+  }
 }
 
-
-
-function initCodeMirrorEditor(cmDiv, hiddenDiv, content, entity, key, theme="eclipse", mode="text/x-java", height="", readOnly=false) {
+function initCodeMirrorEditor(cmDiv, hiddenDiv, content, entity=null, key, theme="eclipse", mode="text/x-java", height="", readOnly=false) {
   var editor = CodeMirror(document.getElementById(cmDiv), {
     mode: mode,
     lineNumbers: true,
@@ -310,8 +519,12 @@ function initCodeMirrorEditor(cmDiv, hiddenDiv, content, entity, key, theme="ecl
   editor.getDoc().setValue(content);
   editor.on("change", function() {
     var code = editor.getValue();
-    document.getElementById(hiddenDiv).value = code;
-    contentChanged(entity, key);
+
+    var hiddenElt = document.getElementById(hiddenDiv);
+    hiddenElt.value = code;
+    hiddenElt.dispatchEvent(new Event("change", { bubbles: true }));
+
+    if (entity) contentChanged(entity, key);
   });
   if (height!="") editor.setSize(null, height);
   return editor;
@@ -349,7 +562,7 @@ function initCodeMirrorEditor(cmDiv, hiddenDiv, content, entity, key, theme="ecl
 
 function checkName(name, dict, entityName) {
   if (!name) {
-    showPopup(`Enter a name of a ${entityName} to be added.`);
+    showPopup(`Enter the name of the ${entityName} to be added.`);
     return false;
   }
   if (dict.has(name)) {
@@ -374,66 +587,221 @@ function selectOptionByValue(selectId, optionValue) {
 
 
 
+function removeElementFromDOM(prefix, key) {
+  var element = document.getElementById(`${prefix}${key}`);
+  if (element) element.remove();
+}
+
+
+function getFamilySelectElement() {
+  let selectElement = document.createElement('select');
+  pageProject.computerFamilies.families./*filter(f => f.FamilyID != "F0").*/
+    forEach(cf => {addOptionToSelect(selectElement, cf.FamilyID, `${cf.Description} (${cf.FamilyID})`)});
+    return selectElement;
+}
+
 
 // ************************************* General ***************************************** //
-function getGeneralHTML(projectName, projDesc, author, date, algorithms, testsets) {
+function getGeneralHTML(projectName, shortTitle, projDesc, author, date, projectJARs, execFamily) {
+  let upload    = getUploadComponet("projectjars", projectName); 
+
   var generalHTML = `
     <table style="width:100%; padding: 15px;">
-      <tr><td class="gentd"><label for="namegrl">Name:</label></td>
+      <tr><td class="gentd"><label for="namegrl">Project Name:</label></td>
           <td><input class="almostW pEdit" disabled type="text" id="namegrl" onchange="contentChanged(changes.other, 'general')" readonly value="${projectName}">
       </td></tr>
-      <tr><td class="gentd" disabled style="vertical-align: top;"><label for="descgrl">Description:</label></td>
+      <tr><td class="gentd"><label for="authorgrl">Author Name:</label></td>
+          <td><input class="almostW pEdit" disabled type="text" id="authorgrl" onchange="contentChanged(changes.other, 'general')" readonly value="${author}">
+      </td></tr>
+      <tr><td class="gentd"><label for="dategrl">Creation Date:</label></td>
+          <td><span><input class="almostW" disabled type="text" id="dategrl" onchange="contentChanged(changes.other, 'general')" value="${date}">
+      </td></tr>
+      <tr><td class="gentd" disabled style="vertical-align: top;"><label for="stitgrl">Short title:</label></td>
+          <td><span><input class="almostW pEditE" disabled type="text" id="stitgrl" onchange="contentChanged(changes.other, 'general')" value="${shortTitle}">    
+      </td></tr>
+      <tr><td class="gentd" disabled style="vertical-align: top;"><label for="descgrl">Short Description:</label></td>
           <td><textarea class="descTA almostW pEditE" disabled id="descgrl" onchange="contentChanged(changes.other, 'general')">${projDesc}</textarea>
       </td></tr>
-      <tr><td class="gentd"><label for="authorgrl">Author name:</label></td>
-          <td><input class="almostW pEditE" disabled type="text" id="authorgrl" onchange="contentChanged(changes.other, 'general')" value="${author}">
-      </td></tr>
-      <tr><td class="gentd"><label for="dategrl">Created:</label></td>
-          <td><span><input class="almostW" disabled type="text" id="dategrl" onchange="contentChanged(changes.other, 'general')" value="${date}">
-      </td></tr>
-      <tr><td class="gentd"><label for="dategrl">Last Modified:</label></td>
-          <td><span><input class="almostW" disabled type="text" id="dategrl" onchange="contentChanged(changes.other, 'general')" value="${date}">
-      </td></tr>
-
-      <!--tr><td class="gentd"><label for="algorithmsgrl">Algorithms:</label></td>
-          <td><input class="almostW pEdit" disabled type="text" id="algorithmsgrl" readonly value="${algorithms}">
-      </td></tr>
-      <tr><td class="gentd"><label for="testsetsgrl">Testsets:</label></td>
-          <td><input class="almostW pEdit" disabled "type="text" id="testsetsgrl" readonly value="${testsets}">
-      </td></tr-->
+      <tr><td class="gentd" disabled style="vertical-align: top;"><label for="tagsgrl">Tags:</label></td>
+          <td><select id="tagsgrl" class="pEditE" multiple disabled style="width:99%" onchange="contentChanged(changes.other, 'general')"></td>
+      </td></tr>      
+      <tr><td class="gentd" disabled style="vertical-align: top;"><label for="family_select">Computing family:</label>
+            ${infoButton('assigned_computers')}
+          </td>
+          <td><select id="family_select" class="almostW pEditE" disabled onchange="contentChanged(changes.other, 'general')" style="margin-top: 10px"></select>
+      </td></tr>      
+      <tr><td class="gentd" disabled style="vertical-align: top;"><label for="jarsgrl">Project JARs:</label>
+             ${infoButton('project_jars')}
+          </td>
+          <td><div id="projectjars_${projectName}" class="container-box sEdit almostW" own='${projectName}' disabled style="padding: 0px;">... no JARs are used in this project</div>
+             ${upload}
+         </td>
+      </tr>
+      <tr><td colspan="2"><hr style="margin: 15px 0px 15px 0px;"></td></tr>
+      <tr><td>Compiling</td>
+          <td>
+            <input type=button value="Compile project" onclick="compileProject()">
+          </td>
     </table>    
   `;
   return generalHTML; 
 }
 
-function setGeneralData(projectName, eid, projDesc, author, date, algorithms, testsets) {
-  pageProject.generalData = new GeneralData(projectName, eid, projDesc, author, date, algorithms, testsets);
+function getProjectJARsListItemHTML(filename, disabledRemoving=true) {
+  return `
+  <li id="jar_${filename}">
+    <span class="framed-span"> 
+      <span class="clickable-span" onclick="showJARFile('${filename}')">${filename}</span> 
+      <i class='fas fa-times icon sEdit' own='${projectName}' ${disabledRemoving ? 'disabled' : ''} onclick='removeProjectJAR(event, "${filename}")'></i>
+    </span>
+  </li>  
+  `;
+}
+
+
+function showProjectJARs(disabledRemoving=true) {
+  let projectJARsDiv = document.getElementById("projectjars_" + projectName);
+  if (projectJARsDiv) {
+    let fileList = "";
+    let JARFiles = []; try {
+      JARFiles = pageProject.generalData["projectJARs"];
+    } catch (e) {}
+    JARFiles.forEach(file => {          
+      fileList += getProjectJARsListItemHTML(file, disabledRemoving);
+    });
+    projectJARsDiv.innerHTML = "<ul>"+fileList+"</ul>";
+  }
+}
+function removeProjectJAR(event, filename) {
+  let fileDiv = document.getElementById(`jar_${filename}`);
+  if (fileDiv) {    
+    jarRemovedFiles.push(filename);
+    pageProject.generalData["projectJARs"] = pageProject.generalData["projectJARs"].filter(item => item !== filename);
+    fileDiv.remove();
+
+    contentChanged(changes.other, "general");
+  }
+}
+async function fixJARsOnCancel() {
+  const promises = jarAddedFiles.map((file, index) =>
+    new Promise((resolve) => {
+      askServer((pName, filename, response) => {
+        if (response.Status == 0) {
+          pageProject.generalData["projectJARs"] = pageProject.generalData["projectJARs"].filter(item => item !== filename);
+        }
+        resolve(); // Resolve this promise after askServer completes
+      }, projectName, file,
+         `alter {'Action':'RemoveJARFile', 'ProjectName':'${projectName}', 'FileName':'${file}'}` // Use 'file' from the array
+      );
+    })
+  );
+  await Promise.all(promises);
+
+  jarRemovedFiles.forEach((key) => {
+    if (!(key in jarAddedFiles)) {
+      pageProject.generalData["projectJARs"].push(key);
+    }
+  });
+}
+async function removeRemovedJARFiles() {
+  const promises = jarRemovedFiles.map((key) =>
+    new Promise((resolve) => {
+      askServer(() => {resolve();}, projectName, key, 
+        `alter {'Action':'RemoveJARFile', 'ProjectName':'${projectName}', 'FileName':'${key}'}`
+      );         
+    })
+  );
+  await Promise.all(promises);
+}
+
+function showJARFile(fileName) {
+  askServer((projectName, fileName, jResp) => {
+    if (jResp.Status == 0 ) {
+      let content = atob(jResp.Answer);
+      showModalDisplay(fileName, content, 1);
+    } else {
+      showPopup(jResp.Answer);
+    }
+  }, projectName, fileName, 
+    `getData {'Type':'JarFileContent', 'ProjectName':'${projectName}', 'FileName':'${fileName}'}`
+  );         
+}
+
+
+function setGeneralData(projectName, eid, shortTitle, projDesc, author, date, projectJARs, lastModified, execFamily, tags) {
+  pageProject.generalData = new GeneralData(projectName, eid, shortTitle, projDesc, author, date, projectJARs, lastModified, execFamily, tags);
 }
 function showGeneralData() {
   var gd = pageProject.generalData;
   document.getElementById("general-div").innerHTML = getGeneralHTML(
-    `${gd.name} [${gd.eid}]`, gd.projDesc, gd.author, gd.date, gd.algorithms, gd.testsets, gd.isPrivate
+    gd.name, gd.shortTitle, gd.projDesc, gd.author, gd.date, gd.projectJARs, gd.execFamily
   );
+
+  setValueOfMultiSelectFromArray("tagsgrl", gd.tags);
+  $("#tagsgrl").select2({placeholder: "",  tags: true, tokenSeparators: [','], createTag: function (params) {
+    // this function prevents empty and too long tags
+    let term = params.term.trim();   
+    if (term.length === 0) return null;
+    if (term.includes(" ")) {
+        showPopup("Tag cannot contain spaces!");
+        return null; 
+    } 
+    if (term.length > 20) {
+        showPopup("Tag cannot be longer than 20 characters!");
+        return null; 
+    }
+    return {id: term, text: term};
+  }});  
+
+  const selectElement = document.getElementById(`family_select`);
+  selectElement.innerHTML = "";
+  addOptionToSelect(selectElement, '', `not set (ALGator will use the most appropriate family)`);
+  pageProject.computerFamilies.families./*filter(f => f.FamilyID != "F0").*/
+    forEach(cf => {addOptionToSelect(selectElement, cf.FamilyID, `${cf.Description} (${cf.FamilyID})`)});
+  selectElement.value = gd.execFamily;
+
+
+  registerUploadPanel("projectjars", new Map([["type", "jar"],[]]), file=>{
+      jarAddedFiles.push(file.name);
+      pageProject.generalData.projectJARs.push(file.name);
+      showProjectJARs(false);
+      contentChanged(changes.other, "general");
+  });
+  showProjectJARs(true);
 }
 
 function saveGeneral(projectName) {
   genJSON =  {
-    "Description"   : document.getElementById("descgrl").value,
+    "ShortTitle"    : document.getElementById("stitgrl").value,    
+    "Description"   : document.getElementById("descgrl").value,    
     "Author"        : document.getElementById("authorgrl").value,
     "Date"          : document.getElementById("dategrl").value,
+    "ProjectJARs"   : pageProject.generalData["projectJARs"],
+    "EMExecFamily"  : document.getElementById("family_select").value,
+    "Tags"          : getValueOfMultiselectAsJSON("tagsgrl"),
   };
   genJSONS = JSON.stringify(genJSON);
 
   var gen = pageProject.generalData;
-  if (gen) gen.setProps(projectName, undefined, genJSON.Description, genJSON.Author);
+  if (gen) gen.setProps(projectName, undefined, genJSON.Description, genJSON.Author, undefined, genJSON.ProjectJARs, Math.floor(Date.now() / 1000), genJSON.EMExecFamily, genJSON.Tags);
 
   askServer(saveGeneralPhase2, projectName, "general", 
-     `alter {'Action':'SaveProjectGeneral', 'ProjectName':'${projectName}', 'Data':${genJSONS}}` );
+     `alter {'Action':'SaveProjectGeneral', 'ProjectName':'${projectName}', 'Data':${genJSONS}}`);
 }
 
 function saveGeneralPhase2(projectName, key, response) {
   changes.other.delete("general");
 }
+
+
+function compileProject() {
+  runTaskAndShowResults(`addTask {"Project":"${projectName}", "TaskType":"CompileProject"}`, "Compile project");
+}
+
+function runTestset() {
+  runTaskAndShowResults('addTask {"Project":"BasicSort", "Family":"F0", "Algorithm":"QuickSort", "Testset":"TestSet3", "MType":"em", "Priority":5}', "Execute");
+}
+
 
 // ****************************** Files (input, output, tools)  ***************************************** //
 
@@ -442,8 +810,10 @@ function setFileContent(key, content) {
 }
 function showFileContent(key) {
   var editor = editors.get(key + "-code-editor");
-  if (editor)
-    editor.getDoc().setValue(pageProject.srcFiles.get(key));    
+  if (editor) {
+    editor.getDoc().setValue(pageProject.srcFiles.get(key)); 
+    changes.delete(changes.other, key);   
+  }
 }
 
 
@@ -493,7 +863,7 @@ function getParameterHTML(projectName, key, valueDescription, minv, maxv, stepv,
       <td>
         <table id="emeta-controls-p-__key__" class="hidden-controls">
         <tr><td class=metatd><label for="valuesp-__key__">Values:</label></td>
-            <td><select class="multiselect pEditE" disabled id="valuesms-__key__" multiple style="width: 400px; top: 0px;" array="${evalue}" onchange="contentChanged(changes.parameters, '__key__')"></select>  
+            <td><select class="multiselect pEditE" disabled id="valuesms-__key__" multiple style="width: 400px; top: 0px;" array='${evalue}'' onchange="contentChanged(changes.parameters, '__key__')"></select>  
         </td></tr>
         </table>
     </td></tr>
@@ -527,7 +897,7 @@ function addParameterOnForm(projectName, key, isInput, desc, defValue, metaMin, 
   if (!pageProject.parameters.has(key))
     pageProject.addParameter(key, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType);
   
-  var parDivID  = (isInput == "True") ? "inputParameters" : "otherParameters";
+  var parDivID  = isInput ? "inputParameters" : "otherParameters";
   var newParDiv = document.createElement('div');newParDiv.classList.add("paramDiv");
   newParDiv.innerHTML = getParameterHTML(projectName, key, desc, metaMin, metaMax, metaStep, defValue, metaValues);
 
@@ -546,15 +916,21 @@ function addParameterOnForm(projectName, key, isInput, desc, defValue, metaMin, 
 function newParameter(projectName) {
     var parameterName = document.getElementById("newparname").value;
     var isInput = document.getElementById("isInputP").checked;
+
+    if (removedItems.includes(parameterName)) {
+      showPopup(`You have removed parameter ${parameterName}. Please save your changes first before adding it back.`); return;
+    }
   
     if (!checkName(parameterName, pageProject.parameters, "parameter")) return;
 
-    askServer(newParameterPhase2, projectName, parameterName, 
-        `alter {'Action':'NewParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameterName}', 'IsInput':${isInput}}` );
+    newParameterPhase2(projectName, parameterName, )
 }
 function newParameterPhase2(projectName, parameterName, response) {
+    addedItems.push(parameterName);
+    changes.parameters.add(parameterName);
+
     var isInput = document.getElementById("isInputP").checked;
-    var newDiv = addParameterOnForm(projectName, parameterName, isInput ? "True" : "False", "", "", 0, 0, 0, "", "");
+    var newDiv = addParameterOnForm(projectName, parameterName, isInput, "", "", 0, 0, 0, "", "");
     enableProjectEditMode(true, newDiv);
 
     newDiv.scrollIntoView({ behavior: 'smooth' });
@@ -565,20 +941,20 @@ function newParameterPhase2(projectName, parameterName, response) {
 
 
 function removeParameter(projectName, parameterName) {
-  /* 
-    askServer(removeParameterPhase2, projectName, parameterName, 
-      `alter {'Action':'RemoveParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameterName}'}`);
-  */
-  
   removeParameterPhase2(projectName, parameterName, null);
 }
 function removeParameterPhase2(projectName, parameterName, response) {
-  removedItems.push(parameterName);
-  contentChanged(changes.parameters, parameterName);
+  if (addedItems.includes(parameterName)) {
+    addedItems.pop(parameterName);
+    changes.delete(changes.parameters, parameterName);
+    pageProject.parameters.delete(parameterName);
+  } else {
+    removedItems.push(parameterName);
+    contentChanged(changes.parameters, parameterName);
+  }
 
-  var element = document.getElementById("paramdiv-"+parameterName);
-  if (element) element.parentNode.remove();
-  pageProject.removeSubmenuItem(parameterName, "parameterlink");
+  removeElementFromDOM("paramdiv-",      parameterName);
+  removeElementFromDOM("parameterlink_", parameterName);
 
   showHideParametersTitles();
 }
@@ -598,6 +974,13 @@ function saveParameters(projectName) {
       `alter {'Action':'RemoveParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameterName}'}`);    
     pageProject.removeParameter(parameterName);      
     changes.delete(changes.parameters, parameterName);
+  });
+  addedItems.forEach(function(parameterName) {
+    // dodam nov parameter; vse lastnosti se bodo shranile spodaj (ker je v changes.parameters)
+    askServer(newParameterPhase2, projectName, parameterName, 
+      `alter {'Action':'NewParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameterName}', 'IsInput':${pageProject.parameters.get(parameterName).isInput}}` );
+    let navBarEl =  document.getElementById(`parameterElt_${parameterName}_mi`);
+    if (navBarEl) navBarEl.remove();
   });
 
   changes.parameters.forEach(function (parameter) {                
@@ -637,7 +1020,6 @@ function saveParameters(projectName) {
 
     askServer(saveParametersPhase2, projectName, parameter, 
        `alter {'Action':'SaveParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameter}', 'Parameter':${paramJSONS}}` );
-
     
   });
 }
@@ -709,6 +1091,11 @@ function addGeneratorOnForm(projectName, generatorName, description, parameters,
 
 function newGenerator(projectName) {
   var generatorName = "Type" + document.getElementById("newgenname").value;
+
+  if (removedItems.includes(generatorName)) {
+    showPopup(`You have removed generator ${generatorName}. Please save your changes first before adding it back.`); return;
+  }
+
   if (generatorName == "Type") {
         showPopup("Enter a valid generator type (field cannot be empty).");
         return;
@@ -726,6 +1113,9 @@ function newGenerator(projectName) {
     `alter {'Action':'NewGenerator', 'ProjectName':'${projectName}', 'GeneratorName':'${generatorName}', 'GeneratorParameters':${parameters}}` );
 }
 function newGeneratorPhase2(projectName, generatorName, response) {
+  addedItems.push(generatorName);
+  changes.generators.add(generatorName);
+
   try {
     parameters = JSON.stringify(response.Answer.Parameters);
     code       = atob(response.Answer.Code); 
@@ -743,19 +1133,21 @@ function newGeneratorPhase2(projectName, generatorName, response) {
 }
 
 function removeGenerator(projectName, generatorName) {
-  
+  removeGeneratorPhase2(projectName, generatorName);
 }
 
-function removeGenerator(projectName, generatorName) {
-  askServer(removeGeneratorPhase2, projectName, generatorName, 
-      `alter {'Action':'RemoveGenerator', 'ProjectName':'${projectName}', 'GeneratorName':'${generatorName}'}`);
-}
 function removeGeneratorPhase2(projectName, generatorName, response) {
-  pageProject.removeGenerator(generatorName);  
-  changes.delete(changes.generators, generatorName);
+  if (addedItems.includes(generatorName)) {
+    addedItems.pop(generatorName);
+    changes.delete(changes.generators, generatorName);
+    pageProject.generators.delete(generatorName);
+  } else {
+    removedItems.push(generatorName);
+    contentChanged(changes.generators, generatorName);    
+  }
 
-  var element = document.getElementById("generatordiv-"+generatorName);
-  if (element) element.parentNode.removeChild(element);
+  removeElementFromDOM("generatordiv-",  generatorName);
+  removeElementFromDOM("generatorlink_", generatorName);
 }
 
 
@@ -767,168 +1159,40 @@ function setNewGenParamValue() {
 }
 
 function saveGenerators(projectName) {
-    changes.generators.forEach(function (generator) {                
-        var genJSON = {
-           "Type"                 : generator,
-           "Description"          : document.getElementById("descg-"+generator).value,
-           "GeneratingParameters" : getValueOfMultiselectAsJSON("genpars-"+generator),
-        };
-        var genJSONS = JSON.stringify(genJSON);
-        var code = editors.get("gencode-"+generator).getValue();
-        var codes = Base64.encode(code);
-        askServer(saveGeneratorsPhase2, projectName, generator, 
-          `alter {'Action':'SaveGenerator', 'ProjectName':'${projectName}', 'GeneratorType':'${generator}', 'Generator':${genJSONS}, 'Code':'${codes}'}` );
+  removedItems.forEach(function(generatorName) {
+    askServer(null, projectName, generatorName, 
+      `alter {'Action':'RemoveGenerator', 'ProjectName':'${projectName}', 'GeneratorName':'${generatorName}'}`);
+    pageProject.removeGenerator(generatorName);  
+    changes.delete(changes.generators, generatorName);
+  });
 
-        var gen = pageProject.generators.get(generator);
-        if (gen) gen.setProps(generator, genJSON.Description, JSON.stringify(genJSON.GeneratingParameters), code);
-   });
+  changes.generators.forEach(function (generator) {                
+    var genJSON = {
+       "Type"                 : generator,
+       "Description"          : document.getElementById("descg-"+generator).value,
+       "GeneratingParameters" : getValueOfMultiselectAsJSON("genpars-"+generator),
+    };
+    var genJSONS = JSON.stringify(genJSON);
+    var code = editors.get("gencode-"+generator).getValue();
+    var codes = Base64.encode(code);
+    askServer(saveGeneratorsPhase2, projectName, generator, 
+      `alter {'Action':'SaveGenerator', 'ProjectName':'${projectName}', 'GeneratorType':'${generator}', 'Generator':${genJSONS}, 'Code':'${codes}'}` );
+    var gen = pageProject.generators.get(generator);
+    if (gen) gen.setProps(generator, genJSON.Description, JSON.stringify(genJSON.GeneratingParameters), code);
+ });
 }
 function saveGeneratorsPhase2(projectName, generator, response) {
   changes.delete(changes.generators, generator);  
 }
 
 
-// ************************************* TESTSETS ***************************************** //
-function getTestsetHTML(projectName, key, eid, desc, shortname, n, repeat, timelimit) {
-  var testsetHTML = `
-     <div id="testsetdiv-__key__">
-     <span id="testsetElt-__key__"></span>  
-     <table style="width:100%; padding: 15px;">
-     <tr><td class="gentd"><label for="namets-__key__">Name:</label>
-            <span class="tooltip-button pEditV" style="display:none" data-tooltip="Delete" onclick="removeTestset('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
-         </td>
-         <td><input class="almostW" disabled type="text" id="namets-__key__" readonly value="${key} [${eid}]">
-     </td></tr>
-     <tr><td class="gentd"><label for="tsshort-__key__">Short name</label></td>
-         <td><input class="almostW pEditE" disabled type="text" id="tsshort-__key__" value="${shortname}" onchange="contentChanged(changes.testsets, '__key__')">
-     </td></tr>
-     <tr><td class="gentd"><label for="descts-__key__">Description:</label></td>
-         <td><textarea class="descTA almostW pEditE" disabled class="almostW" type="text" id="descts-__key__" onchange="contentChanged(changes.testsets, '__key__')">${desc}</textarea>
-     </td></tr>
-     <tr><td class="gentd"><label for="tsnum-__key__">Number of tests</label></td>
-         <td><input class="almostW pEditE" disabled type="number" id="tsnum-__key__" value="${n}" onchange="contentChanged(changes.testsets, '__key__')">
-     </td></tr>
-     <tr><td class="gentd"><label for="tsrepeated-__key__">Test repeat</label></td>
-         <td><input class="almostW pEditE" disabled type="number" id="tsrepeat-__key__" value="${repeat}" onchange="contentChanged(changes.testsets, '__key__')">
-     </td></tr>
-     <tr><td class="gentd"><label for="tstimelimit-__key__">Time limit</label></td>
-         <td><input class="almostW pEditE" disabled type="number" id="tstimelimit-__key__" value="${timelimit}" onchange="contentChanged(changes.testsets, '__key__')">
-     </td></tr>
-     <tr><td style="vertical-align:top" class="gentd"><label for="tsfilecont-__key__">Tests</label></td>
-         <td><textarea style="display:none;" class="almostW" id="tstimelimitTA-__key__" onchange="contentChanged(changes.testsets, '__key__');"></textarea>
-         <div class="CodeMirror almostW" id="tstimelimitCM-__key__"></div>
-     </td></tr>
-
-     </table>
-     <hr>
-     </div>
-  `;
-  return testsetHTML.replace(/__key__/g, key); 
-}
-
-function showTestsets() {
-  document.getElementById("testsets-list_panel").innerHTML = ""; 
-  document.querySelectorAll('.testsetDiv').forEach(e => e.remove());
-
-  pageProject.testsets.forEach(function(value, key, map){
-    var ts = pageProject.testsets.get(key);
-    addTestsetOnForm(projectName, key, ts.eid, ts.description, ts.shortname, ts.n, ts.repeat, ts.limit, ts.fileContent, true);
+function cancelGeneratorsEdit() {
+  addedItems.forEach(generatorName => {
+    pageProject.generators.delete(generatorName);
+    askServer(null, projectName, generatorName, 
+      `alter {'Action':'RemoveGenerator', 'ProjectName':'${projectName}', 'GeneratorName':'${generatorName}'}`);
   });
 }
-
-function addTestsetOnForm(projectName, testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent, readOnly) {
-  if (!pageProject.testsets.has(testsetName))
-    pageProject.addTestset(testsetName, testsetEID, description, shortname, n, repeat, limit, fileContent);
-
-  var newDiv = document.createElement('div');newDiv.classList.add("testsetDiv");
-  newDiv.innerHTML = getTestsetHTML(projectName, testsetName, testsetEID, description, shortname, n, repeat, limit);
-  document.getElementById("testsets-div").appendChild(newDiv);
-  document.getElementById("newtestsetname").value   = "";
-
-  pageProject.addSubmenuItem(testsetName, "testsetElt", "testsetlink", "testsets-list_panel");
-
-
-  var cmDiv = "tstimelimitCM-"+testsetName;
-  initCodeMirrorEditor(cmDiv, "tstimelimitTA-"+testsetName, fileContent, changes.testsets, testsetName, "light", undefined, "240px", readOnly);
-  var tsEditor = editors.get(cmDiv);
-  disabableEditors.set(cmDiv,tsEditor);
-
-  return newDiv;
-}
-
-function newTestset(projectName) {
-    var testsetName = document.getElementById("newtestsetname").value;
-
-    if (!checkName(testsetName, pageProject.testsets, "testset")) return;
-
-    askServer(newTestsetPhase2, projectName, testsetName, 
-       `alter {'Action':'NewTestset', 'ProjectName':'${projectName}', 'TestsetName':'${testsetName}'}`);    
-}
-function newTestsetPhase2(projectName, testsetName, response) {
-    askServer(newTestsetPhase3, projectName, testsetName, 
-       `getData {'Type':'Testset', 'ProjectName':'${projectName}', 'TestsetName':'${testsetName}', 'Deep':true}`);      
-}
-function newTestsetPhase3(projectName, testsetName, response) {
-  let prop = response.Answer.Properties;
-  var tsDiv = addTestsetOnForm(projectName, testsetName, prop.eid, prop.Description, prop.ShortName, 
-      prop.N, prop.TestRepeat, prop.TimeLimit, response.Answer.FileContent, false);
-  enableProjectEditMode(true, tsDiv);
-
-  document.getElementById(`namets-${testsetName}`).scrollIntoView({ behavior: 'smooth' });
-}
-function removeTestset(projectName, testsetName) {
-  askServer(removeTestsetPhase2, projectName, testsetName, 
-      `alter {'Action':'RemoveTestset', 'ProjectName':'${projectName}', 'TestsetName':'${testsetName}'}`);
-}
-
-function removeTestsetPhase2(projectName, testsetName, response) {
-  pageProject.removeTestset(testsetName);
-  changes.delete(changes.testsets, testsetName);
-
-  var element = document.getElementById("testsetdiv-"+testsetName);
-  if (element) element.parentNode.removeChild(element);
-}
-
-function saveTestsets(projectName) {
-    changes.testsets.forEach(function (testset) {                        
-      let ts = pageProject.testsets.get(testset);
-      let tsEID = ""; if (ts) tsEID = ts.eid; 
-
-      let tsJSON = {
-        "Name"                 : testset,
-        "eid"                  : tsEID, 
-        "ShortName"            : document.getElementById("tsshort-"+testset).value,
-        "Description"          : document.getElementById("descts-"+testset).value,
-        "N"                    : parseInt(document.getElementById("tsnum-"+testset).value),
-        "TestRepeat"           : parseInt(document.getElementById("tsrepeat-"+testset).value),        
-        "TimeLimit"            : parseInt(document.getElementById("tstimelimit-"+testset).value),
-      };
-      let tests = document.getElementById("tstimelimitTA-"+testset).value;
-
-      if (ts) ts.setProps(tsJSON.Name, tsJSON.eid, tsJSON.Description, tsJSON.ShortName, tsJSON.N, tsJSON.TestRepeat, tsJSON.TimeLimit, tests);
-
-      let dataJSON = {
-        "Properties" : tsJSON,
-        "FileContent": tests
-      };
-
-      askServer(saveTestsetsPhase2, projectName, testset, 
-         `alter {'Action':'SaveTestset', 'ProjectName':'${projectName}', 'TestsetName':'${testset}', 'Testset':${JSON.stringify(dataJSON)}}` );
-   });
-}
-function saveTestsetsPhase2(projectName, testsetName, response) {
-  changes.delete(changes.testsets, testsetName);  
-}
-
-function nonCommentLines(id) {
-  let content=document.getElementById("tstimelimitTA-"+id).value;
-  let n = content.split('\n').filter(line => { 
-    const  trimmedLine = line.trim();
-    return trimmedLine.length > 0 && !trimmedLine.startsWith('#');
-  }).length;
-  document.getElementById("tsnum-"+id).value=n
-}
-
 
 // ************************************* TIMERS ***************************************** //
 function getTimerHTML(projectName, key, desc,timerid) {
@@ -991,56 +1255,78 @@ function addTimerOnForm(projectName, timerName, desc, timerID, timerSTAT) {
 
 function newTimer(projectName) {
     var timerName = document.getElementById("newtimer").value;
+
+    if (removedItems.includes(timerName)) {
+      showPopup(`You have removed timer ${timerName}. Please save your changes first before adding it back.`); return;
+    }
+
     if (!checkName(timerName, pageProject.timers, "timer")) return;
 
-    askServer(newTimerPhase2, projectName, timerName, 
-      `alter {'Action':'NewIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${timerName}', 'IndicatorType':'timer', 'Meta':{'ID':0, 'STAT':'MIN'}}`);    
+    newTimerPhase2(projectName, timerName);
 }
 function newTimerPhase2(projectName, timerName, response) {
+  addedItems.push(timerName);
+  changes.timers.add(timerName);
+
   var newDiv = addTimerOnForm(projectName, timerName, "", 0);
   enableProjectEditMode(true, newDiv);
-
   newDiv.scrollIntoView({ behavior: 'smooth' });
 
   document.getElementById("newtimer").value   = "";
 }
 
 function removeTimer(projectName, timerName) {
-  askServer(removeTimerPhase2, projectName, timerName, 
-      `alter {'Action':'RemoveIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${timerName}', 'IndicatorType':'timer'}`);
+ removeTimerPhase2(projectName, timerName);       
 }
 function removeTimerPhase2(projectName, timerName, response) {
-  pageProject.removeTimer(timerName);
-  changes.delete(changes.timers, timerName);
-  
-  var element = document.getElementById("timerdiv-"+timerName);
-  if (element) element.parentNode.removeChild(element);
+  if (addedItems.includes(timerName)) {
+    addedItems.pop(timerName);
+    changes.delete(changes.timers, timerName);
+    pageProject.timers.delete(timerName);
+  } else {
+    removedItems.push(timerName);
+    contentChanged(changes.timers, timerName);    
+  }
+
+  removeElementFromDOM("timerdiv-",   timerName);
+  removeElementFromDOM("timerlink_",  timerName);  
 }
 
-function saveTimers(projectName) {
-    changes.timers.forEach(function (timer) {                
-        
-        timerId = parseInt(document.getElementById("timid-"+timer).value, 10); 
-        if (isNaN(timerId)) timerId = 0;
-        document.getElementById("timid-"+timer).value = timerId;
+async function saveTimers(projectName) {
+  removedItems.forEach(function(timerName) {
+    askServer(null, projectName, timerName, 
+      `alter {'Action':'RemoveIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${timerName}', 'IndicatorType':'timer'}`);    
+    pageProject.removeTimer(timerName);      
+    changes.delete(changes.timers, timerName);
+  });
 
-        var timerJSON = {
-           "Name"                 : timer,
-           "Description"          : document.getElementById("desct-"+timer).value,
-           "Type"                 : "timer",
-           "Meta"                 : {
-              "ID"   : timerId,
-              "STAT" : document.getElementById("statf-"+timer).value
-           }
-        };
-        var timerJSONS= JSON.stringify(timerJSON);
+  let numC = addedItems.length; 
+  addedItems.forEach(function(timerName) {
+    // dodam nov timer; vse lastnosti se bodo shranile spodaj (ker je v changes.timers)
+    askServer(()=>{numC--;}, projectName, timerName, 
+      `alter {'Action':'NewIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${timerName}', 'IndicatorType':'timer', 'Meta':{'ID':0, 'STAT':'MIN'}}`);    
+  });
+  let wres = await waitForZero(()=>numC, 1000);
 
-        var tm = pageProject.timers.get(timer);
-        if (tm) tm.setProps(timer, timerJSON.Description, timerJSON.Meta.ID, timerJSON.Meta.STAT);
-
+  changes.timers.forEach(function (timer) {                        
+       timerId = parseInt(document.getElementById("timid-"+timer).value, 10); 
+       if (isNaN(timerId)) timerId = 0;
+       document.getElementById("timid-"+timer).value = timerId;
+       var timerJSON = {
+          "Name"                 : timer,
+          "Description"          : document.getElementById("desct-"+timer).value,
+          "Type"                 : "timer",
+          "Meta"                 : {
+             "ID"   : timerId,
+             "STAT" : document.getElementById("statf-"+timer).value
+          }
+       };
+       var timerJSONS= JSON.stringify(timerJSON);
+       var tm = pageProject.timers.get(timer);
+       if (tm) tm.setProps(timer, timerJSON.Description, timerJSON.Meta.ID, timerJSON.Meta.STAT);
        askServer(saveTimerPhase2, projectName, timer, 
-          `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'timer', 'Indicator':${timerJSONS}}` );
-   });
+         `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'timer', 'Indicator':${timerJSONS}}` );
+  });
 }
 function saveTimerPhase2(projectName, timer, response) {  
   changes.delete(changes.timers, timer);        
@@ -1114,12 +1400,20 @@ function addIndicatorOnForm(projectName, indicatorName, desc, type, code, readOn
 
 function newIndicator(projectName) {
     var indicatorName = document.getElementById("newindicator").value;
+
+    if (removedItems.includes(indicatorName)) {
+      showPopup(`You have removed indicator ${indicatorName}. Please save your changes first before adding it back.`); return;
+    }
+
     if (!checkName(indicatorName, pageProject.indicators, "indicator")) return;
 
     askServer(newIndicatorPhase2, projectName, indicatorName, 
       `alter {'Action':'NewIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${indicatorName}', 'IndicatorType':'indicator'}`);
 }
 function newIndicatorPhase2(projectName, indicatorName, response) {
+  addedItems.push(indicatorName);
+  changes.indicators.add(indicatorName);
+
   var newDiv = addIndicatorOnForm(projectName, indicatorName, "", "int", atob(response.Answer), false);
   enableProjectEditMode(true, newDiv);  
   newDiv.scrollIntoView({ behavior: 'smooth' });
@@ -1128,42 +1422,56 @@ function newIndicatorPhase2(projectName, indicatorName, response) {
 }
 
 function removeIndicator(projectName, indicatorName, response) {
-  var indicatorName = document.getElementById("namei-"+indicatorName).value; 
-
-  askServer(removeIndicatorPhase2, projectName, indicatorName, 
-      `alter {'Action':'RemoveIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${indicatorName}', 'IndicatorType':'indicator'}`);
+  removeIndicatorPhase2(projectName, indicatorName);
 }
 
 function removeIndicatorPhase2(projectName, indicatorName, response) {
-  pageProject.removeIndicator(indicatorName);
+  if (addedItems.includes(indicatorName)) {
+    addedItems.pop(indicatorName);
+    changes.delete(changes.indicators, indicatorName);
+    pageProject.indicators.delete(indicatorName);
+  } else {
+    removedItems.push(indicatorName);
+    contentChanged(changes.indicators, indicatorName);    
+  }
 
-  changes.delete(changes.indicators, indicatorName);
-
-  var element = document.getElementById("indicatordiv-"+indicatorName);
-  if (element) element.parentNode.removeChild(element);
+  removeElementFromDOM("indicatordiv-",  indicatorName);
+  removeElementFromDOM("indicatorlink_", indicatorName);  
 }
 
 function saveIndicators(projectName) {
-    changes.indicators.forEach(function (indicator) {                
+  removedItems.forEach(function(indicatorName) {
+    askServer(null, projectName, indicatorName, 
+      `alter {'Action':'RemoveIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${indicatorName}', 'IndicatorType':'indicator'}`);
+    pageProject.removeIndicator(indicatorName);
+    changes.delete(changes.indicators, indicatorName);
+  });
 
-        var code = editors.get("indcode-"+indicator).getValue();
-        var indJSON =  {
-           "Name"        : indicator,
-           "Description" : document.getElementById("desci-"+indicator).value,
-           "Type"        : document.getElementById("itype-"+indicator).value,
-           "Code"        : btoa(code)
-        };
-        var indJSONS = JSON.stringify(indJSON);
-
-        var ind = pageProject.indicators.get(indicator);
-        if (ind) ind.setProps(indicator, indJSON.Description, indJSON.Type, code);
-
-       askServer(saveIndicatorPhase2, projectName, indicator, 
-          `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'indicator', 'Indicator':${indJSONS}}` );
-   });
+  changes.indicators.forEach(function (indicator) {                
+    var code = editors.get("indcode-"+indicator).getValue();
+    var indJSON =  {
+       "Name"        : indicator,
+       "Description" : document.getElementById("desci-"+indicator).value,
+       "Type"        : document.getElementById("itype-"+indicator).value,
+       "Code"        : Base64.encode(code)
+    };
+    var indJSONS = JSON.stringify(indJSON);
+    var ind = pageProject.indicators.get(indicator);
+    if (ind) ind.setProps(indicator, indJSON.Description, indJSON.Type, code);
+   askServer(saveIndicatorPhase2, projectName, indicator, 
+      `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'indicator', 'Indicator':${indJSONS}}` );
+  });
 }
 function saveIndicatorPhase2(projectName, indicator, response) {
   changes.delete(changes.indicators, indicator);
+}
+
+function cancelIndicatorsEdit() {
+  addedItems.forEach(indicatorName => {
+    pageProject.indicators.delete(indicatorName);
+    askServer(null, projectName, indicatorName, 
+      `alter {'Action':'RemoveIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${indicatorName}', 'IndicatorType':'indicator'}`);
+  });
 }
 
 
@@ -1214,12 +1522,19 @@ function addCounterOnForm(projectName, counterName, desc) {
 
 function newCounter(projectName) {
     var counterName = document.getElementById("newcounter").value;
+
+    if (removedItems.includes(counterName)) {
+      showPopup(`You have removed counter ${counterName}. Please save your changes first before adding it back.`); return;
+    }
+
     if (!checkName(counterName, pageProject.counters, "counter")) return;
 
-    askServer(newCounterPhase2, projectName, counterName, 
-      `alter {'Action':'NewIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${counterName}', 'IndicatorType':'counter'}`);
+    newCounterPhase2(projectName, counterName);     
 }
 function newCounterPhase2(projectName, counterName, response) {
+  addedItems.push(counterName);
+  changes.counters.add(counterName);
+
   var newDiv = addCounterOnForm(projectName, counterName,"");
   enableProjectEditMode(true, newDiv);  
   newDiv.scrollIntoView({ behavior: 'smooth' });
@@ -1228,210 +1543,871 @@ function newCounterPhase2(projectName, counterName, response) {
 }
 
 function removeCounter(projectName, counterName, response) {
-  var counterName = document.getElementById("namec-"+counterName).value; 
-
-  askServer(removeCounterPhase2, projectName, counterName, 
-      `alter {'Action':'RemoveIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${counterName}', 'IndicatorType':'counter'}`);
+  removeCounterPhase2(projectName, counterName);
 }
 
 function removeCounterPhase2(projectName, counterName, response) {
-  pageProject.removeCounter(counterName);
-  changes.delete(changes.counters, counterName);
+  if (addedItems.includes(counterName)) {
+    addedItems.pop(counterName);
+    changes.delete(changes.counters, counterName);
+    pageProject.counters.delete(counterName);
+  } else {
+    removedItems.push(counterName);
+    contentChanged(changes.counters, counterName);    
+  }
 
-  var element = document.getElementById("counterdiv-"+counterName);
-  if (element) element.parentNode.removeChild(element);
+  removeElementFromDOM("counterdiv-",  counterName);
+  removeElementFromDOM("counterlink_", counterName);
 }
 
-function saveCounters(projectName) {
-    changes.counters.forEach(function (counter) {                
-      changes.delete(changes.counters, counter);
-        var indJSON = {
-           "Name"        : counter,
-           "Description" : document.getElementById("descc-"+counter).value,
-           "Type"        : "counter"
-        };
-        var indJSONS = JSON.stringify(indJSON);
+async function saveCounters(projectName) {
+  removedItems.forEach(function(counterName) {
+    askServer(null, projectName, counterName, 
+      `alter {'Action':'RemoveIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${counterName}', 'IndicatorType':'counter'}`);
+    pageProject.removeCounter(counterName);
+    changes.delete(changes.counters, counterName);
+  });
 
-        var cnt = pageProject.counters.get(counter);
-        if (cnt) cnt.setProps(counter, indJSON.Description);
+  let numC = addedItems.length; 
+  addedItems.forEach(function(counterName) {
+    // dodam nov counter; vse lastnosti se bodo shranile spodaj (ker je v changes.counters)
+    askServer(()=>{numC--;}, projectName, counterName, 
+        `alter {'Action':'NewIndicator', 'ProjectName':'${projectName}', 'IndicatorName':'${counterName}', 'IndicatorType':'counter'}`);
+  });
+  let wres = await waitForZero(()=>numC, 1000);
 
-       askServer(saveCounterPhase2, projectName, counter, 
-          `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'counter', 'Indicator':${indJSONS}}` );
-   });
+  changes.counters.forEach(function (counter) {                
+    changes.delete(changes.counters, counter);
+      var indJSON = {
+         "Name"        : counter,
+         "Description" : document.getElementById("descc-"+counter).value,
+         "Type"        : "counter"
+      };
+      var indJSONS = JSON.stringify(indJSON);
+      var cnt = pageProject.counters.get(counter);
+      if (cnt) cnt.setProps(counter, indJSON.Description);
+     askServer(saveCounterPhase2, projectName, counter, 
+        `alter {'Action':'SaveIndicator', 'ProjectName':'${projectName}', 'IndicatorType':'counter', 'Indicator':${indJSONS}}` );
+  });
 }
 function saveCounterPhase2(projectName, counter, response) {
-  changes.delete(changes.indicators, counter);
+  changes.delete(changes.counters, counter);
+}
+
+// ************************************* TESTSETS ***************************************** //
+function getTestsetHTML(projectName, key, author, date, eid, desc, shortname, n, repeat, timelimit) {
+  let okCancelB = getOkCancelButtonsHTML(key, false, "margin-bottom:-5px;margin-right:-11px;");
+  let upload    = getUploadComponet("testset-"+key, key); 
+  let testsetHTML = `
+     <div id="testsetChangesDot" class="smallDot" style="top:57px; right:5px;"></div>
+
+     <div id="testsetdiv-__key__" style="margin:10px;">
+        <div style="display:flex;justify-content: space-between;align-items: end; padding-right: 12px; height:40px">
+          <div id="namets-${key}"style="font-size: 16px;padding-left: 10px;">
+          </div> 
+          <div id="editButtons_${key}" class="editMode" w="${eid} cw" style="display:flex;gap:10px; display:none;">
+            <span name="privateness_span_holder" key="${eid}" ename="${key}"></span>
+            <i class="far fa-edit icon"  title="Edit testset" onclick="editSelectedTestset('${key}')"></i>
+            <i class="fas fa-times icon" title="Remove testset" onclick="removeTestset('${projectName}', '__key__')"></i>
+          </div>
+          ${okCancelB}
+        </div>
+      <div id="testset_container_div" style="border: 1px solid #cccccc;margin: 0px 10px 10px 10px; height: calc(100vh - 150px); display: flex; flex-direction: column; overflow: auto;">
+       <span id="testsetElt-__key__"></span>  
+       <table style="width:100%; padding: 15px;">
+         <tr><td class="gentd"><label for="tsauthor-__key__">Author of testset</label></td>
+             <td><input class="almostW pEdit"  disabled readonly type="text" id="tsauthor-__key__" value="${author}" own='${key}'>
+         </td></tr>         
+         <tr><td class="gentd"><label for="tsdate-__key__">Creation Date</label></td>
+             <td><input class="almostW pEdit"  disabled readonly type="text" id="tsdate-__key__" value="${date}" own='${key}'>
+         </td></tr>
+         <tr><td class="gentd"><label for="tsshort-__key__">Short name</label></td>
+             <td><input class="almostW sEdit" disabled type="text" id="tsshort-__key__" value="${shortname}"  own='${key}' oninput="setTestsetChanged(true);">
+         </td></tr>
+         <tr><td class="gentd"><label for="descts-__key__">Description:</label></td>
+             <td><textarea class="descTA almostW sEdit" disabled class="almostW" type="text" id="descts-__key__"  own='${key}' oninput="setTestsetChanged(true);">${desc}</textarea>
+         </td></tr>
+         <tr><td class="gentd"><label for="tsnum-__key__">Number of tests</label></td>
+             <td><input class="almostW sEdit" disabled type="number" id="tsnum-__key__" value="${n}"  own='${key}' oninput="setTestsetChanged(true);">
+         </td></tr>
+         <tr><td class="gentd"><label for="tsrepeated-__key__">Test repeat</label></td>
+             <td><input class="almostW sEdit" disabled type="number" id="tsrepeat-__key__" value="${repeat}"  own='${key}' oninput="setTestsetChanged(true);">
+         </td></tr>
+         <tr><td class="gentd"><label for="tstimelimit-__key__">Time limit</label></td>
+             <td><input class="almostW sEdit" disabled type="number" id="tstimelimit-__key__" value="${timelimit}" own='${key}' oninput="setTestsetChanged(true);">
+         </td></tr>
+         <tr><td style="vertical-align:top" class="gentd"><label for="tsfilecont-__key__">Tests</labekeyl></td>
+             <td><textarea style="display:none;" class="almostW" id="tsfilecontTA-__key__" onchange="setTestsetChanged(true);"></textarea>
+             <div class="CodeMirror almostW" id="tsfilecontCM-__key__"></div>
+         </td></tr>
+         
+         <tr class="separator"><td colspan="2"></td></tr> 
+         
+         <tr><td style="vertical-align:top;" class="gentd"><label for="tstfiles-__key__">Testset files</label> 
+             ${infoButton('testset_files', key)}
+             </td>
+         <td><div id="testsetfiles_${key}" class="container-box sEdit almostW" own='${key}' disabled>... no files added for this testset</div>
+             ${upload}
+         </td>
+         </td></tr>
+
+        <tr class="separator"><td colspan="2"></td></tr> 
+        <tr><td style="vertical-align:top; padding-top:10px" class="gentd"><label for="running-__key__">Run</label> 
+            </td>
+         <td style="padding-top:10px">
+           Run testset with algorithm <select id="run_testsetalgorithm_select"></select> <input type=button value="Run" onclick="runAlgorithmWithTestset('${key}')">
+         </td>
+         </td></tr>
+        
+
+       </table>
+      </div>
+     </div>
+  `;
+  return testsetHTML.replace(/__key__/g, key); 
+}
+
+function getTestsetFilesListItemHTML(testsetName, filename, size, disabledRemoving=true) {
+  return `
+  <span id="file_${testsetName}_${filename}" class="framed-span"> 
+      <span class="clickable-span" onclick="showTestsetResourceFile('${testsetName}', '${filename}')">${filename}</span> (${formatFileSize(size)})
+      <i class='fas fa-times icon sEdit' own='${testsetName}' ${disabledRemoving ? 'disabled' : ''} onclick='removeTestsetFile(event, "${testsetName}",  "${filename}")'></i>
+    </span>
+  `;
+}
+
+function getTestsetFilesHTML(projectName, key, eid) {
+  let okCancelB = getOkCancelButtonsHTML(key, false);
+  let upload    = getUploadComponet("testset-"+key, key); 
+  let testsetHTML = `
+     <div id="testsetsdiv-__key__" style="margin:10px;">
+        <div style="display:flex;justify-content: space-between;align-items: end; padding-right: 12px;">
+          <div id="nametss-${key}"style="font-size: 16px;padding-left: 10px; padding-top:28px;">
+            Testsets common files
+          </div> 
+          <div id="editButtons_${key}" class="editMode" w="${eid} cw" style="display:flex;gap:10px; display:none;">
+            <i class="far fa-edit icon"  title="Edit testset" onclick="editTestsetsCommonFiles()"></i>
+          </div>
+          ${okCancelB}
+        </div>
+      <div id="testsets_container_div" style="border: 1px solid #cccccc;margin: 0px 10px 10px 10px; height: calc(100vh - 150px); display: flex; flex-direction: column; overflow: auto;">
+       <table style="width:100%; padding: 15px;">         
+         <tr><td style="vertical-align:top;" class="gentd"><label for="tstfiles-__key__">Testsets common files</label>
+               ${infoButton('testsets_common_files', key)}
+             </td>
+         <td><div id="testsetfiles_${key}" class="container-box sEdit almostW" own='${key}' disabled>... no files added for this testset</div>
+             ${upload}
+         </td>
+         </td></tr>
+       </table>
+      </div>
+     </div>
+  `;
+  return testsetHTML.replace(/__key__/g, key); 
+}
+
+async function showTestsetFiles(testsetName, disabledRemoving=true) {
+  let testsetFilesDiv = document.getElementById("testsetfiles_" + testsetName);
+  if (testsetFilesDiv) {
+    let fileList = "";
+    let testsetFiles = {}; try {
+      testsetFiles = (testsetName != commonTestsetName) ? pageProject.testsets.get(testsetName).filesList : pageProject.tsCommonFiles;
+    } catch (e) {}
+    Object.keys(testsetFiles).forEach(key => {          
+      fileList += getTestsetFilesListItemHTML(testsetName, key, testsetFiles[key], disabledRemoving);
+    });
+    testsetFilesDiv.innerHTML = fileList;
+  }
+}
+
+function removeTestsetFile(event, testsetName, filename) {
+  let fileDiv = document.getElementById(`file_${testsetName}_${filename}`);
+  if (fileDiv) {    
+    setTestsetChanged(true);
+    let list = pageProject.tsCommonFiles;          // ... to ensure this function to work on both (testsetand commonFiles)
+    let removedList = testsetsCommonRemovedFiles;   
+    if (testsetName != commonTestsetName) {
+      list        = pageProject.testsets.get(testsetName).filesList;
+      removedList = testsetRemovedFiles;
+    }
+    let size = list[filename];
+    removedList[filename] = size;
+    delete list[filename];
+    fileDiv.remove();
+  }
+}
+
+function showTestsetResourceFile(testsetName, fileName) {
+  let service = pageProject.services["get_testset_file"];
+  sendRequest(service.endpoint, {'ProjectName':projectName, 'TestsetName':testsetName,'FileName':fileName}, service.method).then((response) =>{
+    let jResp = JSON.parse(response);
+    if (jResp.Status == 0 ) {
+      let content = atob(jResp.Answer);
+      showModalDisplay(fileName, content);
+    }
+  }). catch((error) => {
+    alert("File does not exist");
+  }); 
+}
+
+function addOptionToSelect(selectElement, value, text=value) {
+  const optionElement = document.createElement('option');
+  optionElement.value = value;
+  optionElement.textContent = text;
+  selectElement.appendChild(optionElement);
+}
+
+// used for both, testsets and algorithms
+async function showListOfEntities(entityName, entitiesList, fireChange=true) {
+  await pageProject.waitForDataToLoad(["get_"+entityName+"s"],false, {'ProjectName':projectName});
+
+  const selectElement = document.getElementById(`select_${entityName}_element`);
+  if (selectElement) {
+    selectElement.innerHTML = "";
+    entitiesList.forEach(ent => {addOptionToSelect(selectElement, ent.name)});
+    selectElement.selectedIndex = 0;
+    if (fireChange) selectElement.dispatchEvent(new Event("change"));
+
+    let hasEntities = (selectElement.options.length > 0);
+    document.getElementById(`loading_${entityName}s_div`).style.display =  "none";
+    document.getElementById(`no_${entityName}s_div`).style.display      =  hasEntities ? "none" : "";
+    document.getElementById(`${entityName}s_div`)   .style.display      =  hasEntities ? ""     : "none";
+  }
+}
+
+var commonTestsetName = "testsets_common"; // generic name for "testset" which represent common testset files
+var testsetsCommonAddedFiles = {};
+var testsetsCommonRemovedFiles = {};
+async function fillTestsetsFilesPanel() {
+  let testsetsfilespanel = document.getElementById("testset_files_panel");
+  if (testsetsfilespanel.childElementCount == 0) { // only fill div once
+    await pageProject.waitForDataToLoad(["get_testsets_common_files"], false, {'ProjectName':projectName});
+    testsetsfilespanel.innerHTML = getTestsetFilesHTML(projectName, commonTestsetName, projectEID);
+    wireButton(commonTestsetName+"_cancel", cancelTestsetCommonFiles, commonTestsetName);
+    wireButton(commonTestsetName+"_ok",     saveTestsetCommonFiles,   commonTestsetName);
+    registerUploadPanel("testset-"+commonTestsetName, new Map([["type", commonTestsetName]]), file=>{
+      testsetsCommonAddedFiles[file.name] = file.size;
+      pageProject.tsCommonFiles[file.name]=file.size;
+      showTestsetFiles(commonTestsetName, false);
+    });
+    showTestsetFiles(commonTestsetName);
+    enableEditMode(isEditMode);
+  }
+}
+
+function editTestsetsCommonFiles() {
+  testsetsCommonAddedFiles = {};
+  testsetsCommonRemovedFiles = {};
+
+  enableEEditElementsWithOwn(commonTestsetName, true);
+  showHideTestSetEditPanel(commonTestsetName, false); 
+  updateUploadButtonState("testset-"+commonTestsetName);
+}
+async function cancelTestsetCommonFiles() {
+  setTestsetChanged(false);
+  showHideTestSetEditPanel(commonTestsetName, true);  
+  enableEEditElementsWithOwn(commonTestsetName, false);
+
+  await fixFilesOnCancel(testsetsCommonAddedFiles, testsetsCommonRemovedFiles, pageProject.tsCommonFiles, commonTestsetName);
+  showTestsetFiles(commonTestsetName);
+}
+async function saveTestsetCommonFiles() {
+  showHideTestSetEditPanel(commonTestsetName, true); 
+  enableEEditElementsWithOwn(commonTestsetName, false); 
+
+  await removeRemovedFiles(testsetsCommonRemovedFiles, commonTestsetName);
+}
+
+function showTestsetsSubpage(elt) {
+  document.getElementsByName("mx").forEach(function(title) {
+      title.style.color = '#333';
+  });
+  document.getElementById('testsets_main_panel').querySelectorAll(':scope > div')
+    .forEach(div => {
+      div.style.display = 'none';
+  });
+
+  elt.style.color = "var(--submenu_color)";
+  document.getElementById(elt.getAttribute("href")).style.display="";  
+}  
+
+async function showSelectedTestset() {
+  const selectElement = document.getElementById('select_testset_element');
+  var testsetName = selectElement.value;
+  var ts = pageProject.testsets.get(testsetName);
+
+  // if testset exists, show its data on page
+  if (ts) {
+    let newContentPanel = document.getElementById("testset_panel_detail");
+    newContentPanel.innerHTML = getTestsetHTML(
+      projectName, testsetName, ts.author, ts.date, ts.eid, ts.description, ts.shortname, ts.n, ts.repeat, ts.limit);
+    enableEditMode(isEditMode, newContentPanel);
+    wireButton(testsetName+"_cancel", cancelSelectedTestset, testsetName);
+    wireButton(testsetName+"_ok",     saveSelectedTestset,   testsetName);
+    registerUploadPanel("testset-"+testsetName, new Map([["type", "testset"],["name", testsetName]]), file=>{
+      // alert for each uploaded file
+      testsetAddedFiles[file.name] = file.size;
+      pageProject.testsets.get(testsetName).filesList[file.name] = file.size;
+      showTestsetFiles(testsetName, false);
+      setTestsetChanged(true);
+    });
+    showTestsetFiles(testsetName);
+
+    await populatePrivatnessSpans("testset");
+    showHidePrivatenessIcons();
+
+    var cmDiv = "tsfilecontCM-"+testsetName;
+    initCodeMirrorEditor(cmDiv, "tsfilecontTA-"+testsetName, ts.fileContent, changes.testsets, testsetName, "light", undefined, "240px", true);
+    var tsEditor = editors.get(cmDiv);
+    setTimeout(() => {tsEditor.refresh();}, 100); // to render properly
+    disabableEditors.set(cmDiv,tsEditor);
+
+    const selectElement = document.getElementById(`run_testsetalgorithm_select`);
+    if (selectElement) {
+      selectElement.innerHTML = "";
+      pageProject.algorithms.forEach(ent => {addOptionToSelect(selectElement, ent.name)});
+      selectElement.selectedIndex = 0;
+      //if (fireChange) selectElement.dispatchEvent(new Event("change"));
+    }
+  } else {
+    document.getElementById("testset_panel_detail").innerHTML = "";
+  }
+}
+
+function askForNewTestsetName() {
+  openDialog('Enter the name of the testset to be created:', preventNonAlphaNumKeys).then((result) => {
+    if (result != null) {
+      newTestsetByName(result);
+    } 
+  });
+}
+
+function newTestset() {
+  var testsetName = document.getElementById("newtestsettextfield").value;
+  newTestsetByName(testsetName);
+}
+
+function newTestsetByName(testsetName) {
+    if (!checkName(testsetName, pageProject.testsets, "testset")) return;
+
+    askServer(newTestsetPhase2, projectName, testsetName, 
+       `alter {'Action':'NewTestset', 'ProjectName':'${projectName}', 'TestsetName':'${testsetName}', 'Author':'${current_user_username}', 'Date':'${getCurrentFormattedDate()}'}`);    
+}
+function newTestsetPhase2(projectName, testsetName, response) {
+  if (response.Status == 0)
+    askServer(newTestsetPhase3, projectName, testsetName, 
+       `getData {'Type':'Testset', 'ProjectName':'${projectName}', 'TestsetName':'${testsetName}', 'Deep':true}`);      
+  else 
+    showPopup(response.Message);
+}
+async function newTestsetPhase3(projectName, testsetName, response) {
+  if (response.Status == 0) {
+    let prop = response.Answer.Properties;
+    if (!pageProject.testsets.has(testsetName))
+      pageProject.addTestset(testsetName, prop.Author, prop.Date, prop.eid, prop.Description, prop.ShortName, prop.N, prop.TestRepeat, prop.TimeLimit, response.Answer.FileContent, [], prop.LastModified);
+
+    add_entity('et3', prop.eid, testsetName, true);
+  
+    // refresh list of tests ... 
+    await showListOfEntities('testset', pageProject.testsets, false);
+    // and select last edded
+    const selectElement = document.getElementById('select_testset_element');
+    selectElement.selectedIndex = selectElement.options.length - 1;
+
+    await showSelectedTestset();
+
+    setTimeout(() => {editSelectedTestset(testsetName);}, 200);
+  }
 }
 
 
-function registerClickOnEnter(textfieldID, buttonID) {
-  var textfield = document.getElementById(textfieldID);
-  var button    = document.getElementById(buttonID);
-  if (textfield==null || button==null) return;
+function removeTestset(projectName, testsetName) {
+  showYesNoDialog(`Do you want to remove '${testsetName}'?`, removeTestsetPhase1, projectName, testsetName);
+}
+function removeTestsetPhase1(answer, projectName, testsetName) {
+  if (answer != 0) return;
+  askServer(removeTestsetPhase2, projectName, testsetName, 
+      `alter {'Action':'RemoveTestset', 'ProjectName':'${projectName}', 'TestsetName':'${testsetName}'}`);
+}
+function removeTestsetPhase2(projectName, testsetName, response) {
+  pageProject.removeTestset(testsetName);
+  showListOfEntities('testset', pageProject.testsets);
+}
 
-  textfield.addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();  
-      button.click();         
+function nonCommentLines(id) {
+  let content=document.getElementById("tsfilecontTA-"+id).value;
+  let n = content.split('\n').filter(line => { 
+    const  trimmedLine = line.trim();
+    return trimmedLine.length > 0 && !trimmedLine.startsWith('#');
+  }).length;
+  document.getElementById("tsnum-"+id).value=n
+}
+
+
+function showHideTestSetEditPanel(tsName, show) {
+  var editButtons = document.getElementById("editButtons_" + tsName);
+  var okcaButtons = document.getElementById("OKCancelButtons_" + tsName);
+
+  if (editButtons) editButtons.style.display =  show ? ""     : "none";
+  if (okcaButtons) okcaButtons.style.display = !show ? "flex" : "none";
+
+  showHidePrivatenessIcons();
+}
+
+
+// if cancel is called from "outside", the name of editing testset is read from this currentEditingTestset
+currentEditingTestset = "";  
+testsetEditMode       = false;
+savedTestsetValues    = new Map();
+
+let testsetAddedFiles   = {};  // resource files removed during edit session
+let testsetRemovedFiles = {};  // resource files added during edit session
+
+testsetChanged        = false;
+function setTestsetChanged(changed) {
+  testsetChanged = changed;
+  let elt = document.getElementById("testsetChangesDot");
+  if (elt) elt.style.backgroundColor=testsetChanged ? "red" : "green";
+}
+
+function editSelectedTestset(tsName) {
+   testsetAddedFiles   = {};
+   testsetRemovedFiles = {};
+   setTestsetChanged(false);
+
+   currentEditingTestset = tsName;
+   testsetEditMode       = true;
+
+   showHideTestSetEditPanel(tsName, false); 
+   enableEEditElementsWithOwn(tsName, true, ["tsfilecontCM-"]);
+
+/*
+   // save current values
+   savedTestsetValues = new Map();
+   document.getElementById(`testsetdiv-${tsName}`).querySelectorAll("input, textarea").forEach(input => {
+    if (input.type != 'file')
+     savedTestsetValues.set(input.id, input.value);
+   });
+   var fcEditor = editors.get("tsfilecontCM-"+tsName);
+   if (fcEditor) savedTestsetValues.set("tsfilecont-editorvalue"+tsName, fcEditor.getValue());
+
+   document.getElementById("tsshort-"+tsName).focus();
+   document.getElementById("tsshort-"+tsName).select();
+
+   testsetAddedFiles   = {};  
+   testsetRemovedFiles = {};  
+   updateUploadButtonState("testset-"+tsName);
+*/   
+ }
+
+async function fixFilesOnCancel(addedFiles, removedFiles, filesList, testsetName) {
+  const promises = Object.keys(addedFiles).map((key) =>
+    new Promise((resolve) => {
+      askServer((pName, tsName, response) => {
+        if (response.Status == 0) {
+          delete filesList[key];
+        }
+        resolve(); // Resolve this promise after askServer completes
+      }, projectName, testsetName, 
+         `alter {'Action':'RemoveTestsetFile', 'ProjectName':'${projectName}', 'TestsetName':'${testsetName}', 'FileName':'${key}'}`
+      );
+    })
+  );
+
+  // Wait for all askServer calls to finish
+  await Promise.all(promises);
+
+  Object.keys(removedFiles).forEach((key) => {
+    if (!(key in addedFiles)) {
+      filesList[key] = removedFiles[key];
     }
   });
 }
 
 
-// ************************************* TESTSETS ***************************************** //
+async function cancelSelectedTestset(event) {
+  setTestsetChanged(false);
+
+  testsetEditMode       = false;
+
+  var tsName = event ? event.data.param1 : currentEditingTestset;
+  showHideTestSetEditPanel(tsName, true); 
+  enableEEditElementsWithOwn(tsName, false, ["tsfilecontCM-"]);
+  
+  await fixFilesOnCancel(testsetAddedFiles, testsetRemovedFiles, pageProject.testsets.get(tsName).filesList, tsName);
+
+  showSelectedTestset();
+
+/*
+  //restore values
+  const myDiv = document.getElementById(`testsetdiv-${tsName}`);
+  savedTestsetValues.forEach((value, id) => {
+    if (id) {
+      const element = myDiv.querySelector(`#${id}`);
+      if (element) element.value = value;
+    }
+  });
+
+  showTestsetFiles(tsName);
+  removeAllFilesFromUploadList("testset-"+tsName); // delete files on upload panel 
+
+   var fcEditor = editors.get("tsfilecontCM-"+tsName);
+   if (fcEditor) fcEditor.setValue(savedTestsetValues.get("tsfilecont-editorvalue"+tsName));  
+*/
+}
+
+async function removeRemovedFiles(removedFiles, testsetName) {
+  const promises = Object.keys(removedFiles).map((key) =>
+    new Promise((resolve) => {
+      askServer(() => {resolve();}, projectName, testsetName, 
+        `alter {'Action':'RemoveTestsetFile', 'ProjectName':'${projectName}', 'TestsetName':'${testsetName}', 'FileName':'${key}'}`
+      );         
+    })
+  );
+  await Promise.all(promises);
+}
+
+async function saveSelectedTestset(event) {
+  setTestsetChanged(false);
+
+  testsetEditMode       = false;
+
+  var tsName = event.data.param1;
+
+  await removeRemovedFiles(testsetRemovedFiles, tsName);
+
+  showHideTestSetEditPanel(tsName, true); 
+  enableEEditElementsWithOwn(tsName, false, ["tsfilecontCM-"]);
+
+  saveTestset(tsName);
+}
+
+function saveTestset(testset) {
+  let ts = pageProject.testsets.get(testset);
+  let tsEID = ""; if (ts) tsEID = ts.eid; 
+
+  let tsJSON = {
+    "Name"                 : testset,
+    "eid"                  : tsEID, 
+    "ShortName"            : document.getElementById("tsshort-"+testset).value,
+    "Description"          : document.getElementById("descts-"+testset).value,
+    "N"                    : parseInt(document.getElementById("tsnum-"+testset).value),
+    "TestRepeat"           : parseInt(document.getElementById("tsrepeat-"+testset).value),        
+    "TimeLimit"            : parseInt(document.getElementById("tstimelimit-"+testset).value),
+  };
+  let tests = document.getElementById("tsfilecontTA-"+testset).value;
+
+  if (ts) ts.setProps(tsJSON.Name, undefined, undefined, tsJSON.eid, tsJSON.Description, tsJSON.ShortName, tsJSON.N, tsJSON.TestRepeat, tsJSON.TimeLimit, tests, undefined, Math.floor(Date.now() / 1000));
+
+  let dataJSON = {
+    "Properties" : tsJSON,
+    "FileContent": tests
+  };
+
+  askServer(saveTestsetsPhase2, projectName, testset, 
+     `alter {'Action':'SaveTestset', 'ProjectName':'${projectName}', 'TestsetName':'${testset}', 'Testset':${JSON.stringify(dataJSON)}}` );
+  testsetChanged = false;
+}
+function saveTestsetsPhase2(projectName, testsetName, response) {
+  showPopup("Testset saved.");
+}
+
+function enableEEditElementsWithOwn(own, enabled, editorList) {
+  // enable/diable inputs ...
+//  document.querySelectorAll(`.sEdit[own="${own}"]`).forEach(function(element) {
+//    element.disabled = !enabled;
+//  });
+// spodnja koda doda/odstrani disabled na vseh elementih (ne samo na elementih tipa input, kot to naredi zgornja koda)
+document.querySelectorAll(`.sEdit[own="${own}"]`).forEach(function(element) {
+    if ("disabled" in element) {
+        // If the element supports the disabled property (e.g., <input>, <button>)
+        element.disabled = enabled ? false : true;
+    } else {
+        // For elements that do not support the disabled property (e.g., <div>)
+        if (enabled) {
+            element.removeAttribute("disabled");
+        } else {
+            element.setAttribute("disabled", "");
+        }
+    }
+});
+
+
+  //  and editors ...
+  if (editorList) editorList.forEach(editor => {
+    var tsEditor = editors.get(editor+own);
+    if (tsEditor) {
+      tsEditor.setOption("readOnly", !enabled);
+      tsEditor.getWrapperElement().style.backgroundColor = (enabled ? "#FBFFFB" : "#f5f5f5"); 
+    }
+  });
+  // and show/hide TextBox views and their previews
+  document.querySelectorAll(`.sEditV[own="${own}"]`).forEach(function(element) {
+    element.style.display = enabled ^ element.classList.contains("not") ? "" : "none";
+  });
+
+}
+
+
+// ************************************* Algorithms ***************************************** //
 function getAlgorithmHTML(projectName, key, eid, desc, shortname, date, author, language, htmlContent) {
+  var okCancelB = getOkCancelButtonsHTML(key, false, "margin-bottom:-5px;margin-right:-11px;");
   var algorithmHTML = `
-     <div id="algorithmdiv-__key__">
-     <span id="algorithmElt-__key__"></span>  
-     <table style="width:100%; padding: 15px;">
-     <tr><td class="gentd"><label for="nameal-__key__">Name:</label>
-            <span class="tooltip-button pEditV" style="display: none;" data-tooltip="Delete" onclick="removeAlgorithm('${projectName}', '__key__')"><img style="  padding-bottom: 5px; width: 16px" src="${deleteImgPath}"/></span>
-         </td>
-         <td><input class="almostW" type="text" id="nameal-__key__" disabled readonly value="${key} [${eid}]">
-     </td></tr>
-     <tr><td class="gentd"><label for="alshort-__key__">Short name</label></td>
-         <td><input class="almostW pEditE" disabled type="text" id="alshort-__key__" value="${shortname}" onchange="contentChanged(changes.algorithms, '__key__')">
-     </td></tr>
-     <tr><td class="gentd"><label for="descal-__key__">Short description:</label></td>
-         <td><textarea class="descTA almostW pEditE" disabled class="almostW" type="text" id="descal-__key__" onchange="contentChanged(changes.algorithms, '__key__')">${desc}</textarea>
-     </td></tr>
+     <div id="algorithmChangesDot" class="smallDot" style="top:57px; right:5px;"></div>
 
-     <tr><td class="gentd"><label for="aldate-__key__">Date</label></td>
-         <td><input class="almostW pEditE" disabled type="text" id="aldate-__key__" value="${date}" onchange="contentChanged(changes.algorithms, '__key__')">
-     </td></tr>
-     <tr><td class="gentd"><label for="alauthor-__key__">Author</label></td>
-         <td><input class="almostW pEditE" disabled type="text" id="alauthor-__key__" value="${author}" onchange="contentChanged(changes.algorithms, '__key__')">
-     </td></tr>
-     <tr><td class="gentd"><label for="allang-__key__">Language</label></td>
-         <td><input class="almostW pEditE" disabled type="text" id="allang-__key__" value="${language}" onchange="contentChanged(changes.algorithms, '__key__')">
-     </td></tr>
-     
-     <tr><td style="vertical-align:top" class="gentd"><label for="alghtml-__key__">Detailed description</label></td>
-         <td><div class="almostW pEditNV blck" style="background:#f5f5f5; border:1px solid lightgray; margin-bottom:10px;padding:10px;" id="alghtml_prev-algorithmDescription___key__" >${htmlContent}</div>
-             <div class="almostW pEditV blck"  style="display:none"       id="alghtml-__key__" ></div>
-     </td></tr>
-
-     <tr><td style="vertical-align:top" class="gentd"><label for="algsrcCM-__key__">Source code</label></td>
-         <td><textarea style="display:none;" class="almostW" id="algsrcTA-__key__" onchange="contentChanged(changes.algorithms, '__key__');"></textarea>
-         <div class="CodeMirror almostW" id="algsrcCM-__key__"></div>
-     </td></tr>
-      
-     </table>
-     <hr>
+     <div id="algorithmdiv-__key__" style="margin:10px;">
+       <div style="height:60px; display:flex;justify-content: space-between;align-items: end; padding-right: 12px; height:40px">
+         <div id="namets-${key}"style="font-size: 16px;padding-left: 10px;">&nbsp;
+         </div>
+         <div id="editButtons_${key}" class="editMode" w="${eid} cw" style="display:flex;gap:10px; display:none;">
+           <span name="privateness_span_holder" key="${eid}" ename="${key}"></span>         
+           <i class="far fa-edit icon"  title="Edit algorithm" onclick="editSelectedAlgorithm('${key}')"></i>
+           <i class="fas fa-times icon" title="Remove algorithm" onclick="removeAlgorithm('${projectName}', '__key__')"></i>
+         </div>
+         ${okCancelB}
+       </div>
+       <div id="algorithm_container_div" style="border: 1px solid #cccccc;margin: 0px 10px 10px 10px; height: calc(100vh - 150px); display: flex; flex-direction: column; overflow: auto;">
+         <span id="algorithmElt-__key__"></span>  
+         <table style="width:100%; padding: 15px;">
+           <tr><td class="gentd"><label for="alauthor-__key__">Author of implementation</label></td>
+               <td><input class="almostW pEdit" disabled disabled readonly type="text" id="alauthor-__key__" value="${author}" own='${key}'>
+           </td></tr>         
+           <tr><td class="gentd"><label for="aldate-__key__">Creation Date</label></td>
+               <td><input class="almostW pEdit" disabled disabled readonly type="text" id="aldate-__key__" value="${date}" own='${key}'>
+           </td></tr>
+           <tr><td class="gentd"><label for="alshort-__key__">Short name</label></td>
+               <td><input class="almostW sEdit" disabled type="text" id="alshort-__key__" value="${shortname}" own='${key}' oninput="setAlgorithmChanged(true);">
+           </td></tr>
+           <tr><td class="gentd"><label for="descal-__key__">Short description:</label></td>
+               <td><textarea class="descTA almostW sEdit" disabled class="almostW" type="text" id="descal-__key__" own='${key}' oninput="setAlgorithmChanged(true);">${desc}</textarea>
+           </td></tr>
+           <tr><td class="gentd"><label for="allang-__key__">Language</label></td>
+               <td><input class="almostW sEdit" disabled type="text" id="allang-__key__" value="${language}" own='${key}' oninput="setAlgorithmChanged(true);">
+           </td></tr>
+           
+           <tr><td style="vertical-align:top" class="gentd"><label for="alghtml-__key__">Detailed description</label></td>
+               <td><div class="almostW not sEditV" style="background:#f5f5f5; border:1px solid lightgray; margin-bottom:10px;padding:10px;" id="alghtml_prev-algorithmDescription___key__" own='${key}' onchange="setAlgorithmChanged(true);">${htmlContent}</div>
+                   <div class="almostW     sEditV"  style="display:none"       id="alghtml-__key__" own='${key}' oninput="setAlgorithmChanged(true);"></div>
+           </td></tr>
+           <tr><td style="vertical-align:top" class="gentd"><label for="algsrcCM-__key__">Source code</label></td>
+               <td><textarea style="display:none;" class="almostW" id="algsrcTA-__key__" onchange="setAlgorithmChanged(true)"></textarea>
+               <div class="CodeMirror almostW" id="algsrcCM-__key__"></div>
+           </td></tr>
+           <tr><td style="vertical-align:top" class="gentd"></td>
+               <td>              
+                 <input type=button value="Compile" style="float: right; margin-right: 11px;" onclick="compileAlgorithm('${key}')">
+           </td></tr>
+         </table>
+       </div>
      </div>
   `;
   return algorithmHTML.replace(/__key__/g, key); 
 }
 
-function showAlgorithms() {
-  document.getElementById("algorithms-list_panel").innerHTML = ""; 
-  document.querySelectorAll('.algorithmDiv').forEach(e => e.remove());
+// show algorithm by name or (if name is not given) by selected element in "select_algorithm_element"
+async function showSelectedAlgorithm() { 
+  const selectElement = document.getElementById('select_algorithm_element');
+  let   algorithmName = selectElement.value;
+  var   alg           = pageProject.algorithms.get(algorithmName);
 
-  pageProject.algorithms.forEach(function(value, key, map){
-    var alg = pageProject.algorithms.get(key);
-    addAlgorithmOnForm(projectName, key, alg.eid, alg.description, alg.shortname, 
-      alg.date, alg.author, alg.language, alg.fileContent, alg.htmlContent, true);
-  });
+  // if algorithm exists, show its data on page
+  if (alg) {
+    let newContentPanel = document.getElementById("algorithm_panel_detail");
+    newContentPanel.innerHTML = 
+      getAlgorithmHTML(projectName, algorithmName, alg.eid, alg.description, alg.shortname, alg.date, alg.author, alg.language, alg.htmlContent);
+
+    enableEditMode(isEditMode, newContentPanel);
+    wireButton(algorithmName+"_cancel", cancelSelectedAlgorithm, algorithmName);
+    wireButton(algorithmName+"_ok",     saveSelectedAlgorithm,   algorithmName);
+
+    await populatePrivatnessSpans("algorithm");
+    showHidePrivatenessIcons();
+
+    var cmDiv = "algsrcCM-"+algorithmName;
+    initCodeMirrorEditor(cmDiv, "algsrcTA-"+algorithmName, alg.fileContent, changes.algorithms, algorithmName, undefined, undefined, undefined, true);
+    var alEditor = editors.get(cmDiv);
+    setTimeout(() => {alEditor.refresh();}, 100); // to render properly
+
+
+    let view = getViewOfType("TextBox", "algorithmDescription", algorithmName);
+    document.getElementById("alghtml-"+algorithmName).innerHTML = view.getEditorHTML();  
+    document.getElementById("htmlEditorView_algorithmDescription_"+algorithmName).style.margin = "0px 0px 20px 0px";
+    view.initNewMode();
+    view.viewJSON["htmltext"]=alg.htmlContent;
+    view.fillDataAndWireControls(function(){
+       document.getElementById(`alghtml_prev-${view.viewID}`).innerHTML = view.viewJSON["htmltext"];
+       MathJax.typeset(); // show latex correctly
+    });
+    htmlViews.set(algorithmName, view);
+
+  } else {
+    document.getElementById("algorithm_panel_detail").innerHTML = "";
+  }
 }
 
-function addAlgorithmOnForm(projectName, algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent, readOnly) {
-  if (!pageProject.algorithms.has(algorithmName))  
-    pageProject.addAlgorithm(algorithmName, algorithmEID, description, shortname, date, author, language, fileContent, htmlContent );
+function showHideAlgorithmEditPanel(alName, show) {
+  var editButtons = document.getElementById("editButtons_"     + alName);
+  var okcaButtons = document.getElementById("OKCancelButtons_" + alName);
 
-  var newDiv = document.createElement('div');newDiv.classList.add("algorithmDiv");
-  newDiv.innerHTML = getAlgorithmHTML(projectName, algorithmName, algorithmEID, description, shortname, date, author, language, htmlContent);
-  document.getElementById("algorithms-div").appendChild(newDiv);
-  document.getElementById("newalgorithmname").value   = "";
-
-  var editor = initCodeMirrorEditor("algsrcCM-"+algorithmName, "algsrcTA-"+algorithmName, 
-    fileContent, changes.algorithms, algorithmName, undefined, undefined, "400px", readOnly);
-  disabableEditors.set("algsrcCM-"+algorithmName, editor);  // vsi urejevalniki algoritmov so disabable
-
-  let view = getViewOfType("TextBox", "algorithmDescription", algorithmName);
-  document.getElementById("alghtml-"+algorithmName).innerHTML = view.getEditorHTML();  
-  document.getElementById("htmlEditorView_algorithmDescription_"+algorithmName).style.margin = "0px 0px 20px 0px";
-  view.initNewMode();
-  view.viewJSON["htmltext"]=htmlContent;
-  view.fillDataAndWireControls(function(){
-     contentChanged(changes.algorithms, algorithmName);          
-     document.getElementById(`alghtml_prev-${view.viewID}`).innerHTML = view.viewJSON["htmltext"];
-  });
-  htmlViews.set(algorithmName, view);
-
-  pageProject.addSubmenuItem(algorithmName, "algorithmElt", "algorithmlink", "algorithms-list_panel");
-
-
-  return newDiv;
+  if (editButtons) editButtons.style.display =  show ? ""     : "none";
+  if (okcaButtons) okcaButtons.style.display = !show ? "flex" : "none";
 }
 
-function newAlgorithm(projectName) {
-    var algorithmName = document.getElementById("newalgorithmname").value;
 
-    if (!checkName(algorithmName, pageProject.algorithms, "algorithm")) return;
-
-    askServer(newAlgorithmPhase2, projectName, algorithmName, 
-       `alter {'Action':'NewAlgorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${algorithmName}'}`);    
+// if cancel is called from "outside", the name of editing testset is read from this currentEditingTestset
+currentEditingAlgorithm = "";  
+algorithmEditMode       = false;
+savedAlgorithmValues    = new Map();
+algorithmChanged        = false;
+function setAlgorithmChanged(changed) {
+  algorithmChanged = changed;
+  let elt = document.getElementById("algorithmChangesDot");
+  if (elt) elt.style.backgroundColor=algorithmChanged ? "red" : "green";
 }
-function newAlgorithmPhase2(projectName, algorithmName, response) {
-    askServer(newAlgorithmPhase3, projectName, algorithmName, 
-       `getData {'Type':'Algorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${algorithmName}', 'Deep':true}`);      
-}
-function newAlgorithmPhase3(projectName, algorithmName, response) {
-  let prop = response.Answer.Properties;
-  let newDiv = addAlgorithmOnForm(projectName, algorithmName, prop.eid, prop.Description, prop.ShortName, 
-      prop.Date, prop.Author, prop.Language, response.Answer.FileContent, response.Answer.HtmlFileContent, false);
-  let editor = disabableEditors.get("algsrcCM-"+algorithmName);
-  if (editor) editor.getWrapperElement().style.backgroundColor = "#FBFFFB"; // nov editor takoj postane zelen
+function editSelectedAlgorithm(alName) {
+   setAlgorithmChanged(false);
+   currentEditingAlgorithm = alName;
+   algorithmEditMode       = true;
 
-  enableProjectEditMode(true, newDiv);
+   showHideAlgorithmEditPanel(alName, false); 
+   enableEEditElementsWithOwn(alName, true, ["algsrcCM-"]);
 
-  document.getElementById(`nameal-${algorithmName}`).scrollIntoView({ behavior: 'smooth' });
+   document.getElementById("alshort-"+alName).focus();
+   document.getElementById("alshort-"+alName).select();
+ }
+
+function cancelSelectedAlgorithm(event) {
+  setAlgorithmChanged(false);
+
+  algorithmEditMode       = false;
+
+  var alName = event ? event.data.param1 : currentEditingAlgorithm;
+  showHideAlgorithmEditPanel(alName, true); 
+  enableEEditElementsWithOwn(alName, false, ["algsrcCM-"]);
+
+  showSelectedAlgorithm();
 }
-function removeAlgorithm(projectName, algorithmName) {
-  askServer(removeAlgorithmPhase2, projectName, algorithmName, 
-      `alter {'Action':'RemoveAlgorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${algorithmName}'}`);
+function saveSelectedAlgorithm(event) {
+  setAlgorithmChanged(false);
+
+  algorithmEditMode       = false;
+
+  var alName = event ? event.data.param1 : currentEditingAlgorithm;
+  showHideAlgorithmEditPanel(alName, true); 
+  enableEEditElementsWithOwn(alName, false, ["algsrcCM-"]);
+
+  saveAlgorithm(alName);
 }
 
-function removeAlgorithmPhase2(projectName, algorithmName, response) {
-  pageProject.removeAlgorithm(algorithmName);
-  changes.delete(changes.algorithms, algorithmName);
+function saveAlgorithm(alName) {
+  let al = pageProject.algorithms.get(alName);
+  let alEID = ""; if (al) alEID = al.eid; 
 
-  var element = document.getElementById("algorithmdiv-"+algorithmName);
-  if (element) element.parentNode.removeChild(element);
-  showPopup(response.Message);
-}
-
-function saveAlgorithms(projectName) {
-    changes.algorithms.forEach(function (algorithm) {   
-      let view = htmlViews.get(algorithm);
-      moveResources(algorithm, view.viewJSON["htmltext"], saveAlgorithmsPhase2);
-   });
-}
-function saveAlgorithmsPhase2(algorithm, htmlContent, newHtmlText) {
   let alJSON = {
-    "Name"                 : algorithm,
-    "Description"          : document.getElementById("descal-"+algorithm).value,        
-    "ShortName"            : document.getElementById("alshort-"+algorithm).value,
-    "Date"                 : document.getElementById("aldate-"+algorithm).value,
-    "Author"               : document.getElementById("alauthor-"+algorithm).value,
-    "Language"             : document.getElementById("allang-"+algorithm).value,
+    "eid"                  : alEID,     
+    "Description"          : document.getElementById("descal-"  +alName).value,        
+    "ShortName"            : document.getElementById("alshort-" +alName).value,
+    "Date"                 : document.getElementById("aldate-"  +alName).value,
+    "Author"               : document.getElementById("alauthor-"+alName).value,
+    "Language"             : document.getElementById("allang-"  +alName).value,
   };
-  let algsrc = document.getElementById("algsrcTA-"+algorithm).value;
+  let srcEditor = editors.get("algsrcCM-"+alName);
+  let algsrc      = srcEditor ? srcEditor.doc.getValue() : (al ? al.fileContent : "");
+  let newHtmlText = htmlViews.get(alName).viewJSON["htmltext"];
 
-  let al = pageProject.algorithms.get(algorithm);
-  if (al) al.setProps(alJSON.Name, alJSON.Description, alJSON.ShortName, alJSON.Date, alJSON.Author, alJSON.language, algsrc);
+  if (al) al.setProps(alName, alEID, alJSON.Description, alJSON.ShortName, alJSON.Date, alJSON.Author, alJSON.language, algsrc, newHtmlText, Math.floor(Date.now() / 1000));
 
   let dataJSON = {
     "Properties" : alJSON,
     "FileContent": algsrc,
     "HtmlFileContent" : replaceStaticProjDocLinkWithDolarStatic(newHtmlText)
   };
-  askServer(saveAlgorithmsPhase3, projectName, algorithm, 
-     `alter {'Action':'SaveAlgorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${algorithm}', 'Algorithm':${JSON.stringify(dataJSON)}}` );  
+  askServer(saveAlgorithmsPhase2, projectName, alName, 
+     `alter {'Action':'SaveAlgorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${alName}', 'Algorithm':${JSON.stringify(dataJSON)}}` );  
+  algorithmChanged = false;
 }
 
-function saveAlgorithmsPhase3(projectName, algorithmName, response) {
-  changes.delete(changes.algorithms, algorithmName);  
+function saveAlgorithmsPhase2(projectName, algorithmName, response) {
+  showPopup("Algorithm saved.")
+}
+
+function askForNewAlgorithmName() {
+  openDialog('Enter the name of the algorithm to be created:', preventNonAlphaNumKeys).then((result) => {
+    if (result != null) {
+      newAlgorithmByName(result);
+    } 
+  });
+}
+
+function newAlgorithm() {
+  var algorithmName = document.getElementById("newalgorithmtextfield").value;
+  newAlgorithmByName(algorithmName);
+}
+function newAlgorithmByName(algorithmName) {
+  if (!checkName(algorithmName, pageProject.algorithms, "algorithm")) return;
+
+  askServer(newAlgorithmPhase2, projectName, algorithmName, 
+    `alter {'Action':'NewAlgorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${algorithmName}', 'Author':'${current_user_username}', 'Date':'${getCurrentFormattedDate()}'}`);    
+}
+function newAlgorithmPhase2(projectName, algorithmName, response) {
+  if (response.Status == 0)  
+    askServer(newAlgorithmPhase3, projectName, algorithmName, 
+       `getData {'Type':'Algorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${algorithmName}', 'Deep':true}`);      
+  else 
+    showPopup(response.Message);
+}
+async function newAlgorithmPhase3(projectName, algorithmName, response) {
+  if (response.Status == 0) {
+    let prop = response.Answer.Properties;
+    if (!pageProject.algorithms.has(algorithmName)) 
+      pageProject.addAlgorithm(algorithmName, prop.eid, prop.Description, prop.ShortName, prop.Date, prop.Author, prop.Language, response.Answer.FileContent, response.Answer.HtmlFileContent, prop.LastModified);
+
+    add_entity('et2', prop.eid, algorithmName, true);
+
+    // refresh list of algorithms ... 
+    await showListOfEntities('algorithm', pageProject.algorithms, false);
+    // and select the added one
+    const selectElement = document.getElementById('select_algorithm_element');
+    selectElement.value = algorithmName;
+
+    await showSelectedAlgorithm();
+    editSelectedAlgorithm(algorithmName);
+  }
+}
+
+function removeAlgorithm(projectName, algorithmName) {
+  showYesNoDialog(`Do you want to remove '${algorithmName}'?`, removeAlgorithmPhase1, projectName, algorithmName);
+}
+function removeAlgorithmPhase1(answer, projectName, algorithmName) {
+  if (answer != 0) return;
+
+  askServer(removeAlgorithmPhase2, projectName, algorithmName, 
+      `alter {'Action':'RemoveAlgorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${algorithmName}'}`);
+}
+function removeAlgorithmPhase2(projectName, algorithmName, response) {
+  pageProject.removeAlgorithm(algorithmName);
+
+  removeElementFromDOM("algorithmdiv-",  algorithmName);
+  removeElementFromDOM("algorithmlink_", algorithmName);
+  
+  showListOfEntities('algorithm', pageProject.algorithms);
+  showSelectedAlgorithm();
+}
+
+function showAlgorithmsSubpage(elt) {
+  elt.style.color = "var(--submenu_color)";
+}
+
+function compileAlgorithm(algName) {
+  if (algorithmChanged) saveAlgorithm(algName);
+  runTaskAndShowResults(`addTask {"Project":"${projectName}", "Algorithm":"${algName}", "TaskType":"CompileAlgorithm"}`, "Compile algorithm");
+}
+
+
+function runAlgorithmWithTestset(tstName) {
+  if (testsetChanged) saveTestset(tstName); 
+  let algName = document.getElementById("run_testsetalgorithm_select").value;
+  runTaskAndShowResults(`addTask {"Project":"${projectName}", "Family":"", "Algorithm":"${algName}", "Testset":"${tstName}", "MType":"em", "Priority":5}`, "Execute");
 }
 
 
@@ -1439,6 +2415,28 @@ function saveAlgorithmsPhase3(projectName, algorithmName, response) {
 
 var contentModified = false;
 var projectEditMode = false;
+
+
+async function showImplementation() {
+  await pageProject.waitForDataToLoad(["get_project_general_data", "get_project_properties"], false, {'ProjectName': projectName}); 
+
+  showGeneralData(); 
+
+  showFileContent("input");
+  showFileContent("output");
+  showFileContent("tools");
+  //editors.get("input-code-editor").setValue(pageProject.srcFiles.get("input"));
+  //editors.get("output-code-editor").setValue(pageProject.srcFiles.get("output"));
+  //editors.get("tools-code-editor").setValue(pageProject.srcFiles.get("tools"));
+
+  showParameters();
+  showGenerators();
+  showTimers();         
+  showIndicators();       
+  showCounters();       
+
+  setEditPageHeight();
+}
 
 
 function enableProjectEditMode(enabled, where=document){
@@ -1494,7 +2492,7 @@ function selectEditProjectMenuItem(eltID, key) {
   document.getElementsByName(eltID + "_mi").forEach(function(title) {
     title.style.color = '#333';
   });
-  document.getElementById(`${eltID}_${key}_mi`).style.color = '#27ae60';
+  document.getElementById(`${eltID}_${key}_mi`).style.color = "var(--submenu_color)";;
 
   if (document.activeElement) document.activeElement.blur();
 
@@ -1529,7 +2527,7 @@ function hideAllShowOne(clickedItem, className, divIdSuffix) {
     return thisDiv;
 }
 function selectMenuItem(clickedItem) {
-    if (projectEditMode) 
+    if (projectEditMode || testsetEditMode) 
       if (contentModified)
         showYesNoDialog("Action will discard changes on '" +editProjectSelectedItem+"' tab. Continue?" , selectMenuItemPhase2, "", "", clickedItem);
       else
@@ -1543,7 +2541,11 @@ function selectMenuItemPhase2(action, s1, s2, clickedItem) {
     if (action == 1) return;
 
     if (action==0) {
-      editProjectSectionCancel();
+      if (projectEditMode)
+        editProjectSectionCancel();
+      else if (testsetEditMode)  
+        cancelSelectedTestset();
+
     }
 
     editProjectSelectedItem = clickedItem.innerText;
@@ -1551,7 +2553,7 @@ function selectMenuItemPhase2(action, s1, s2, clickedItem) {
     document.getElementsByName("mi").forEach(function(title) {
       title.style.color = '#333';
     });
-    clickedItem.style.color = '#27ae60';
+    clickedItem.style.color = "var(--submenu_color)";
     if (contentModified) saveContent();
     // Remove 'selected' class from all menu items
     var menuItems = document.querySelectorAll('#menu span');
@@ -1570,40 +2572,35 @@ function selectMenuItemPhase2(action, s1, s2, clickedItem) {
     });
     thisDiv.offsetHeight;
 
+    var editOKCAPanel = document.getElementById("editOkCancelPanel");
+    editOKCAPanel.style.display = (clickedItem.innerHTML == 'TestSets') ? "none" : "";
+
     // Reset the contentModified flag
     setContentModified(false);       
 }
-function contentChanged(entity, key) {
+function contentChanged(entity, key) {  
   setContentModified(true);
   entity.add(key);
 }
 
 function saveContent() {
-  if (changes.other.has("general")) 
-    saveGeneral(projectName);
-  if (changes.other.has("input")) 
-    saveFile(projectName, "proj/src/Input.java", editors.get("input-code-editor").getValue(), "input");
-  if (changes.other.has("output")) 
-    saveFile(projectName, "proj/src/Output.java", editors.get("output-code-editor").getValue(), "output");
-  if (changes.other.has("tools")) 
-    saveFile(projectName, "proj/src/Tools.java", editors.get("tools-code-editor").getValue(), "tools");
-  if (changes.other.has("algorithms")) 
-    saveFile(projectName, "proj/src/Tools.java", editors.get("tools-code-editor").getValue(), "tools");
-  if (changes.parameters.size > 0)
-    saveParameters(projectName);
-  
-  saveGenerators(projectName);
-  saveTestsets(projectName);
-  saveAlgorithms(projectName);
-  saveTimers(projectName);            
-  saveIndicators(projectName);            
-  saveCounters(projectName);
+  if (changes.other.has("general"))    saveGeneral(projectName);
+
+  if (changes.other.has("input"))      saveFile(projectName, "proj/src/Input.java", editors.get("input-code-editor").getValue(), "input");
+  if (changes.other.has("output"))     saveFile(projectName, "proj/src/Output.java", editors.get("output-code-editor").getValue(), "output");
+  if (changes.other.has("tools"))      saveFile(projectName, "proj/src/Tools.java", editors.get("tools-code-editor").getValue(), "tools");
+
+  if (changes.parameters.size > 0) saveParameters(projectName);
+  if (changes.generators.size > 0) saveGenerators(projectName);
+  if (changes.timers.size > 0)     saveTimers(projectName);            
+  if (changes.indicators.size > 0) saveIndicators(projectName);            
+  if (changes.counters.size > 0)   saveCounters(projectName);
   
   setContentModified(false);  
 }
 
 function cancelContentChanges() {
-  changes = new Changes();
+  changes.clearAll();
   setContentModified(false);  
 
   switch(editProjectSelectedItem) {
@@ -1612,19 +2609,20 @@ function cancelContentChanges() {
     case "Input":case "Output": case "Tools":
       showFileContent(editProjectSelectedItem.toLowerCase()); break;  
     case "Parameters":
+      addedItems.forEach(p=>pageProject.parameters.delete(p));
       showParameters(); break;  
     case "Generators":
+      cancelGeneratorsEdit();
       showGenerators(); break;  
-    case "TestSets":
-      showTestsets(); break;  
     case "Timers":
+      addedItems.forEach(p=>pageProject.timers.delete(p));
       showTimers(); break;  
     case "Indicators":
+      cancelIndicatorsEdit();
       showIndicators(); break;  
     case "Counters":
+      addedItems.forEach(p=>pageProject.counters.delete(p));
       showCounters(); break;  
-    case "Algorithms":
-      showAlgorithms(); break;  
   }
 }
 
@@ -1643,17 +2641,23 @@ function setEditPageHeight() {
     var bodyDivHeight = windowHeight - contentDiv.offsetTop - 10;;
     contentDiv.style.height = bodyDivHeight + 'px';
     document.getElementById('lower-section').style.height = (bodyDivHeight-48) + 'px';
+    
+    var testset_container_div = document.getElementById('testset_container_div');
+    if (testset_container_div) testset_container_div.style.height = (bodyDivHeight-140) + 'px';
+
+    var algorithm_container_div = document.getElementById('algorithm_container_div');
+    if (algorithm_container_div) algorithm_container_div.style.height = (bodyDivHeight-140) + 'px';
 }
 
 
 function showHideSaveCancelButtons(show) {
   document.getElementById("OKCancelButtons_editProjectSection").style.display = (show ? "flex" : "none");
-  document.getElementById("Edit_editProjectSection")           .style.display = (show ? "none" : "flex");
+  document.getElementById("edit_editProjectSection")           .style.display = (show ? "none" : "flex");
   setEditPageHeight();
 }
 
 function editSection() {
-  // during edit some items (parameters, generators, ...) can be 
+  // during edit, some items (parameters, generators, ...) can be 
   // deleted or added: here we store all such items to be properly
   // processed when Save is pressed
   removedItems = [];
@@ -1661,19 +2665,38 @@ function editSection() {
   
   enableProjectEditMode(true);
   showHideSaveCancelButtons(true); 
+
+  // before editing "General" some preparations for JAR files upload panel
+  if (editProjectSelectedItem == 'General') {
+    jarAddedFiles   = [];
+    jarRemovedFiles = [];
+    enableEEditElementsWithOwn(projectName, true);
+    updateUploadButtonState("projectjars");
+  }
 }
 
-function editProjectSectionCancel() {
+async function editProjectSectionCancel() {
   cancelContentChanges();
 
   enableProjectEditMode(false);
   showHideSaveCancelButtons(false);
+
+  if (editProjectSelectedItem == 'General') {
+    await fixJARsOnCancel();
+    showProjectJARs();
+    enableEEditElementsWithOwn(projectName, false);
+  }
 }
-function editProjectSectionSave() {
+async function editProjectSectionSave() {
   saveContent();
 
   enableProjectEditMode(false);
   showHideSaveCancelButtons(false);
+
+  if (editProjectSelectedItem == 'General') {
+    await removeRemovedJARFiles();
+    enableEEditElementsWithOwn(projectName, false);
+  }  
 }
 
 
@@ -1682,12 +2705,82 @@ function editProjectSectionSave() {
 
 ////////////// project ////////////////////////
 function newProject() {
-  let projectName=document.getElementById("newprojecttextfield").value;
+  openDialog('Enter the name of the project to be created:', preventNonAlphaNumKeys).then((result) => {
+    if (result != null) {
+      newProjectWithName(result);
+    } 
+  });
+}
+function newProjectWithName(projectName) {
   askServer(newProjectPhase2, projectName, "newproject", 
-     `alter {'Action':'NewProject', 'ProjectName':'${projectName}'}` );
+     `alter {'Action':'NewProject', 'ProjectName':'${projectName}', 'Author':'${current_user_username}', 'Date':'${getCurrentFormattedDate()}'}`);
 }
 
 function newProjectPhase2(projectName, key, response) {
   showPopup(response.Answer);
-  redirectToUrlWithParams(`/problem/${projectName}`, {homepoint: true });
+  redirectToUrlWithParams(`/project/${projectName}`, {homepoint: true });
+}
+
+
+
+//////////////********** PRIVATENESS icons **************/////////////////
+function getPrivatenessIconsHTML(key, ename, entity='it') {
+  return `
+    <span name="entity_privateness_span" key="${key}" ename="${ename}" onclick="changeLockState(event, '${key}', '${ename}')">
+        <i id="entity_locked_${key}_${ename}"   style="display: none; color:red" title="Make ${entity} public (open access)" class="fas fa-lock icon"></i>
+        <i id="entity_unlocked_${key}_${ename}" style="display: none; color:green" title="Make ${entity} private (restrict access)" class="fas fa-lock-open icon"></i>
+    </span>
+  `;
+}
+
+async function populatePrivatnessSpans(entity, rootElt=document) {
+//  document.getElementsByName("privateness_span_holder").forEach(async function(elt) {
+  rootElt.querySelectorAll('[name="privateness_span_holder"]').forEach(async function(elt) {  
+    let key   = elt.getAttribute("key");
+    let ename = elt.getAttribute("ename");
+    let showLockers = await can(key, "can_write");
+    //let showLockers = await isOwner(key);  ... ne vem, zakaj to ne dela!
+    if (showLockers) {
+      elt.innerHTML = getPrivatenessIconsHTML(key, ename, entity);
+    } 
+  });
+}
+
+function showHidePrivatenessIcons(rootElt=document) {
+//  document.getElementsByName("entity_privateness_span").forEach(async function(elt) {        
+  rootElt.querySelectorAll('[name="entity_privateness_span"]').forEach(async function(elt) {
+    let key = elt.getAttribute("key");
+    let ename = elt.getAttribute("ename");
+    let is_private = await isPrivate(key);
+    showHidePrivatenessIcon(key, ename, is_private);
+  });            
+}
+
+function showHidePrivatenessIcon(key, ename, is_private) {
+  let lockElement   = document.getElementById("entity_locked_"   + key + "_" + ename);
+  let unlockElement = document.getElementById("entity_unlocked_" + key + "_" + ename);
+  lockElement.classList.remove("grayed-icon");unlockElement.classList.remove("grayed-icon");
+
+  let is_entity = (find_entity(ausers.entities, key) != null);
+  lockElement.  style.display = is_private ? ""     : "none";
+  unlockElement.style.display = is_private ? "none" : "";
+  
+  lockElement.classList.  toggle("grayed-icon", !is_entity); lockElement.classList.  toggle("icon", is_entity); 
+  unlockElement.classList.toggle("grayed-icon", !is_entity); unlockElement.classList.toggle("icon", is_entity);
+}
+
+function changeLockState(event, key, ename) {
+  let entity = find_entity(ausers.entities, key);
+  if (entity) {
+    let is_private = !entity.is_private;
+    runNamedService(ausers.services, "set_private", {'eid':key, 'private': is_private ? "True" : "False"}, (result)=>{
+      if (result.Answer.startsWith("Error:")) {
+        showPopup(result.Answer);
+      } else {
+        entity.is_private = is_private;
+        showHidePrivatenessIcon(key, ename, is_private);
+      }
+    });
+  } 
+  event.stopPropagation();
 }

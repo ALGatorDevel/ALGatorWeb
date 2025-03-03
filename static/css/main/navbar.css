@@ -1,7 +1,9 @@
 
 :root {
  --navbar_background: #404040;
- --navbar_fontcolor: #7bc240; /* #27ae60, #27fe60; */
+ --navbar_fontcolor: white;  /* #7bc240; #27ae60, #27fe60; */
+ --navbar_hover: #7bc240;
+ --submenu_color: #7bc240;
 }
 
 
@@ -43,13 +45,14 @@
 .navBarEl:hover {
     text-decoration: underline;
     text-underline-offset: 5px;
-    color: #7bc240;
+    color: var(--navbar_hover);
 }
 
 .myContainerNavbar {
     padding: 10px 0;
     xbox-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
     background-color: var(--navbar_background);
+    xheight:65px;
 }
 
 

@@ -1,56 +1,41 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block headcss %}
+  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+{% endblock %}
+
 {% block content %}
 
-{% include "mainNavbar.html" %}
-
-<div style="width: 100%; overflow:overlay; height:100vh">
-  <div class="w3-container" id='myContainer'>
-    <div class="w3-row">
-        <div class="w3-col s3">
-            <img src="{% static 'images/logo_large.png' %}" alt="ALGator">
-        </div>
-        <div class="w3-col s3">
-            <font size=+2>
-                <center>An automated algorithm <br>evaluation system</center>
-            </font>
-        </div>  
-        <div class="w3-col s6">
-            <img src="{% static 'images/graph1.png' %}" width=100% class="center-block" />
-        </div>
+{% include "navbar.html" %}   
+<div class="mp-content">
+  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 240px);">
+    <div style="width: 100%;text-align: center;padding: 32px;">
+    <img src="{% static 'images/logo_large.png' %}" style="height: calc((100vh - 128px) / 2);" alt="ALGator">
     </div>
-
-    <div class="w3-row">
-        <div class="w3-col">
-            <h3>Aim of the system</h3>
-            <p>
-                ALGator facilitates automatic algorithm evaluation process by executing 
-                implementations of the algorithms on the given predefined sets of test cases
-                and analyzing various indicators of the execution. 
-                To use the ALGator, user defines a project by giving a definition of 
-                the problem to be solved, defining sets of test cases, parameters 
-                of the input and indicators of the output data  and the specifying the criteria 
-                for the algorithm quality evaluation. When a project is defined, any number of 
-                algorithm implementations can be added. When requested, system 
-                executes all the implemented algorithms, checks for the correctness 
-                and compares the quality of their results. Using the ALGator user can 
-                add additional quality criteria, draw graphs and perform evaluations and 
-                comparisons of defined algorithms. 
-            </p>
+    <div class="hp-dic">
+     <a href="/about" class="hp-pad">
+        <div style="width:100%">
+          <div class="pad-title lg" >About</div><br>
+          <img class="lg"  src="{% static 'images/pikice_i.png' %}" style="width: 80px;">
         </div>
-    </div>
-
-    <div class="w3-row">
-        <h3>ALGator project definition</h3>
-        <div class="w3-col w3-cell-middle  w3-center">
-
-
-            <img src="{% static 'images/algator_overall1.png' %}" width="70%" class="center-block" />
-
+     </a>
+     <a href="/faq" class="hp-pad">
+        <div style="width:100%">
+          <div class="pad-title lg">FAQ</div><br>
+          <img class="lg" src="{% static 'images/faq_i.png' %}" style="width: 80px;">
+        </div>             
+     </a>
+     <a href="/projects" class="hp-pad">
+        <div style="width:100%">
+          <div class="pad-title lg">Projects</div><br>
+          <i class="fas fa-puzzle-piece lg" style="font-size: 60px;"></i>
         </div>
+    </a>
     </div>
   </div>
+  {% include "footer.html" %}   
 </div>
+     
 
 {% endblock %}

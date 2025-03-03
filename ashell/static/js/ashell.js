@@ -45,69 +45,12 @@ const onresize = (dom_elem, callback) => {
 ///************
 ///************         Tools         ************///
 
-// Function to get the value of a cookie by name
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
+
+function askASServer(question, blockID, callback, param1=null, param2=null) {    
+  callDjango("/pAskServer", blockID, callback, question, param1, param2);
 }
 
-// v spodnji funkciji so tri možnosti, kako poklicati server. 
-// Trenutno uporabljam callDjango, da gre klic preko django serverja
-// in se s tem ognem problemov zaradi imena ALGatorServerja; če
-// namreč uporabljam talkToServer (čista javascript funkcija),
-// nastane problem, kadar je web strežnik na drugem računalniku 
-// kot uporabnik; v tem primeru je "localhost" za strežnik
-// drugi kot za odjemalca in talkTOServer na dela
-function askASServer(question, blockID, callback) {    
-  // instead of calling django (to call server)...
-  //callDjango("/cpanel/pAskServer", blockID, callback, question);
-  // ...we can call server directly with XMLHttpRequest or...
-  talkToServer(blockID, callback, question);
-  // ...with fetch() command 
-  //fetchFromServer(blockID, callback, question);
-}
-
-function fetchFromServer(blockID, callback, question) {
-  var parts = question.split(" ");
-  var req = parts[0], data=parts.slice(1).join(' ');
-  
-  var host = window.location.origin;
-
-  fetch(host+":12321/"+req, {
-    mode:   'cors', 
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      "Content-Encoding": "gzip"
-    },
-    body: data
-  })
-  .then(response => response.text())
-  .then(data => callback(blockID, data))
-  .catch(error => console.error(error));
-}
-
-function talkToServer(blockID, callback, question) {
-  var xmlHttp = new XMLHttpRequest();
-  var parts = question.split(" ");
-  var req = parts[0], data=parts.slice(1).join(' ');
-  xmlHttp.onreadystatechange = function() { 
-    if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-      callback(blockID, xmlHttp.responseText);
-  }
-  // Retrieve the Django session key from the 'sessionid' cookie
-  const sessionKey = getCookie('sessionid');
-
-  var host = window.location.protocol.concat("//").concat(window.location.hostname);
-  xmlHttp.open("POST", host + ":12321/"+req, true); // true for asynchronous
-  xmlHttp.setRequestHeader("Content-Type", "application/json; charset=UTF-8");  
-  xmlHttp.setRequestHeader("Content-Encoding", "gzip");  
-  xmlHttp.setRequestHeader("SessionID", sessionKey);  
-  xmlHttp.send(data);
-}
-
-function callDjango(url, blockID, callback, question='') {  
+function callDjango(url, blockID, callback, question='', param1=null, param2=null) {  
   var data = {
       csrfmiddlewaretoken : window.CSRF_TOKEN,
       q : question,
@@ -130,11 +73,9 @@ function callDjango(url, blockID, callback, question='') {
 
      
     success: function(result) {
-      console.log("server's answer: " + result.answer);
-
       // ... and answer
       $("#cmdStatusB-" + blockID).css("background","green");
-      callback(blockID, result.answer)
+      callback(blockID, result.answer, param1, param2)
     }        
   });  
 }
@@ -253,6 +194,19 @@ function isInViewport(element) {
   );
 }
 
+function saveFile(projectName, fileName, content, afterSave=null, onError=null) {
+  var msg = `saveFile {"Project":"${projectName}","File":"${fileName}","Length":${content.length},"Content":"${content}"}`;  
+  askASServer(msg, this.blockID, (blockID, response) => {
+    var resp = toJSON(response, true, true, true);
+    if (resp.Status != 0) {
+      if (onError) onError(resp.Message);
+    } else {         
+      if (afterSave) afterSave(resp);
+    }
+  });    
+}
+
+
 ///************
 ///************
 ///************
@@ -273,7 +227,7 @@ class Environment {
     this.currentH = 1;           // current history entry
 
     // !!! debug; default: ""
-    this.currentProject = "BasicMatrixMul";
+    this.currentProject = "";
   }
 
   addTimer(blockID, timer) {
@@ -509,10 +463,12 @@ class ProjectListData extends Data {
 
 class EditorData extends Data {
 
-  constructor(data, blockID) {
+  constructor(projectName, fileName, data, blockID) {
     super(Data.EDITOR_DATA);
-    this.blockID = blockID;
-    this.data    = data;
+    this.projectName = projectName;
+    this.fileName    = fileName;
+    this.blockID     = blockID;
+    this.data        = data;
   }
   
   toHtml() {
@@ -529,7 +485,18 @@ class EditorData extends Data {
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/json");
     editor.setValue(this.data);
-    editor.setOptions({fontSize: "2rem"}); 
+    editor.setOptions({fontSize: "1rem"}); 
+
+    self = this;
+    editor.commands.addCommand({
+      name: 'Save', readOnly: true, bindKey: {
+        win: 'Ctrl-S',
+        mac: 'Command-S'
+      }, exec: function(editor) {
+        saveFile(self.projectName, self.fileName, btoa(editor.getValue()));
+      }
+    });   
+
 
     onresize(bb, function() {editor.resize()})    
   }  
@@ -594,6 +561,15 @@ class FilesData extends Data {
     var pos = this.findFile(fileName);
     if (pos != -1) {
       var content = btoa(this.openedFiles[pos].editor.getValue());
+      saveFile(this.projectName, this.openedFiles[pos].fileName, content, afterSave, (msg)=>{alert(msg)});
+    }
+  }
+
+
+  saveThisFileXX(fileName, afterSave) {
+    var pos = this.findFile(fileName);
+    if (pos != -1) {
+      var content = btoa(this.openedFiles[pos].editor.getValue());
       var msg = 'saveFile {"Project":"'+this.projectName+'","File":"'+this.openedFiles[pos].fileName+'","Length":'+content.length+',"Content":"'+content+'"}';  
       askASServer(msg, this.blockID, (blockID, response) => {
         var resp = toJSON(response, true, true, true);
@@ -643,7 +619,7 @@ class FilesData extends Data {
     var editor = ace.edit("editor-" + blockID + "-" + fileName);
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/" + getFileType(fileName));
-    editor.setOptions({fontSize: "2rem"});
+    editor.setOptions({fontSize: "1rem"});
     editor.setValue(content);
     editor.clearSelection();
     editor.getSession().on('change', function() {
@@ -976,7 +952,7 @@ class ResultsData extends Data {
             clearInterval(self.refreshResultsTimer);
             self.refreshResultsTimer = null;
           } else { // status==0 -> treba bo osvežiti mesta v tabeli
-            var answer = toJSON(response.Answer, true, true, true);
+            var answer = response.Answer;
             if (response.Message == 'Minor') { // Minor change: replace changed lines
               for(var i=0; i<answer.length;i++) {
                 var line  = answer[i].Line;
@@ -987,12 +963,12 @@ class ResultsData extends Data {
                 self.displayStatus(line,divElement);
               }
               console.log("Answer: " + answer.length);
-            } else { // Major change; replace all data!
+            } else if (response.Message == 'Major') { // Major change; replace all data!
               self.data = answer;
               self.setData();
               $("#cmdAnswer-" + self.blockID).html(self.toHtml());
               self.displayAllData();
-            }
+            } else console.log("MSG diff: " + response.Message);
           }
         });
     }, 1000);
@@ -1040,7 +1016,7 @@ function processKey(event, blockID) {
       input.setSelectionRange(19,25);
       event.preventDefault();
     } else  if (cont === ">pausetask" || cont === ">canceltask" || cont === ">resumetask") {
-      input.value += ' {"TaskID": }';
+      input.value += ' {"eid": }';
       input.setSelectionRange(22,22);
       event.preventDefault();
     } else  if (cont === "results" || cont === ">getresultstatus") {
@@ -1091,7 +1067,7 @@ function showServerAnswer(blockID, serverAnswer) {
 
 function waitForServerAnswer(blockID, commandID) {
   // najprej ustavim morebitno akcijo, ki se je izvajal od prej (da ne pride do zombi akcij)
-  // stopCMD(blockID);
+  stopCMD(blockID);
 
   if (commandID === "?") {
     $("#cmdStatusB-" + blockID).css("background","green");
@@ -1104,9 +1080,12 @@ function waitForServerAnswer(blockID, commandID) {
 
   var timer = setInterval(function() {
       askASServer("command output " + commandID, blockID, function(dID, ans) {
-        if (ans.startsWith("_NO_OUTPUT_AVAILABLE_")) {
+        if (ans.startsWith("_NO_OUTPUT_AVAILABLE_") || ans.startsWith('{"Status":99')) {
           clearInterval(timer);          
           $("#cmdStatusB-" + blockID).css("background","green");
+
+          if (ans.startsWith('{"Status":99'))
+            showServerAnswer(dID, ans)
         } else {
           $("#cmdStatusB-" + blockID).css("background","red");
 
@@ -1461,13 +1440,13 @@ function processShellCommand(blockID, vpr) {
 
 // to se za enkrat uporablja v testne namene; primer klica: edit TestSet1 txt
 function getFileAndEdit(blockID, params) {  
-  askASServer('getfile {"Project":"'+params[0]+'", "File":"'+params[1]+'"}', blockID, edit);
+  askASServer('getfile {"Project":"'+params[0]+'", "File":"'+params[1]+'"}', blockID, edit, params[0], params[1]);
 }
 
-function edit(blockID, content) {
+function edit(blockID, content, projectName, fileName) {
   var response = toJSON(content, true, true, true);
   if (response.Status == 0)
-    showAnswer(blockID, new EditorData(atob(response.Answer), blockID));
+    showAnswer(blockID, new EditorData(projectName, fileName, atob(response.Answer), blockID));
   else
     showAnswer(blockID, new ErrorData(response.Answer));
 }

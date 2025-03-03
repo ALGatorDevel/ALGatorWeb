@@ -1,0 +1,33 @@
+{% load static %}
+
+{% block content %}
+
+<div style="height:50px;"></div>
+
+<div id="TestsetsSubNavBar" class="subNavBar">
+  <div class="editMode" w="{{ project.eid }} cat" onclick="askForNewTestsetName()" title="Create a testset">
+    <i class="far fa-plus-square icon"></i>&nbsp;&nbsp;
+  </div>  
+  <div id="testsetsNavBarDiv">
+     <span name="mx" class="w3-bar-item navBarEl bw" href="testset_panel" onclick="showTestsetsSubpage(this)">Testsets</span>
+     <span name="mx" class="w3-bar-item navBarEl bw" href="testset_files_panel" onclick="showTestsetsSubpage(this)">Testsets common files</span>
+  </div>
+</div>
+
+<div id="testsets_main_panel">
+  <div id="testset_panel" style="display:none;">
+    <div id="loading_testsets_div" style="padding: 15px;">... loading</div>
+    <div id="no_testsets_div"      style="padding: 15px; display:none">No testsets defined.</div>
+    <div id="testsets_div"         style="xpadding: 15px; display:none">
+      <div id="list_of_testsets_panel" style="padding: 15px 0px 0px 20px; height:42px;">
+        <span style="font-size:20px;">Testset: </span><select id="select_testset_element" style="width:200px;" onchange="showSelectedTestset();"></select>
+      </div>
+      <div id="testset_panel_detail" style="margin-bottom:10px; margin-top:-40px; height:300px;"></div>  
+    </div>
+  </div>
+
+  <div id="testset_files_panel" style="display:none;">
+  </div>
+</div>
+
+{% endblock %}

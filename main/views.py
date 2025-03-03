@@ -1,19 +1,25 @@
+from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.mail import send_mail
+
 
 from ausers.autools import getUID, isAnonymousMode
-from ausers.forms import LoginForm
+from ausers.forms import LoginForm, ContactForm
 from django.contrib.auth.decorators import login_required
 from Classes.ServerConnector import connector
 import json, random, string, os, time, re
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
-import ALGatorWeb.settings as settings
-from Classes.GlobalConfig import globalConfig 
+from Classes.GlobalConfig import globalConfig
 from main.autils import rand_str
 
 @ensure_csrf_cookie
 def index(request):
-    return render(request, 'home.html')
+    context = {
+        'isDBMode': not isAnonymousMode(),
+    }
+    return render(request, 'home.html', context)
 
 
 def pAskServer(request): 
@@ -90,7 +96,7 @@ def moveimages(request):
         if html_text and project_name:
 
             new_html, images = replace_staticfiles_and_extract(html_text)
-            sid, status = connector.send_static_files_to_server(project_name, globalConfig.STATIC_UPLOADFILES_ABS, images)
+            sid, status = connector.send_static_files_to_server(project_name, globalConfig.STATIC_UPLOADFILES_ABS, images, getUID(request))
 
             return JsonResponse({'Status':sid, 'Answer': status, 'newHtml': new_html})
         else:
@@ -106,17 +112,34 @@ def problems(request):
     projects_dict = json.loads(projects_response)
     projects_list = projects_dict.get("Answer", [])
 
-    projects_fulDesc = []
+    projects_description = []
     for project in projects_list:
-        reqString = 'getData {"Type":"Project", "ProjectName":"'+project+'"}'
-        project_response = connector.talkToServer(reqString, getUID(request))
-        project_dict = json.loads(project_response).get("Answer", {})
-        projects_fulDesc.append(project_dict)
-
+      try:
+        reqStr = 'getData {"Type":"ProjectDescription", "ProjectName":"' + project + '"}'
+        project_response = connector.talkToServer(reqStr, getUID(request))
+        project_desc = json.loads(project_response).get("Answer", "")
+        projects_description.append({'Name':project, 'St': project_desc.get("St", ""), 'Ow': project_desc.get("Ow", ""), 'On': project_desc.get("On", ""), 'Tg': project_desc.get("Tg", []), 'Na': project_desc.get("Na", 0),'Nt': project_desc.get("Nt", 0),
+                'Mo': project_desc.get("Mo", 0), 'De':project_desc.get("De", ""), 'Po':project_desc.get("Po", 0),'eid':project_desc.get("eid", "e?")})
+      except:
+        pass
     context = {
         'isDBMode':   not isAnonymousMode(),
-        'projects_fulDesc': projects_fulDesc 
+        'projects_description': projects_description
     }
 
     return render(request, 'listOfProblems.html', context)
-    
+
+
+
+def about(request):
+  return render(request, 'about.html', {'isDBMode': not isAnonymousMode()})
+def howItWorks(request):
+  return render(request, 'howItWorks.html', {'isDBMode': not isAnonymousMode()})
+def faq(request):
+  return render(request, 'faq.html', {'isDBMode': not isAnonymousMode()})
+def download(request):
+  return render(request, 'download.html', {'isDBMode': not isAnonymousMode()})
+def screenshots(request):
+  return render(request, 'screenshots.html', {'isDBMode': not isAnonymousMode()})
+def contact(request):
+    return render(request, "contact.html", {'isDBMode': not isAnonymousMode()})

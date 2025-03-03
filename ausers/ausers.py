@@ -1,10 +1,12 @@
 import json
 from uu import Error
 
+from django.core.mail import send_mail
 from django.http import QueryDict, HttpResponse
 from django.core import serializers
 from django.contrib.auth.hashers import make_password, check_password
 
+from Classes.ServerConnector import connector
 from main.autils import rand_str
 from .autools import au_response, is_valid_request_and_data, can, run_query, getPermissions, \
     getUserPermissionsForEntityAsNumber, getUserPermissionsForEntity, getGroupsPermissionsForEntity
@@ -19,6 +21,11 @@ def try_get_user(response: HttpResponse) -> str:
         return response.user.uid
     except Exception:
         return USER_ANONYMOUS
+
+def who(request: HttpResponse) -> HttpResponse:
+  uid = try_get_user(request)
+  server_response = connector.talkToServer('who', uid)
+  return au_response(server_response)
 
 def get_users(request: HttpResponse, *args) -> HttpResponse:
     if request is None :
@@ -50,32 +57,42 @@ def add_user(request: HttpResponse, data: dict) -> HttpResponse:
       return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
 
     uid = try_get_user(request)
-    try:
-      username = data['username'].strip()
-      User.objects.create_user(username, data['email'].strip(), data['password'].strip(), owner=uid, uid=rand_str(10))
-      new_user = User.objects.get(username=username)
-      return au_response(f"User '{username}' added @{new_user.uid}")
-    except Exception as e:
+
+    if can(uid, "e0_S", "can_edit_users"):
+      try:
+        username = data['username'].strip()
+        User.objects.create_user(username, data['email'].strip(), data['password'].strip(), owner=uid, uid=rand_str(10))
+        new_user = User.objects.get(username=username)
+        return au_response(f"User '{username}' added @{new_user.uid}")
+      except Exception as e:
         return au_response("Error: Cannot create user - " + str(e), 3)
+    else:
+      return au_response("Error: access denied.", 99)
+
 
 def remove_user(request: HttpResponse, data: dict) -> HttpResponse:
     fields = ['uid']
     if not is_valid_request_and_data(request, data, fields):
         return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
-    try:
-        uid = try_get_user(request)  # current user
-        user = User.objects.get(uid=uid)
-        ruid = data['uid']  # user to be deleted
-        ruser = User.objects.get(uid=ruid)
-        rusername = ruser.username
 
-        if user.is_superuser or ruser.owner == uid:
-            run_query("DELETE FROM ausers_user WHERE uid = %s", [ruid])
-            return au_response(f"User '{rusername}' removed.")
-        else:
-            return au_response("Error: access denied.", 2)
-    except Exception as e:
-        return au_response("Error: Cannot remove user - " + str(e), 3)
+    uid = try_get_user(request)
+    if can(uid, "e0_S", "can_edit_users"):
+      try:
+          uid = try_get_user(request)  # current user
+          user = User.objects.get(uid=uid)
+          ruid = data['uid']  # user to be deleted
+          ruser = User.objects.get(uid=ruid)
+          rusername = ruser.username
+          if user.is_superuser or ruser.owner == uid:
+              run_query("DELETE FROM ausers_user WHERE uid = %s", [ruid])
+              return au_response(f"User '{rusername}' removed.")
+          else:
+              return au_response("Error: access denied.", 99)
+      except Exception as e:
+          return au_response("Error: Cannot remove user - " + str(e), 3)
+    else:
+      return au_response("Error: access denied.", 99)
+
 
 
 def edit_user(request: HttpResponse, data: dict) -> HttpResponse:
@@ -88,7 +105,7 @@ def edit_user(request: HttpResponse, data: dict) -> HttpResponse:
         euid  = data['uid']            # uid of user to be edited
         euser = User.objects.get(uid=euid)
 
-        if user.is_superuser or euser.uid == uid or euser.owner == uid:
+        if euser.uid == uid or euser.owner == uid or can(uid, "e0_S", "can_edit_users"):
 
             if "new_password" in data and data["new_password"]:
                 if not (user.is_superuser and not euid==uid):
@@ -125,7 +142,7 @@ def edit_user(request: HttpResponse, data: dict) -> HttpResponse:
             euser.save()
             return au_response(f"Profile data for user '{euser.username}' changed.")
         else:
-            return au_response("Error: access denied.", 2)
+            return au_response("Error: access denied.", 99)
     except Exception as e:
         return au_response("Error: Cannot edit user - " + str(e), 3)
 
@@ -141,12 +158,14 @@ def set_private(request: HttpResponse, data: dict) -> HttpResponse:
         eid = data['eid']            # eid of entity to be modified
         private = data['private']    # new value of
         entity = Entities.objects.get(pk=eid)
+        # who can change entity's privateness? Only owner or overybody with can_write
         if user.is_superuser or uid == entity.owner.uid:
+        #if can(uid, eid, "can_write"):
             entity.is_private = private
             entity.save()
             return au_response(f"Property 'private' of entity '{eid}' changed to '{private}'.")
         else:
-            return au_response("Error: access denied.", 2)
+            return au_response("Error: access denied.", 99)
     except Exception as e:
         return au_response("Error: Cannot set_private - " + str(e), 3)
 
@@ -203,7 +222,7 @@ def add_permission(request: HttpResponse, data: dict) -> HttpResponse:
 
             return au_response(f"Permission for '{eid}' added.")
         else:
-            return au_response("Error: access denied.", 2)
+            return au_response("Error: access denied.", 99)
     except Exception as e:
         return au_response("Error: Cannot add permission - " + str(e), 3)
 
@@ -228,7 +247,7 @@ def remove_permission(request: HttpResponse, data: dict) -> HttpResponse:
 
             return au_response(f"Permission for '{eid}, {ugid}' removed.")
         else:
-            return au_response("Error: access denied.", 2)
+            return au_response("Error: access denied.", 99)
     except Exception as e:
         return au_response(f"Error: Cannot remove permission '{eid}, {ugid}' - " + str(e), 3)
 
@@ -261,15 +280,20 @@ def add_group(request: HttpResponse, data: dict) -> HttpResponse:
       return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
 
     uid  = try_get_user(request)
-    user = User.objects.get(uid=uid)
-    try:
-      groupname = data['groupname'].strip()
-      desc      = data['description'].strip()
-      Group.objects.create(id=rand_str(8), name=groupname, description=desc, owner=user)
-      new_group = Group.objects.get(name=groupname)
-      return au_response(f"Group '{groupname}' added @{new_group.id}")
-    except Exception as e:
-        return au_response("Error: Cannot create group - " + str(e), 3)
+
+    if can(uid, "e0_S", "can_edit_users"):
+      user = User.objects.get(uid=uid)
+      try:
+        groupname = data['groupname'].strip()
+        desc      = data['description'].strip()
+        Group.objects.create(id=rand_str(8), name=groupname, description=desc, owner=user)
+        new_group = Group.objects.get(name=groupname)
+        return au_response(f"Group '{groupname}' added @{new_group.id}")
+      except Exception as e:
+          return au_response("Error: Cannot create group - " + str(e), 3)
+    else:
+      return au_response("Error: access denied.", 99)
+
 
 
 def remove_group(request: HttpResponse, data: dict) -> HttpResponse:
@@ -283,11 +307,11 @@ def remove_group(request: HttpResponse, data: dict) -> HttpResponse:
         group = Group.objects.get(id=gid)
         gname = group.name
 
-        if user.is_superuser or group.owner.uid == uid:
+        if user.is_superuser or group.owner == user:
             group.delete()
             return au_response(f"Group '{gname}' removed.")
         else:
-            return au_response("Error: access denied.", 2)
+            return au_response("Error: access denied.", 99)
     except Exception as e:
         return au_response("Error: Cannot remove group - " + str(e), 3)
 
@@ -321,7 +345,7 @@ def add_groupusers(request: HttpResponse, data: dict) -> HttpResponse:
 
         gid  = data['gid']            # user/group id
         group = Group.objects.get(id=gid)
-        if user.is_superuser or group.owner.uid == uid:
+        if user.is_superuser or group.owner == user:
           users = data['users']  # user/group id
           users_added = []
           error_users = []
@@ -335,7 +359,7 @@ def add_groupusers(request: HttpResponse, data: dict) -> HttpResponse:
             except: error_users.append(nuser)
           return au_response(f"Users added: {str(users_added)}, skipped users: {error_users}.")
         else:
-          return au_response("Error: access denied");
+          return au_response("Error: access denied", 99);
     except Exception as e:
         return au_response("ERROR: cannot add_groupusers: " + str(e), 3)
 
@@ -353,11 +377,11 @@ def remove_groupuser(request: HttpResponse, data: dict) -> HttpResponse:
         group = Group.objects.get(id=gid)
         ruser = User.objects.get(uid=ruid)
 
-        if user.is_superuser or group.owner.uid == uid:
+        if user.is_superuser or group.owner == user:
             Group_User.objects.get(group_id=gid, user_id=ruid).delete()
             return au_response(f"User '{ruser.username}' removed from group '{group.name}'.")
         else:
-            return au_response("Error: access denied.", 2)
+            return au_response("Error: access denied.", 99)
     except Exception as e:
         return au_response("Error: Cannot remove user from group - " + str(e), 3)
 
@@ -576,3 +600,24 @@ def can_request(request: HttpResponse, data: dict) -> HttpResponse:
         return au_response({'Can': can_do}, 0)
     except Exception as e:
         return au_response("Error in can: " + str(e), 1)
+
+def sendmail(request: HttpResponse, data: dict) -> HttpResponse:
+        fields = ['Name', 'Email', 'Message']
+        if not is_valid_request_and_data(request, data, fields):
+            return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
+        try:
+            ip    = request.META['REMOTE_ADDR']
+            uid   = try_get_user(request)
+            name  = data['Name']
+            email = data['Email']
+            msg   = data['Message']
+
+            subject = f"ALGator 'Contact us' message from {name}"
+            body = f"Name: {name}\nUID: {uid}\nIP: {ip}\nEmail: {email}\n\nMessage:\n{msg}"
+
+            send_mail(subject, body, email, ["tomaz.dobravec@fri.uni-lj.si"])
+
+
+            return au_response(f"Sending mail from '{name}', '{email}' with message '{msg}'.")
+        except Exception as e:
+            return au_response("Error: Cannot sendmail - " + str(e), 1)

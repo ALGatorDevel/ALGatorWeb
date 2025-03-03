@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+{% block headcss %}
+  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+{% endblock %}
+{% block content %}
+
+{% include "navbar.html" %}   
+<div class="mp-content">
+  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 256px); width:100%;display: flex; justify-content: center;">
+    <div style="width:60%">
+      <h1 style="margin: 0px;">Download <span class=algator>ALGator</span>&nbsp;</h1><hr class="hr">
+      <p class="pa">    
+        ALGator can be used either as a web application or as a standalone desktop application. The primary advantage of the web application is that project data is accessible to all users. However, writing algorithm code within the web interface can be more challenging. When installed as a desktop application, ALGator allows users to edit the project's code using their preferred editor (such as NetBeans, IntelliJ IDEA, etc.). Projects created in the desktop application can later be uploaded to the web, making them available to other users.
+      </p>
+      <p class="pa">    
+        To install ALGator as a standalone application, follow the instructions provided for:
+        <ul>
+          <li><a href="https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/install_windows.md">Windows users</a></li>
+          <li><a href="https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/install_linux.md">Linux/macOS users</a></li>
+        </ul>
+    </div>
+  </div>
+  {% include "footer.html" %}   
+</div>
+     
+
+{% endblock %}a

@@ -8,6 +8,8 @@
     <title>{% block title %}ALGator{% endblock %}</title>
 
     <link rel="icon"       href="{% static 'images/favicon.png' %}">
+    {% block headcss %}{% endblock %}
+    
     <link rel="stylesheet" href="{% static 'css/w3.css' %}">
     <link rel="stylesheet" href="{% static 'fa/css/all.css' %}">    
     <link rel="stylesheet" href="{% static 'css/c3.css' %}">
@@ -15,7 +17,12 @@
     <link rel="stylesheet" href="{% static 'css/select2.css' %}">
     <link rel="stylesheet" href="{% static 'css/jquery-ui.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/yesno.css' %}">
+    <link rel="stylesheet" href="{% static 'css/doublebutton.css' %}">
+    <link rel="stylesheet" href="{% static 'css/awresults.css' %}">
+    <link rel="stylesheet" href="{% static 'css/modaldisplay.css' %}">
     <link rel="stylesheet" href="{% static 'tex/src/tex.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/problems/aview.css' %}">
 
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/highlight.min.js' %}"></script>
@@ -28,21 +35,47 @@
     <script src="{% static 'tex/src/tex.js' %}"></script>
     <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
 
-    <script src="{% static 'js/auser.js' %}"></script>    
+    <script src="{% static 'js/modaldisplay.js' %}"></script>   
+    <script src="{% static 'js/pagedata.js' %}"></script>   
+    <script src="{% static 'js/ausers.js' %}"></script>   
     <script src="{% static 'js/can.js' %}"></script>
+    <script src="{% static 'js/doublebutton.js' %}"></script>
+
+    <script src="{% static 'js/info_popup.js' %}"></script>
+
+    <script src="{% static 'js/problems/presenter.js' %}"></script>
+    <script src="{% static 'js/problems/awresults.js' %}"></script>    
+    <script src="{% static 'js/problems/aview.js' %}"></script>
 
     <script src="{% static 'js/main/base.js' %}"></script>
+    <script src="{% static 'js/main/main.js' %}"></script>
+
+    {% block headjs %}{% endblock %}
+
 </head>
 <body>
 <div id="popupDiv"></div>
 
+<div id="modal-template" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span id="modal-title" class="modal-title">Modal Title</span>
+            <span id="close-btn" class="close-btn">&times;</span>
+        </div>
+        <div id="modal-body" class="modal-body"></div>
+    </div>
+</div>
     
 <script>
+window.CSRF_TOKEN = "{{ csrf_token }}";
+
 var isEditMode  = false;
 var isDBMode    = ("{{ isDBMode }}"   === "True");
+var ALGatorServerURL = "{{ ALGatorServerURL }}";
 
 current_user_uid              = "{{ request.user.uid }}";
-current_user_is_superuser     = ("{{ request.user.is_superuser }}" === "True");
+current_user_username         = "{{ request.user.username }}";
+current_user_is_superuser     = "{{ request.user.is_superuser }}" === "True";
 
 askServerURL   = "{% url 'main:pAskServer' %}";
 

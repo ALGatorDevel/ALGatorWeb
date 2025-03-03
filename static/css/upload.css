@@ -1,0 +1,46 @@
+        .upload-panel {
+            border: 2px dashed #7bc240; /* Your theme color */
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: #404040; /* Your theme color */
+            background-color: #FBFFFB;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: opacity 0.3s;
+        }
+
+        .upload-panel.dragover {
+            background-color: #e8ffe8;
+        }
+        .upload-panel[disabled] {
+            opacity: 0.5;
+            pointer-events: none;
+            border-color: #ccc;
+            background-color: #f5f5f5;            
+        }
+        .upload-panel:not(.disabled) {
+          border-color: #7bc240;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .upload-list {
+            margin-top: 20px;
+        }
+
+        .upload-button {
+            background-color: #7bc240;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .upload-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }

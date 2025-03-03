@@ -1,3 +1,38 @@
+function removeEntity(elt) {
+  let eid    = elt.getAttribute("eid");
+  let entity = find_entity(ausers.entities, eid);
+  if (entity) {
+    let type = new Map([['et1', 'project'],['et2', 'algorithm'],['et3', 'testset'], ['et4', 'presenter']]).get(entity.entity_type) || "unknown";
+
+    if (type != "unknown") {
+      let projectName=entity.name;
+      if (type != "project") try {projectName = find_entity(ausers.entities, entity.parent.slice(0, -2)).name} catch (e) {};
+      showYesNoDialog(`Do you want to remove ${type} '${entity.name}'?`, removeEntityPhase2, projectName, eid, entity.name, type);
+    }
+  }
+}
+
+//function askServer(callback, projectName, key, request='', callbackError=null) {  
+
+function removeEntityPhase2(answer, projectName, eid, entityName, type) {
+  if (answer == 0) {
+    let request = "";
+    switch (type) {
+      case "project":   request = `alter {'Action':'RemoveProject',   'ProjectName':'${projectName}'                                 }`; break;
+      case "algorithm": request = `alter {'Action':'RemoveAlgorithm', 'ProjectName':'${projectName}', 'AlgorithmName':'${entityName}'}`; break;
+      case "testset":   request = `alter {'Action':'RemoveTestset',   'ProjectName':'${projectName}', 'TestsetName'  :'${entityName}'}`; break;
+      case "presenter": request = `alter {'Action':'RemovePresenter', 'ProjectName':'${projectName}', 'PresenterName':'${entityName}'}`; break;
+    }
+    askServer(removeEntityPhase3, projectName, entityName, request, null, eid); 
+  }
+}
+
+function removeEntityPhase3(projectName, entityName, response, eid) {
+  let eidDiv = document.getElementById("entity_" + eid);
+  if (eidDiv) eidDiv.remove();
+}
+
+
     function generatePermissionsHtml(node, level) {
         if (typeof node !== 'object' || node === null || Object.keys(node).length === 0) {
             return '';
@@ -16,10 +51,21 @@
                 let collapsibleClass = hasChildren ? 'has-children' : 'no-children';
                 let collapsibleState = hasChildren && level <= 1 ? 'collapsed' : '';
 
-                html += `<li>
-                    <span class="collapsible ${collapsibleClass} ${collapsibleState}" onclick="toggleCollapse(this, '${key}')"></span><span onclick="toggleDiv('${key}')" class="ht">${key}: ${node[key].name} (type: ${node[key].entity_type}, owner: ${node[key].owner})</span>
+                let ownerName = ausers.users.hasOwnProperty(node[key].owner) ? ausers.users[node[key].owner].username : node[key].owner; 
+
+                let nodeType = node[key].entity_type.substring(2);
+                let removeSpan = `<span id="remove_${key}" eid="${key}" etype="${nodeType}" style="float:right;" onclick="removeEntity(this);" ><i class='fa fa-times icon'></i></span>`; 
+
+                html += `<li id="entity_${key}">
+                    <span class="collapsible ${collapsibleClass} ${collapsibleState}" 
+                          id="collapsablePlusMinus_${key}" onclick="toggleCollapse(this, '${key}')">
+                    </span>
+                    <span onclick="toggleDiv('${key}')" class="ht ${node[key].entity_type.startsWith('et0')?'holNode':'entNode'}">
+                             ${printEID ? key + ": " : ""}${node[key].name} ${printEID ? ("(type: " + node[key].entity_type + " owner: " + node[key].owner+")") : ""}
+                    </span><span id="entity_private_mark_${key}" style="display:${node[key].is_private ? '' : 'none'}"><i class="fas fa-lock"></i></span>
                     <div id="rights_details_${key}" class="hidden-div hidden setrights">
-                        <span class="usergroupspan">Private: <input id="privatecb_${key}" type="checkbox" class="usergroupcb" ${node[key].is_private ? "checked" : ""} onclick="privateCBChanged('${key}')"></span><br>
+                        <span>Private: <input id="privatecb_${key}" type="checkbox" class="usergroupcb" ${node[key].is_private ? "checked" : ""} onclick="privateCBChanged('${key}')"></span>
+                        <span>${" (owner: " + ownerName +")"}</span>${nodeType > 0 && nodeType < 5 ? removeSpan : ""}<br>
                         <hr style="margin:10px 0px 10px 0px;"><span class="usergroupspan">Custom permissions:</span><br>
                         <div id="rights_details_list_${key}" style="padding-left:15px;">`;  
                         
@@ -56,7 +102,7 @@ function showHideAddPermDiv(key, entity_type, mode) {
     var content = getNewPermissionHTLM(key, entity_type);
     permDiv.innerHTML = content;
     var selectUG = document.getElementById(`user_group_select_${key}`);
-    populateUserGroupList(selectUG, "", true, true);  
+    populateUserGroupList(selectUG, "", true, true, true, true);  
   }
 }
 
@@ -77,10 +123,11 @@ function getHTMLTableForPermissions(id, key, count, permission, entity_type, sel
   var i = 0;
   ausers.entities_permission_types[entity_type].forEach(function(perm_type) {
     var value = ausers.permission_types[perm_type].value;
+    var name  = ausers.permission_types[perm_type].name;
     if ((permission.permissions & value) == value) {
       line += `<span class="usergroupspan">
                  <input name="${id}_${key}" type="checkbox" class="usergroupcb" onclick="${count >= 0 ? 'event.preventDefault();' : ''}" 
-                   ${count==-1 ? "" : ((count>=0) || (count==-2 && ((selValue&value)==value)) ? "checked" : "")} value=${value}> ${perm_type}
+                   ${count==-1 ? "" : ((count>=0) || (count==-2 && ((selValue&value)==value)) ? "checked" : "")} value=${value}> ${name}
                </span>`;
       if (++i==3) {
         i=0;
@@ -137,7 +184,7 @@ function addPermissionDB(key, entity_type, permission) {
   let allOK  = false;
   if (entity) {
       let data = {'ugid':permission.id, 'eid':key, 'value':permission.permissions};
-      runNamedService("add_permission", data, result => {
+      runNamedService(ausers.services, "add_permission", data, result => {
         if (result.Answer.startsWith("Error:")) {
             showPopup(result.Answer)
         } else {
@@ -163,7 +210,12 @@ function addPermission(key, entity_type, what) {
     var ug = selectedUGId = document.getElementById(`user_group_select_${key}`).value;
     if (!ug) return;
     var ugtype = ug[0];
-    var ugname = ugtype == 'g' ?  ausers.groups[ug].name : ausers.users[ug].username ;
+    var ugname = "";
+    // 
+    if (ugtype == 'g' && !ausers.groups.hasOwnProperty(ug)) // this will happen when "g: everyone" is selected by non-superuser user
+      ugname = "everyone";
+    else
+      ugname = ugtype == 'g' ?  ausers.groups[ug].name : ausers.users[ug].username ; 
   } catch (e) {return;} // if user/group is not defined -> return
 
   var checkboxes = document.querySelectorAll(`input[name="new_perm_${key}"]:checked`);
@@ -184,7 +236,7 @@ function addPermission(key, entity_type, what) {
 function removePermissionDB(key, id) {
   let entity = find_entity(ausers.entities, key);
   if (entity) {
-      runNamedService("remove_permission", {'ugid':id, 'eid':key}, result => {
+      runNamedService(ausers.services, "remove_permission", {'ugid':id, 'eid':key}, result => {
         if (result.Answer.startsWith("Error:")) {
           showPopup(result.Answer);
         } else {
@@ -236,19 +288,22 @@ function toggleCollapse(element, key) {
 
 async function getEntities() {
    let data = ["get_entities", "get_permissions", "get_all_permission_types", "get_all_permission_types_for_entities"];
-   await waitForUserDataToLoad(data, true);
+   await ausers.waitForDataToLoad(data, true);
 
    document.getElementById("permissions_content").innerHTML = generatePermissionsHtml(ausers.entities, 1);
+
+   let pElt = document.getElementById("collapsablePlusMinus_e0_P")
+   toggleCollapse(pElt, "e0_P");
 }
 
 
 function privateCBChanged(key) {
     let cb = document.getElementById(`privatecb_${key}`);
-    runNamedService("set_private", {'eid':key, 'private': cb.checked ? "True" : "False"}, (result)=>{
+    runNamedService(ausers.services, "set_private", {'eid':key, 'private': cb.checked ? "True" : "False"}, (result)=>{
         if (result.Answer.startsWith("Error:")) {
           showPopup(result.Answer);
           cb.checked = !cb.checked;
         }        
-    });
+     });
 }
 

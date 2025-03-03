@@ -4,15 +4,15 @@
 <script src="{% static 'js/problems/tooltip.js' %}"></script>
 <div id="mySidebar" style="width: 200px;">
 
-  <div class='row' {% if homepoint %} onclick="redirectToUrlWithPathAndParams('{%if next%}{{next}}{%else%}/problems{%endif%}', {'homepoint':true})" {% endif %}>
-    <img  class='wide imgA' id='img1' src="{% static 'images/logo_green.png' %}"  alt="ALGator"  
-       style="{% if not homepoint %} cursor:default;{% endif%}">
+  <div class='row' style="height:50px; display:inline-block;" {% if homepoint %} onclick="redirectToUrlWithPathAndParams('{%if next%}{{next}}{%else%}/projects{%endif%}', {'homepoint':true}, false)" {% endif %}>
+    <img  class='wide imgA' id='img1' src="{% static 'images/logo_large_notext.png' %}"  alt="ALGator"  
+       style="width:76px; {% if not homepoint %} cursor:default;{% endif%}">
     <img  class='slim imgA' id='img2' src="{% static 'images/algator_icon.png' %}" alt="ALGator" 
-       style="display: none;{% if not homepoint %} cursor:default;{% endif%}">
+       style="width:32px; display: none;{% if not homepoint %} cursor:default;{% endif%}">
   </div>
 
   <div id="problemNavbarMenuButton" class='row'>
-    <p class='sideBarEl wide' onclick="toggleSidebar()" onclick="slimElements()" style="position: fixed; top:-15px; left:0px;">
+    <p class='sideBarEl wide' onclick="toggleSidebar()" onclick="slimElements()" style="position: fixed; top:-14px; left:160px;">
       <span>
         <i class="fas fa-bars"></i>
       </span>
@@ -32,11 +32,8 @@
 
 <script> 
   async function updateSidebar() {
-    // if (debugPrint) console.log('Updating sidebar...');
     const sidebarHTML = await getSideBarItemsHTML(numberOfTopItems);
-    // if (debugPrint) console.log('Sidebar HTML generated:', sidebarHTML);
     document.getElementById("mySidebar").innerHTML += sidebarHTML;
-    // if (debugPrint) console.log('Sidebar updated');
   }
   updateSidebar();
 

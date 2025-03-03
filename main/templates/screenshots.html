@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+{% block headcss %}
+  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+{% endblock %}
+{% block content %}
+
+{% include "navbar.html" %}   
+<div class="mp-content">
+  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 78px); width:100%;display: flex; justify-content: center;">
+     <div style="width:65%">
+       <h1 style="margin: 0px;"><span class=algator>ALGator</span>&nbsp; usage screenshots</h1><hr class="hr">
+         <div class="ss-gallery" id="ssGalery"></div>         
+     </div>
+   </div>
+   <div id="SSModal" class="ss-modal">
+      <span class="ss-close" onclick="closeSSModal()">&times;</span>
+      <img class="ss-modal-content" id="expandedImage">
+   </div>
+
+  {% include "footer.html" %}   
+</div>
+
+<script>  
+let ssImages = ['ss02.png', 'ss04.png','ss15.png','ss08.png','ss16.png']
+function getThumbnailHTML(imgSrc) {
+  return `
+    <div class="ss-thumbnail-container">
+      <div class="ss-thumbnail-containerplus">
+        <img src="/static/ss/${imgSrc}" class="ss-thumbnail" onclick="openSSModal(this)">
+        <div class="ss-zoom-icon">+</div>
+      </div>
+    </div>
+  `;
+}
+function openSSModal(image) {
+    var modal = document.getElementById("SSModal");
+    var modalImg = document.getElementById("expandedImage");
+    modal.style.display = "block";
+    modalImg.src = image.src;
+
+    document.addEventListener("keydown", handleEscape);
+    modal.addEventListener("click", closeSSModal);
+}
+function closeSSModal() {
+    var modal = document.getElementById("SSModal");
+    modal.style.display = "none";
+
+    document.removeEventListener("keydown", handleEscape);
+    modal.removeEventListener("click", closeSSModal);
+}
+
+function handleEscape(event) {
+  if (event.key === "Escape") closeSSModal();
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  let galery = document.getElementById("ssGalery");
+  if (galery)
+    ssImages.forEach(img => galery.innerHTML += getThumbnailHTML(img));
+});
+</script>
+
+{% endblock %}

@@ -1,28 +1,19 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/main/main.css' %}">
-<link rel="stylesheet" href="{% static 'css/problems/aview.css' %}">
-<script src="{% static 'js/problems/presenter.js' %}"></script>
-<script src="{% static 'js/problems/aview.js' %}"></script>
+
+<script src="{% static 'js/problems/draggable.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/problems/draggable.css' %}">
 
 <div style="height:50px;"></div>
 
 <div class="subNavBar">
-  <span id="presentersCont">
-  {% for item in navBars.results%}
-    <a id="navBarEl{{ item.sectionId }}" class="w3-bar-item navBarEl" style="background-color: white;" onclick="scrollToPresenter('{{ item.sectionId }}')">
-        {{ item.shortTitle }}
-    </a>
-  {% endfor %}
-  </span>
-  <span style="margin-left:auto;">
-    <a id="navBarElNewPresenter" class="editMode" style="display:flex" onclick="createNewPresenter()">
-       <img src="{% static 'images/new.png' %}" style="width:18px;" />
-    </a>
-  </span>
+  <div class="editMode" w="{{ project.eid }} car" id="presenterDropdown" style="float:right; margin-top:-3px;" 
+       onclick="createNewPresenter()" title="Create a presenter">
+    <i class="far fa-plus-square icon" id="presenterDropdownIcon"></i>&nbsp;&nbsp;
+  </div>
+  <span id="presentersCont"></span>
 </div>
 
 <div class="innerContent" id="presentersContent"> 
-  {%include "layout.html"%}
+  <div class='w3-container' id='newPresenter' style='display: none;'></div>
+  <div class="w3-container" id='presenters'><div id='nopresenters'>... loading presenters</div></div>
 </div>
-
-<script>scrollToPresenter("{{ navBars.results.0.sectionId }}");</script>
