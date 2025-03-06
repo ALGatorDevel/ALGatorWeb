@@ -901,14 +901,14 @@ function addParameterOnForm(projectName, key, isInput, desc, defValue, metaMin, 
   var newParDiv = document.createElement('div');newParDiv.classList.add("paramDiv");
   newParDiv.innerHTML = getParameterHTML(projectName, key, desc, metaMin, metaMax, metaStep, defValue, metaValues);
 
-  pageProject.addSubmenuItem(key, "parameterElt", "parameterlink", "parameters-list_panel");
-  
   let paramParentDiv = document.getElementById(parDivID);                  
   paramParentDiv.appendChild(newParDiv);
   paramParentDiv.style.display = "block"; // if div is empty, display=none has to be changed to display=block
   selectOptionByValue("typep-"+key, vType);
   showAdditionalParametersControls(key);
   setTimeout(() => {  applySelect2Options($("#valuesms-"+key)); }, 200);   // $("#valuesms-"+key).select2(select2Options);
+
+  pageProject.addSubmenuItem(key, "parameterElt", "parameterlink", "parameters-list_panel");
 
   return newParDiv;
 }
@@ -975,12 +975,12 @@ function saveParameters(projectName) {
     pageProject.removeParameter(parameterName);      
     changes.delete(changes.parameters, parameterName);
   });
+
+  
   addedItems.forEach(function(parameterName) {
     // dodam nov parameter; vse lastnosti se bodo shranile spodaj (ker je v changes.parameters)
-    askServer(newParameterPhase2, projectName, parameterName, 
+    askServer(null, projectName, parameterName, 
       `alter {'Action':'NewParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameterName}', 'IsInput':${pageProject.parameters.get(parameterName).isInput}}` );
-    let navBarEl =  document.getElementById(`parameterElt_${parameterName}_mi`);
-    if (navBarEl) navBarEl.remove();
   });
 
   changes.parameters.forEach(function (parameter) {                
