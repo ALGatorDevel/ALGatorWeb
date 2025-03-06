@@ -283,7 +283,8 @@ function drawChart(data, settings, divId) {
   
      bindto: '#'+divId,
      zoom: {
-         enabled: settings.zoom
+         enabled: settings.zoom, 
+         rescale: true  // Optional: rescale after zooming
      },
      
      subchart: {
@@ -306,6 +307,7 @@ function drawChart(data, settings, divId) {
      },
      axis : {                
        x: {
+         zoom: { enabled: true }, 
          label: {
              text: settings.xAxisTitle,
              position: 'outer-center'
@@ -317,6 +319,7 @@ function drawChart(data, settings, divId) {
          height: 50
        },
        y: {
+           zoom: { enabled: true }, // to ne dela ... verjetno zaradi stare verzije c3
            label: {
                text: settings.yAxisTitle,
                position: 'outer-middle'
