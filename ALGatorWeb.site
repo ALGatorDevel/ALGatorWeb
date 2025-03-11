@@ -1,0 +1,30 @@
+server {
+    listen 80;
+    server_name algator.fri.uni-lj.si;
+    return 301 https://$host$request_uri;  # Redirect to HTTPS
+}
+     
+server {
+    listen 443 ssl;
+    server_name algator.fri.uni-lj.si;
+
+    ssl_certificate /etc/letsencrypt/live/algator.fri.uni-lj.si/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/algator.fri.uni-lj.si/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;  # Forward requests to Gunicorn
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /static/ {
+        alias /home/algator/ALGATOR_ROOT/app/ALGatorWeb/staticfiles/;
+    }
+
+    location /media/ {
+        alias /home/algator/ALGATOR_ROOT/app/ALGatorWeb/media;
+    }
+}

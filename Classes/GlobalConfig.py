@@ -7,8 +7,8 @@ import logging
 class GlobalConfig(object):
 
     # where images are loaded during page edit process
-    WEBUPLOAD_FOLDER       = "webupload"
-    STATIC_UPLOADFILES_REL = os.path.join(settings.STATIC_URL, WEBUPLOAD_FOLDER)        #  static/webupload
+    WEBUPLOAD_FOLDER       = "static/webupload"
+    STATIC_UPLOADFILES_REL = WEBUPLOAD_FOLDER
     STATIC_UPLOADFILES_ABS = os.path.join(settings.BASE_DIR,   STATIC_UPLOADFILES_REL)  #  /home/webpagehome/static/webupload
 
     def __init__(self):
@@ -20,9 +20,12 @@ class GlobalConfig(object):
 
         self.projects_path = self.root_path + "/data_root/projects/"
 
+        filepath = self.root_path + "/data_root/log/web/web.log"
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+ 
         # logging
         self.logger = logging.getLogger(__name__)
-        hdlr = logging.FileHandler(self.root_path + "/web.log")
+        hdlr = logging.FileHandler(filepath)
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         hdlr.setFormatter(formatter)
         self.logger.addHandler(hdlr)

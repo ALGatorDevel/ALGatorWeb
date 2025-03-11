@@ -6,15 +6,13 @@ DATABASES = {
         'NAME': 'algator',
         'USER': 'algator',
         'PASSWORD': 'algator_abc',
-        'HOST': 'kepa.fri.uni-lj.si',
-        #'HOST': 'localhost',
+        'HOST': 'algator.fri.uni-lj.si',
         'PORT': '3306',
     }
 }
 
 ALGATOR_SERVER = {
- #'Hostname' : 'kepa.fri.uni-lj.si',
- 'Hostname' : 'localhost',
+ 'Hostname' : 'algator.fri.uni-lj.si',
  'Port'     : 12321
 }
 
