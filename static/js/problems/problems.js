@@ -71,13 +71,17 @@ function getProjectHTML(project) {
 
   let sTit = project.shortTitle; if (!sTit || sTit=="?") sTit = project.name;
   let desc = truncateText(project.description, 500); 
-  let privatenessSpanHolder = project.eid == 'e?' ? '' : `<span name="privateness_span_holder" key="${project.eid}" ename="${project.name}"></span>`;
+  let privatenessSpanHolder = (!project.ownerName || (project.eid == 'e?')) ? 
+         '' : `<span name="privateness_span_holder" key="${project.eid}" ename="${project.name}"></span>`;
   
   return `
-    <div class="w3-panel w3-card-2 myCard" onclick="redirectToUrlWithParams('/project/${project.name}', {homepoint: true });">
+    <div class="w3-panel w3-card-2 myCard">
       <header class="w3-container">
         <div style="display: flex;justify-content: space-between;align-items: center;">
-          <h2 id="project_name_${project.eid}" class='cardHeader'>${sTit} ${getByHTML(project.ownerName)}</h2>          
+          <h2 id="project_name_${project.eid}" class='cardHeader' onclick="redirectToUrlWithParams('/project/${project.name}', {homepoint: true });">
+            ${sTit} ${getByHTML(project.ownerName)}
+
+          </h2> 
           ${privatenessSpanHolder}
         </div>        
       </header>

@@ -9,7 +9,7 @@
 .myCard:hover {
     transform: translateY(-4px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
+    cursor: default;
 }
 
 .myContainer{
@@ -18,11 +18,15 @@
     margin-right: 80px;
 }
 
-.cardHeader{
+.cardHeader {
     color: #27ae60; 
     font-size: 27px;
     margin-bottom: 10px;
     font-family: customFont;
+}
+.cardHeader:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .cardDesc{
