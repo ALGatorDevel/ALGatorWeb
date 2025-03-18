@@ -23,9 +23,9 @@
 <!-- Left toolbar -->
 <div class="left-toolbar">
 <script>
-var sectionTitle = ['User profile',    'Change password', 'Groups',       'Permissions',    'XC'          ];
-var sections     = ['profile',         'password',        'groups',       'permissions',    'xConsole'    ];
-var sectionIcons = ['fas fa-user-cog', 'fa fa-user-tag',  'fas fa-users', 'fa fa-database', 'fa fa-wrench'];
+var sectionTitle = ['User profile',    'Change password', 'Groups',       'Permissions',    '#ALGator shell',   'xConsole'    ];
+var sections     = ['profile',         'password',        'groups',       'permissions',    'aShell',           'xConsole'    ];
+var sectionIcons = ['fas fa-user-cog', 'fa fa-user-tag',  'fas fa-users', 'fa fa-database', 'fa fa-wr',         'fa fa-wrench'];
 var numberOfTopItems = 4;
 
 </script>
@@ -51,6 +51,10 @@ var numberOfTopItems = 4;
           <div id="permissions-top"></div>
           {% include "permissions.html" %}
       </div>      
+      <div id="aShell" style="display: none;">
+        <div id="aShell-top" style="height: 60px;"></div>
+        <div id="aShell-div"></div>
+      </div>
       <div id="xConsole" style="display: none;">
           <div id="xConsole-top"></div>
           {% include "xconsole.html" %}

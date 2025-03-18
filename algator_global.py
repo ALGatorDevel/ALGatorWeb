@@ -5,14 +5,14 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'algator',
         'USER': 'algator',
-        'PASSWORD': 'algator_abc',
-        'HOST': 'algator.fri.uni-lj.si',
+        'PASSWORD': 'algator',
+        'HOST': 'localhost',
         'PORT': '3306',
     }
 }
 
-ALGATOR_SERVER = {
- 'Hostname' : 'algator.fri.uni-lj.si',
+ALGATOR_SERVER = {  
+ 'Hostname' : 'localhost',
  'Port'     : 12321
 }
 

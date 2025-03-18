@@ -3,12 +3,17 @@
 <link rel="stylesheet" href="{% static 'css/problems/tooltip.css' %}">
 <script src="{% static 'js/problems/tooltip.js' %}"></script>
 <div id="mySidebar" style="width: 200px;">
-
-  <div class='row' style="height:50px; display:inline-block;" {% if homepoint %} onclick="redirectToUrlWithPathAndParams('{%if next%}{{next}}{%else%}/projects{%endif%}', {'homepoint':true}, false)" {% endif %}>
+  <!-- Za "prikaz projekta brez povratka na glavno stran ALGatorja" (na primer, če podaš direkten 
+       link /project/BasicSort) spodaj zamenjaj:
+       - hpb -> {% if homepoint %}, 
+       - hpe -> {% endif %}  
+       - hpx -> {% if not homepoint %} cursor:default;{% endif%}
+     -->
+  <div class='row' style="height:50px; display:inline-block;" hpb onclick="redirectToUrlWithPathAndParams('{%if next%}{{next}}{%else%}/projects{%endif%}', {'homepoint':true}, false)" hpe>
     <img  class='wide imgA' id='img1' src="{% static 'images/logo_large_notext.png' %}"  alt="ALGator"  
-       style="width:76px; {% if not homepoint %} cursor:default;{% endif%}">
+       style="width:76px; hpx">
     <img  class='slim imgA' id='img2' src="{% static 'images/algator_icon.png' %}" alt="ALGator" 
-       style="width:32px; display: none;{% if not homepoint %} cursor:default;{% endif%}">
+       style="width:32px; display: none; hpx">
   </div>
 
   <div id="problemNavbarMenuButton" class='row'>

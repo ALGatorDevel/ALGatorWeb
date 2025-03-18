@@ -2727,7 +2727,7 @@ function newProjectPhase2(projectName, key, response) {
 function getPrivatenessIconsHTML(key, ename, entity='it') {
   return `
     <span name="entity_privateness_span" key="${key}" ename="${ename}" onclick="changeLockState(event, '${key}', '${ename}')">
-        <i id="entity_locked_${key}_${ename}"   style="display: none; color:red" title="Make ${entity} public (open access)" class="fas fa-lock icon"></i>
+        <i id="entity_locked_${key}_${ename}"   style="display: none; color:crimson" title="Make ${entity} public (open access)" class="fas fa-lock icon"></i>
         <i id="entity_unlocked_${key}_${ename}" style="display: none; color:green" title="Make ${entity} private (restrict access)" class="fas fa-lock-open icon"></i>
     </span>
   `;

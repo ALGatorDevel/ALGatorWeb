@@ -108,6 +108,8 @@ class Migration(migrations.Migration):
         can_edit_users_pt     .save()
         can_edit_clients_pt   = PermissionType(id='p9',    name='Can edit clients?',    codename='can_edit_clients',    value=512)
         can_edit_clients_pt   .save()
+        can_import_project_pt = PermissionType(id='p10',   name='Can import project?',  codename='can_import_project',  value=1024)
+        can_import_project_pt .save()
         full_control_pt       = PermissionType(id='pFFFF', name='Full control',         codename='full_control',        value=0xFFFF)
         full_control_pt       .save()
 
@@ -149,16 +151,18 @@ class Migration(migrations.Migration):
         Entity_permission(entity_type=project_et,   permission_type=can_read_pt).save()
         Entity_permission(entity_type=project_et,   permission_type=can_write_pt).save()
         Entity_permission(entity_type=project_et,   permission_type=can_execute_pt).save()
-        Entity_permission(entity_type=project_et,   permission_type=can_add_project_pt).save()
         Entity_permission(entity_type=project_et,   permission_type=can_add_algorithm_pt).save()
         Entity_permission(entity_type=project_et,   permission_type=can_add_testset_pt).save()
         Entity_permission(entity_type=project_et,   permission_type=can_add_presenter_pt).save()
         Entity_permission(entity_type=project_et,   permission_type=can_edit_rights_pt).save()
         Entity_permission(entity_type=project_et,   permission_type=full_control_pt).save()
+    
         # duplicate permissions for "project" to "Projects"
         for prm in Entity_permission.objects.filter(entity_type=project_et):
             Entity_permission(entity_type=projects_et, permission_type=prm.permission_type).save()
-        
+        Entity_permission(entity_type=projects_et,   permission_type=can_add_project_pt).save()
+        Entity_permission(entity_type=projects_et,   permission_type=can_import_project_pt).save()
+
         Entity_permission(entity_type=algorithm_et, permission_type=can_read_pt).save()
         Entity_permission(entity_type=algorithm_et, permission_type=can_write_pt).save()
         Entity_permission(entity_type=algorithm_et, permission_type=can_execute_pt).save()

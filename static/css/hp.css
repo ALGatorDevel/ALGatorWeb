@@ -327,15 +327,45 @@ a.hp-pad {
     align-items: end;
     margin: 0px;
 }
-.p-add-text {
-    display: none;
+
+
+/* ListOfProjects menu */
+
+.hp_menu-container {
+    position: relative;
+    display: inline-block;
+}
+.hp_menu-icon {
     font-size: 0.5em;
     color: gray;
     text-decoration: none;
     cursor: pointer;
-    transition: color 0.3s;
+    transition: color 0.3s;    
 }
-.p-add-text:hover {
-    text-decoration: underline;
-    color: black;
+.hp_menu-icon:hover {
+    color:green;
+}
+.hp_dropdown-menu {
+    position: absolute;
+    top: 45px;
+    right: -4px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+    z-index: 1000;
+    width: 190px;
+}
+.hp_dropdown-menu.open {
+    display: block;
+}
+.hp_menu-item {
+    font-size: 15px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.hp_menu-item:hover {
+    background: #f0f0f0;
 }

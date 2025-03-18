@@ -83,6 +83,9 @@ def userLogout(request):
 def who(request):
     return ausers.who(request)
 
+def info(request):
+    return ausers.info(request)
+
 def can(request):
     data = QueryDict.dict(request.GET)
     return ausers.can_request(request, data)

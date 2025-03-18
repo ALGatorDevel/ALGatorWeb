@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=algator
-Group=www-data
+Group=algator
 Environment="ALGATOR_ROOT=/home/algator/ALGATOR_ROOT"
 WorkingDirectory=/home/algator/ALGATOR_ROOT/app/ALGatorWeb
 ExecStart=/home/algator/.conda/envs/algator/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 ALGatorWeb.wsgi:application

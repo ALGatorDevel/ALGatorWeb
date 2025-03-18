@@ -80,7 +80,7 @@
   </div>  
   <hr style="margin: 0px; border-top: 1px dashed black;">
   <div class="menupanel" id="opt-alga" style="display:visible;">
-    <span id="alg_version" class="menuCommand">ALGator version</span> | <span id="web_version" class="menuCommand">ALGator webpage version</span> | <span id="srvr_status" class="menuCommand">Server status</span> | <span id="who" class="menuCommand">Who</span>
+    <span id="alg_version" class="menuCommand">ALGator version</span> | <span id="web_version" class="menuCommand">ALGator webpage version</span> | <span id="srvr_status" class="menuCommand">Server status</span> |  <span id="db_info" class="menuCommand">DB info</span> |  <span id="who" class="menuCommand">Who</span>
   </div>
   <div class="menupanel" id="opt-file" style="display:none;">
     <span id="editFile" class="menuCommand">Edit file</span> | 
@@ -161,6 +161,9 @@
         break;
       case 'srvr_status':
         cmd = '>status';
+        break;
+      case 'db_info':
+        cmd = '>dbinfo';
         break;
       case 'who':
         cmd = '>who';        
