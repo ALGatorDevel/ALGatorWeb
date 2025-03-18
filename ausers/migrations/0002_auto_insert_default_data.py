@@ -140,8 +140,6 @@ class Migration(migrations.Migration):
 
         # Entity permission
         Entity_permission = apps.get_model('ausers', 'Entity_permission')
-        ep00 = Entity_permission(entity_type=system_et, permission_type=can_add_project_pt).save()
-          
         Entity_permission(entity_type=system_et,    permission_type=can_read_pt).save()
         Entity_permission(entity_type=system_et,    permission_type=can_edit_rights_pt).save()
         Entity_permission(entity_type=system_et,    permission_type=can_edit_users_pt).save()

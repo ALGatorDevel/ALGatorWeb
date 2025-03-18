@@ -7,7 +7,7 @@ import logging
 class GlobalConfig(object):
 
     # where images are loaded during page edit process
-    WEBUPLOAD_FOLDER       = "static/webupload"
+    WEBUPLOAD_FOLDER       = "media/webupload"
     STATIC_UPLOADFILES_REL = WEBUPLOAD_FOLDER
     STATIC_UPLOADFILES_ABS = os.path.join(settings.BASE_DIR,   STATIC_UPLOADFILES_REL)  #  /home/webpagehome/static/webupload
 

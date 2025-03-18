@@ -19,6 +19,10 @@ from django.urls import path, include
 from ausers.views import *
 import problems.views as pviews
 
+from django.conf.urls.static import static
+from django.conf import settings
+
+
 
 urlpatterns = [
     path("", include(("main.urls", 'main'), namespace='main'), name="main"),
@@ -33,5 +37,8 @@ urlpatterns = [
 
     path('permissions/', include(('ausers.urls', 'ausers'), namespace='auserş')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

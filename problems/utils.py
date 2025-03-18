@@ -65,8 +65,8 @@ def traverse_and_transform(dictionary, transform_function):
 
 def updateResourcesIfNeeded(projectDocResources, problemName, uid="__internal__"):
     for keyFileName, valueTimeStamp in projectDocResources.items():
-        pathCheckForFile = os.path.join("static", "ProjectDocs", problemName, keyFileName.replace("\\", "/"))
-        path = os.path.join("static", "ProjectDocs", problemName)
+        pathCheckForFile = os.path.join("media", "ProjectDocs", problemName, keyFileName.replace("\\", "/"))
+        path = os.path.join("media", "ProjectDocs", problemName)
         # Resource ze obstaja preverimo ce ga je potrebno posodobiti
         if fileExists(pathCheckForFile):
             timeStamp = os.path.getmtime(pathCheckForFile)  
