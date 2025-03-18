@@ -8,6 +8,13 @@ services = {
       'comment' : 'No params required.'
   },
 
+  'info'  : {
+      'endpoint': '/ausers/info',   
+      'method'  : 'GET',
+      'params'  : [], 
+      'comment' : 'Django settings info. No params required.'
+  },
+
   'get_users'  : {
       'endpoint': '/ausers/get_users',   
       'method'  : 'GET',

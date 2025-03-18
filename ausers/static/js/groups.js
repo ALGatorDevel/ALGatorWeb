@@ -210,3 +210,8 @@ async function removeUserFromGroup(group, user) {
       }
     });
 }
+
+
+function openAShellInWindow() {
+  window.location.href = "/ashell/";
+}

@@ -100,8 +100,10 @@ var numberOfTopItems = 6;
 // some items are to be shown only in some cases; this function checks if item is to be shown and returns tree/false
 async function showItem(item) {
  switch (item) {
-    case 'xConsole':
-      return true; //current_user_is_superuser;
+    case 'xConsole': // XConsole is shown only to superuser
+      return current_user_is_superuser;
+    case 'aShell': // ALGator shell is shown only to superuser
+      return current_user_is_superuser;
     case 'groups':
       const canEditUsers = await can('e0_S', "can_edit_users");
       return canEditUsers;
@@ -182,7 +184,8 @@ function showSectionSideNavbar(sectionId) {
     case "profile":            loadProfilePage(); break;
     case "password":           loadChangePasswordPage(); break;  
     case "permissions":        getEntities(); break;  
-    case "groups":             loadGroupsPage(); 
+    case "groups":             loadGroupsPage(); break;
+    case "aShell":             openAShellInWindow(); break;
   }
 }
 
@@ -239,7 +242,6 @@ function addSortableColoumns(presenterJSON, view, tableId, tableInstance, sortBy
 
 
 async function updateTableSortBy(presenterJSON, view, tableId, sortby, sortById){
-
 
   presenterJSON[view]['sortBy'] = sortby;
   presenterJSON['Query']['SortBy'] = [sortby];

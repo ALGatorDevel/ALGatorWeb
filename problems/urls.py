@@ -15,4 +15,6 @@ urlpatterns = [
     path("remove_testset_file",           views.remove_testset_file,          name="remove_testset_file"),
     path("get_algorithms",                views.get_algorithms,               name="get_algorithms"),
     path("get_presenters",                views.get_presenters,               name="get_presenters"),
+
+    path("uploadmulti",                   views.uploadmulti,                  name="uploadmulti"),
 ]

@@ -1,3 +1,5 @@
+projectName = "unknown";
+
 function timeAgo(timestamp) {
     const now = Date.now();
     const diff = Math.floor(now/1000) - timestamp; // Difference in seconds
@@ -72,7 +74,7 @@ function getProjectHTML(project) {
   let sTit = project.shortTitle; if (!sTit || sTit=="?") sTit = project.name;
   let desc = truncateText(project.description, 500); 
   let privatenessSpanHolder = (!project.ownerName || (project.eid == 'e?')) ? 
-         '' : `<span name="privateness_span_holder" key="${project.eid}" ename="${project.name}"></span>`;
+  '' : `<span name="privateness_span_holder" key="${project.eid}" ename="${project.name}"></span>`;
   
   return `
     <div class="w3-panel w3-card-2 myCard">
@@ -173,20 +175,128 @@ function switchSearchPanel() {
   let sp = document.getElementById("projectSearchPanel");
   let spi = document.getElementById("projectSearchInput");
 
+  let fmi = document.getElementById("filter_menu_item");
+
   if (sp.style.display != "flex") {
     sp.style.display="flex";
-
-    spi.focus(); // Osredotoči se na input
+    fmi.innerHTML = "Hide filter panel"
+    spi.focus();
     spi.select();
   } else {
     sp.style.display="none";
+    fmi.innerHTML = "Filter ...";
+
+    // clear search filter
+    spi.value = "";
+    spi.dispatchEvent(new Event('input'));
+
   }
 }
 
 
+//////////////   ListOfProblems ... menu ////////////////////////////////////////
+let outsideClickListener = null;
+
+function addMenuIconListener() {
+  const menuIcon = document.getElementById('menuIcon');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+
+  // Toggle menu visibility
+  menuIcon.addEventListener('click', (e) => {
+    dropdownMenu.classList.toggle('open');
+    e.stopPropagation(); // Prevent event from reaching the body
+    if (dropdownMenu.classList.contains('open')) {
+        addOutsideClickListener();
+    } else {
+        removeOutsideClickListener();
+    }
+  });
+}
+
+// Add listener to close menu on outside click
+function addOutsideClickListener() {
+    const menuIcon = document.getElementById('menuIcon');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+
+    if (!outsideClickListener) {
+        outsideClickListener = (event) => {
+            if (!dropdownMenu.contains(event.target) && event.target !== menuIcon) {
+                dropdownMenu.classList.remove('open');
+                removeOutsideClickListener();
+            }
+        };
+        document.addEventListener('click', outsideClickListener);
+    }
+}
+
+// Remove outside click listener
+function removeOutsideClickListener() {
+    if (outsideClickListener) {
+        document.removeEventListener('click', outsideClickListener);
+        outsideClickListener = null;
+    }
+}
+
+// Handle menu option click
+function handleMenuClick(action) {
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    dropdownMenu.classList.remove('open');
+    removeOutsideClickListener();
+
+    switch (action) {
+      case 'find' : switchSearchPanel(); break;
+      case 'newProject': newProject(); break;
+      case 'importProject': openFileDialog(); break;
+    }
+}
+
+async function openFileDialog() {
+  let fileInput = document.getElementById('fileInput');
+  fileInput.click();
+  fileInput.onchange = async () => {
+      document.body.style.cursor = "wait";
+      if (fileInput.files.length > 0)  {
+        let uploadResult = await uploadFiles([fileInput.files[0]], new Map([["type", "importProject"],[]]));
+        if (uploadResult.Status == 0) {
+          let path     = uploadResult.Answer.Location;
+          let filename = fileInput.files[0].name;
+          askServer(importProjectPhase2, projectName, "import", `alter {'Action':'ImportProject', 'Path':'${path}', 'Filename':'${filename}', 'ProjectName':'?'}`); 
+        } else  {
+          document.body.style.cursor = "default";
+          showPopup(uploadResult.Answer);
+        }
+      }      
+  };
+}
+
+
+function importProjectPhase2(p1, p2, response) {
+  document.body.style.cursor = "default";
+
+  if (response.Status==0) {
+    // response.Answer = "Project 'BasicSort04' imported successfully."
+    const match = response.Answer.match(/'([^']+)'/);
+    if (match) {
+      // redirect to the imported project
+      window.location.href = "/project/" + match[1];
+    }
+  } else {
+    showPopup(response.Answer);
+  }  
+}
+
+/////////////////////////////////////////////////////////////////////
+
+
 document.addEventListener("DOMContentLoaded", async function() {
-  let showNewProjectPanel = await can("e0_P", "can_add_project");
-  document.getElementById("new_project_button").style.display = showNewProjectPanel ? "flex" : "none";
+  addMenuIconListener();
+
+  let showNewProjectOption = await can("e0_P", "can_add_project");
+  if (!showNewProjectOption) document.getElementById("newP_menu_item").remove();
+
+  let showImpProjectOption = await can("e0_P", "can_import_project");
+  if (!showImpProjectOption) document.getElementById("impP_menu_item").remove();
+
 
   createCards();
   printCards();

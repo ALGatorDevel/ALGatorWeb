@@ -123,8 +123,9 @@ def problems(request):
       except:
         pass
     context = {
-        'isDBMode':   not isAnonymousMode(),
-        'projects_description': projects_description
+        'isDBMode'             : not isAnonymousMode(),
+        'ALGatorServerURL'     : connector.get_server_url(),        
+        'projects_description' : projects_description
     }
 
     return render(request, 'listOfProblems.html', context)

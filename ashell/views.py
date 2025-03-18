@@ -11,7 +11,7 @@ def ashell(request):
   # uid = try_get_user(request)
   # ashell is only available for "super-users" (and everyone with full_control over the system)
   #if can(uid, "e0_S", "full_control"):
-    return render(request,'ashell.html', {})
+        return render(request,'ashell.html', {})
   #else:
   #    return HttpResponse("AShell - access denied.", content_type="text/html")
 

@@ -15,6 +15,7 @@ from .models import User, Group_User, Group, Entities, Entity_permission, Entity
 from .auconsts import USER_ANONYMOUS, GROUP_ANONYMOUS, GROUP_EVERYONE, USER_ROOT, FULL_CONTROL
 from .queries import PERMISSIONS_ENTTIES_USER_GROUP_ROOT, PERMISSIONS_ENTTIES_USER_GROUP
 
+from django.conf import settings
 
 def try_get_user(response: HttpResponse) -> str:
     try:
@@ -26,6 +27,24 @@ def who(request: HttpResponse) -> HttpResponse:
   uid = try_get_user(request)
   server_response = connector.talkToServer('who', uid)
   return au_response(server_response)
+
+def info(request: HttpResponse) -> HttpResponse:
+  uid = try_get_user(request)
+  user = User.objects.get(uid=uid)
+
+  if user.is_superuser:
+
+    content = {
+      'user' : f"{user.username} ({uid})",
+      'ALGATOR_SERVER.Hostname' : settings.ALGATOR_SERVER["Hostname"],
+      'ALGATOR_SERVER.Port': settings.ALGATOR_SERVER["Port"],
+      'DATABASES.Engine': settings.DATABASES["default"]["ENGINE"],
+      'DATABASES.Host': settings.DATABASES["default"]["HOST"],
+    }
+    return au_response(content)
+  else:
+    return au_response("Access denied.")
+
 
 def get_users(request: HttpResponse, *args) -> HttpResponse:
     if request is None :

@@ -8,7 +8,7 @@ function getUploadComponet(componentID, key) {
        <ul style="text-align:left" id="file-list-${componentID}" class="upload-list"></ul>
     </div>
     <input id="file-input-${componentID}" type="file" multiple  style="display: none;">
-    <button id="upload-button-${componentID}" class="upload-button sEdit" own='${key}' disabled>Upload Files</button>
+    <button id="upload-button-${componentID}" class="upload-button xEdit" own='${key}' disabled>Upload Files</button>
     </div>
   `; 
 }
@@ -104,20 +104,24 @@ async function uploadFiles(files, context) {
       formData.append(key, value);
     }
     formData.append("uid", current_user_uid); 
-
+ 
     try {
-        const response = await fetch(ALGatorServerURL + "uploadmulti", {
+       // const response = await fetch(ALGatorServerURL + "uploadmulti", {
+        const response = await fetch("/projects/uploadmulti", {
             method: "POST",
             body: formData,
+            headers: {
+              "X-CSRFToken": window.CSRF_TOKEN, 
+            },            
         });
 
         if (response.ok) {
             const result = await response.json();
             return result;
         } else {
-            return "Failed to upload files. Server responded with status: " + response.status;
+            return {"Status":1, "Message":"Upload error", "Answer" : "Failed to upload files. Server responded with status: " + response.status};
         }
     } catch (error) {
-        return "Error uploading files: " + error.message;
+        return {"Status":2, "Message":"Upload error", "Answer" : "Error uploading files: " + error.message};
     }
 }

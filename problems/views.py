@@ -1,6 +1,7 @@
 import json
 
-from django.http import QueryDict
+import requests
+from django.http import QueryDict, JsonResponse
 from django.template.defaulttags import register
 from django.shortcuts import render
 
@@ -88,6 +89,21 @@ def problem(request):
         problemName = request.GET.get('problemName', '')
     return project(request, problemName)
 
+
+# Calling the ALGatorServer's uploadmulti endpoint directly from JavaScript can cause errors because
+# browsers block mixed content (attempting to access an http resource from an https page).
+# This Django view acts as a proxy, allowing you to bypass the browser's security restrictions.
+def uploadmulti(request):
+        target_url = connector.get_server_url() + '/uploadmulti'
+
+        try:
+            data = request.POST.dict()
+            files = {key: (file.name, file, file.content_type) for key, file in request.FILES.items()}
+            response = requests.post(target_url, data=data, files=files)
+            return JsonResponse(response.json(), status=response.status_code)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
 
 
 @register.filter

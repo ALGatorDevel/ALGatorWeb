@@ -2,10 +2,12 @@
 {% load static %}
 {% block headcss %}
   <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/edit.css' %}">
   <link rel="stylesheet" href="{% static 'css/problems/problems.css' %}">
 
 {% endblock %}
 {% block headjs %}
+  <script src="{% static 'js/upload.js' %}"></script>   
   <script src="{% static 'js/edit.js' %}"></script>   
   <script src="{% static 'js/problems/problems.js' %}"></script>     
 {% endblock %}
@@ -19,8 +21,19 @@
       <h1 class="p-header">
           Projects
           <span style="display:flex; align-items:center">
-              <i class="fas fa-filter filter-icon" style="font-size:20px; color:gray; margin-right:20px; cursor:pointer;" onclick="switchSearchPanel()"></i>
-              <a id="new_project_button" class="p-add-text" onclick="newProject()">New project ...</a>
+              <!--i class="fas fa-filter filter-icon" style="font-size:20px; color:gray; margin-right:20px; cursor:pointer;" onclick="switchSearchPanel()"></i-->
+              <!--a id="new_project_button" class="p-add-text" onclick="newProject()">New project ...</a-->
+              <!--span id="new_project_button" class="menu_opener">&#9776;</span-->
+              
+              <div class="hp_menu-container" id="menuContainer">
+                <span class="hp_menu-icon" id="menuIcon">&#9776;</span>
+                   <div class="hp_dropdown-menu" id="dropdownMenu">
+                       <div id="filter_menu_item" class="hp_menu-item" onclick="handleMenuClick('find')">Filter ...</div>
+                       <div id="newP_menu_item" class="hp_menu-item" onclick="handleMenuClick('newProject')">New Project ...</div>
+                       <div id="impP_menu_item" class="hp_menu-item" onclick="handleMenuClick('importProject')">Import Project ...</div>
+                   </div>
+              </div>   
+              <input type="file" id="fileInput" style="display: none;" accept=".zip"/>       
           </span>
       </h1>
       <hr class="hr">
@@ -40,7 +53,7 @@
             <!--option value="pop">Popularity</option-->
           </select>&nbsp;&nbsp;
           <input id="projectSearchDesc" type=checkbox value="desc" onchange="printCards()">&nbsp;Descending
-        </span>  
+        </span>
       </div>
 
       <div id="projectCardsContainer" class="w3-container myContainer">
