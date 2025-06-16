@@ -83,7 +83,7 @@ a.navBarEl {
     flex: 1; /* Makes sure content area expands */
     margin-top: 60px;
     padding: 20px;
-    min-width: 700px;
+    xmin-width: 700px;
 }
 .hp-footer {
     width: 100%;
@@ -146,9 +146,16 @@ a.navBarEl {
 /* šestkotne ploščice */
 .hp-pad {
     width: calc((100% - 40px) / 5);
+
+    xheight:calc((100vw - 40px) / 5);;
+    xmax-height: calc(((50vh - 32px) / 2) - 17px);
+    xmax-width: calc(((50vh - 32px) / 2) - 17px);
+
     min-height: 170px;
     min-width: 165px;
     height: calc(50vh - 128px);
+    max-height: calc(1.1 * (50vh - 128px));  /* Ensures height never exceeds 1.1 of calculated height */
+
     background-color: white;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); 
     text-align: center;

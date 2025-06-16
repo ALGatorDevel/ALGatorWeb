@@ -48,7 +48,7 @@ def setPresenterData(problemName, presenterDICT, uid="__internal__"):
 
 def replaceStaticLinks(html_string, problemName):
     for sLink in re.findall(r'%static{([^}]+)}', html_string):
-        newName = f"/static/ProjectDocs/{problemName}/{sLink}"
+        newName = f"/media/ProjectDocs/{problemName}/{sLink}"
         html_string = html_string.replace(f"%static{{{sLink}}}", newName)
     return html_string
 

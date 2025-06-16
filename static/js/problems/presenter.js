@@ -204,7 +204,8 @@ function getQueryHTML(id, clock=false) {
       <img id="clockOf-playground" onclick="playgroundClockOnOff(1);" src="/static/images/clock48_0.png" style="width:20px;margin-right:5px; float:right;">
     </div>
   `;
-  let indInfoButton = infoButton("indicators");
+  let indInfoButton   = infoButton("indicators");
+  let groupInfoButton = infoButton("groupby");
   return `
     <div class='w3-container'>
         ${clockButtons}
@@ -245,7 +246,7 @@ function getQueryHTML(id, clock=false) {
                 <div class='w3-col s6'>                    
                     <div class='box' style='margin-left: 5px; margin-right: 5px;'>
                         <div class='w3-row'>
-                            <label for="qGroupby_${id}">Group by:</label>
+                            <label for="qGroupby_${id}">Group by:</label>${groupInfoButton}
                             <select id="qGroupby_${id}" multiple="multiple" style="width: 100%;">
                             </select> 
                         </div>                    

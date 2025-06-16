@@ -9,7 +9,7 @@ class GlobalConfig(object):
     # where images are loaded during page edit process
     WEBUPLOAD_FOLDER       = "media/webupload"
     STATIC_UPLOADFILES_REL = WEBUPLOAD_FOLDER
-    STATIC_UPLOADFILES_ABS = os.path.join(settings.BASE_DIR,   STATIC_UPLOADFILES_REL)  #  /home/webpagehome/static/webupload
+    STATIC_UPLOADFILES_ABS = os.path.join(settings.BASE_DIR,   STATIC_UPLOADFILES_REL)  #  /home/webpagehome/media/webupload
 
     def __init__(self):
         if 'ALGATOR_ROOT' in os.environ.keys():

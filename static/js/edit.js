@@ -1636,7 +1636,7 @@ function getTestsetHTML(projectName, key, author, date, eid, desc, shortname, n,
          <tr><td class="gentd"><label for="tstimelimit-__key__">Time limit</label></td>
              <td><input class="almostW sEdit" disabled type="number" id="tstimelimit-__key__" value="${timelimit}" own='${key}' oninput="setTestsetChanged(true);">
          </td></tr>
-         <tr><td style="vertical-align:top" class="gentd"><label for="tsfilecont-__key__">Tests</labekeyl></td>
+         <tr><td style="vertical-align:top" class="gentd"><label for="tsfilecont-__key__">Tests</labekeyl>${infoButton('tests')}</td>
              <td><textarea style="display:none;" class="almostW" id="tsfilecontTA-__key__" onchange="setTestsetChanged(true);"></textarea>
              <div class="CodeMirror almostW" id="tsfilecontCM-__key__"></div>
          </td></tr>

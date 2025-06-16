@@ -29,7 +29,7 @@ urlpatterns = [
 
     path("ausers/", include(("ausers.urls", "ausers"), namespace="ausers"), name="ausers"),
     path("ashell/", include(("ashell.urls", "ashell"), namespace="ashell"), name="ashell"),
-    
+
     path("projects/", include(("problems.urls", "problems"), namespace="problems"), name="problems"),
 
     path('project/<str:problemName>',     pviews.project, name="problem"),

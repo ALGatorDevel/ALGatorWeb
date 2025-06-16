@@ -25,6 +25,6 @@ server {
     }
 
     location /media/ {
-        alias /home/algator/ALGATOR_ROOT/app/ALGatorWeb/media;
+        alias /home/algator/ALGATOR_ROOT/app/ALGatorWeb/media/;
     }
 }

@@ -225,37 +225,73 @@ function wireControl(view, selector, property, action) {
   } 
 
 
-function drawChart(data, settings, divId) {
-  let chart;
-   
-  let xAxis = '';
-  if (!settings.xAxis === ''){
-   xAxis = "ID";
+function drawChart(data, settings, divId) {   
+  if (!settings.xAxis === '') xAxis = "ID";
+  
+  let xAxis = ''; let xAxisIDX = data[0].indexOf(settings.xAxis+' ');
+  if (xAxisIDX !== -1) {
+    xAxis = settings.xAxis + ' '; 
   }
-  else{
-   if (data[0].indexOf(settings.xAxis+' ') !== -1) {
-     xAxis = settings.xAxis + ' ';
-   }
-  }
-  if (settings.logScale) {
+
+  if (settings.logXScale || settings.logYScale) {
+   let xBase = Number(settings.logXbase); if (Number.isNaN(xBase)) xBase= Math.E;
+   let yBase = Number(settings.logYbase); if (Number.isNaN(yBase)) yBase= Math.E;
    var val = 0;
    for(var i=1; i<data.length; i++) {
-     for(var j=0; j<data[i].length; j++) {
-         try {
-           val = Math.log(data[i][j]);                  
-         } catch (e) {
-           val = "0";
-         }  
-         data[i][j] = val.toFixed(2);
-     }
+      for(var j=0; j<data[i].length; j++) {
+         if ((data[0][j]==xAxis && settings.logXScale) || (data[0][j]!=xAxis && settings.logYScale))  {
+           try {
+             val = Math.log(data[i][j]) / Math.log(data[0][j]==xAxis ? xBase : yBase);                  
+           } catch (e) {
+             val = "0";
+           }  
+           data[i][j] = val;//.toFixed(2);
+         }
+      }
    }
   } 
+
+
+  // if filterX is given, filter out all rows that do not satisfy filterX condition
+  if (settings.filterX && xAxisIDX !== -1) {
+    let filter = settings.filterX;
+    let xAxisName = xAxis.trim();
+    for(let i=data.length-1; i>0; i--) {
+        let scope = { [xAxisName] : data[i][xAxisIDX] };
+        try {
+          let validRow = math.evaluate(filter, scope);  
+          if (!validRow)  data.splice(i, 1);
+        } catch (e) {}
+    }
+  }
+
+  if (!settings.labelsXTrfs) settings.labelsXTrfs="";
+  if ((settings.labelsXTrfs.startsWith("=") || settings.categoryLabels) && (xAxisIDX >= 0)) {
+    for(let i=1; i<data.length; i++) {
+      let x   = data[i][xAxisIDX];
+      let idx = i-1;
+
+      if (settings.labelsXTrfs.startsWith("=")) {
+        const expr  = settings.labelsXTrfs.substring(1);
+        const scope = { idx: idx, x:x};
+        const result = math.evaluate(expr, scope);  
+        data[i][xAxisIDX] = result;
+      } else {
+        let ll = settings.labelsXTrfs.split(";");
+        if (ll.length > idx && ll[idx])
+          data[i][xAxisIDX] = ll[idx];
+      }
+    }
+  }
+
   var xAxisType = '';
-  if (settings.categoryLabels) 
-   xAxisType = 'category';
+  if (settings.categoryLabels)  xAxisType = 'category';
+
+  var chart;
+
   if (settings.graphType=="other") {
    // implementacija "posebnih tipov" grafov
-   chart = c3.generate({
+     chart = c3.generate({
      bindto: '#'+divId,
      
      data: {
@@ -323,12 +359,24 @@ function drawChart(data, settings, divId) {
            label: {
                text: settings.yAxisTitle,
                position: 'outer-middle'
+           },
+           tick: {
+             format: function(y) {
+               if (settings.labelsYTrfs && settings.labelsYTrfs.startsWith("=")) {
+                  const expr  = settings.labelsYTrfs.substring(1);
+                  const scope = { y: y };
+                  const result = math.evaluate(expr, scope);  
+                  return result;
+               } else
+                return y;
+             }
            }
        }
      }
    });
    d3.select(".c3-axis-x-label").attr("transform", "translate(0,-7)"); // premik labele gor (da se cela vidi)
   }
+  settings.chart = chart;
   return chart;
 } 
 

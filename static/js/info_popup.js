@@ -7,6 +7,13 @@ let messages = {
     String commonResourcesPath  = getCommonResourcesPath (generatingParameters);<pre>
 `,
 
+'tests':`Example of multi-test description line: <pre>
+
+  $for{i,0,100,10}:Type0:test\${i+1}:\${1000+ i}:RND
+
+</pre>
+`,
+
 'testset_files': `
   To access these files in test case generators, use the <span class="pre-text">testsetResourcesPath</span> obtained by
 
@@ -57,7 +64,37 @@ Supported operators and functions:
   tanh: hyperbolic tangent
   signum: signum of a value
 </pre>
+`,
+
+'groupby':`Example: to group by r and retain minimal of Tmins and average of Tmaxs, write <pre>r;Tmin:MIN;Tmax:AVG</pre>`,
+
+'labels_list_x':`<pre>
+  Change or transform x labels.
+
+  1) Define semi-column delimited list of labels to be used
+  Example: a;;b  ... will replace first and third label to 'a' abd 'b'; other labels will remain unchanged.
+
+  2) Define a function to transform labels; use x for label or idx (if category) for label index 
+  Example: =x+1     ... increace label by 1
+           =log2(x) ... transform label to log(label)
+           =2^idx   ... use 1,2,4,8, ...  as labels 
+`,
+'labels_list_y':`<pre>
+  Change or transform y labels.
+
+  Define a function to transform y labels; use y for label
+  Example: =y+1           ... increace label by 1
+           =log2(y)       ... transform label to log(label)
+           =round(y/1000, 2) ... change from milli seconds to seconds; use two decimal places
+`,
+'filterX':`<pre>
+  Filter defines values of X to be included in graph
+
+  Example: N > 10000        ... show rows with N > 10000
+           ID>=4 and ID<10  ... show rows with ID>=4 and ID<10
 `
+
+
 }
 
 

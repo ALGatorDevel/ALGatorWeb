@@ -191,13 +191,19 @@ class GraphView extends AView {
     return {
       "xAxis": "",
       "yAxes": [],
+      "filterX": "",
       "graphTypes": "",
       "xAxisTitle": "",
       "yAxisTitle": "",
       "categoryLabels": false,
+      "labelsXTrfs":"",
+      "labelsYTrfs":"",
       "gridX": false,
       "gridY": false,
-      "logScale": false,
+      "logXScale": false,
+      "logYScale": false,
+      "logXbase":"e",
+      "logYbase":"e",
       "manData": {},
       "subchart": false,
       "zoom": false
@@ -232,24 +238,36 @@ class GraphView extends AView {
     
     let xData = data ? data[0]                    : "";
     let yData = data ? addGroupAsterisks(data[0]) : "";
+
+    let filterX = this.viewJSON["filterX"] || "";
     
     fillSelector(xData, xAxis, 'selected_x_'+this.viewID, "");
     wireControl(this, "selected_x", "xAxis", "change");
 
-
     fillSelector(yData, yAxes, 'selected_y_'+this.viewID, "Select y");
     wireControl(this, "selected_y", "yAxes", "change");
 
-    wireCheckbox(this, "zoom"             , "zoom");
-    wireCheckbox(this, "showSubchart"     , "subchart");
-    wireCheckbox(this, "showXGridLines"   , "gridX");
-    wireCheckbox(this, "showYGridLines"   , "gridY");
-    wireCheckbox(this, "logarithmicScale" , "logScale");
-    wireCheckbox(this, "useCategoryLabels", "categoryLabels");
+    wireControl(this, "filter_x", "filterX", "keyup");
+
+    wireCheckbox(this, "zoom"             ,  "zoom");
+    wireCheckbox(this, "showSubchart"     ,  "subchart");
+    wireCheckbox(this, "showXGridLines"   ,  "gridX");
+    wireCheckbox(this, "showYGridLines"   ,  "gridY");
+    wireCheckbox(this, "logarithmicXScale" , "logXScale");
+    wireControl (this, "logXBase", "logXbase", "keyup");
+    wireCheckbox(this, "logarithmicYScale" , "logYScale");
+    wireControl (this, "logYBase", "logYbase", "keyup");
+
+    wireCheckbox(this, "useCategoryLabels",  "categoryLabels");
+    wireControl (this, "labelsXTrfs", "labelsXTrfs", "keyup");
+    wireControl (this, "labelsYTrfs", "labelsYTrfs", "keyup");
+
 
     wireControl(this, "xAxisTitle", "xAxisTitle", "keyup");
     wireControl(this, "yAxisTitle", "yAxisTitle", "keyup");
     wireControl(this, "graphType",  "graphTypes", "change");
+    
+
 
     this.draw();
   }
@@ -262,50 +280,60 @@ class GraphView extends AView {
   getEditorControls(id) {
     var cont = `   
     <div class='box'>
-        <div class='w3-row'>
-            <div class='w3-col s6'>
-                <div style='margin-left: 5px; margin-right: 5px;'>
-                    <label for="selected_x_${id}">X:</label>
-                    <select class="w3-select" id="selected_x_${id}" style="width: 100%;">
-                    </select>
-                </div>
+      <div class='w3-row'>
+        <div class='w3-col s6'>
+          <div class='w3-col s7'>
+            <div style='margin-left: 5px; margin-right: 5px;'>
+              <label for="selected_x_${id}" style="padding-right:10px;">X:</label>
+              <select class="w3-select" id="selected_x_${id}" style="width: 90%;"></select>
             </div>
-            <div class='w3-col s6'>
-                <div style='margin-left: 5px; margin-right: 5px;'>
-                    <label for="selected_y_${id}">Y:</label>
-                    <select id="selected_y_${id}" multiple="multiple" style="width: 100%;">
-                    </select>
-                </div>
+          </div>
+          <div class='w3-col s5'>
+            <div style='margin-left: -5px; margin-right: 5px; padding-top:1px'>
+              <!--select class="w3-select" multiple="multiple" id="filter_x_${id}" style="width: 70%;"></select-->
+              <input type=text id='filter_x_${id}' style="width:90%; height:37px" placeholder="Filter ...">${infoButton('filterX')}<br>
             </div>
+          </div>
         </div>
+        <div class='w3-col s6'>
+          <div style='margin-left: 5px; margin-right: 5px;'>
+            <label for="selected_y_${id}">Y:</label>
+            <select id="selected_y_${id}" multiple="multiple" style="width: 90%;"></select>
+          </div>
+        </div>
+      </div>
     </div>
     <div class='w3-col s6'>
-        <div class='box'>
-            <div class='w3-row'>
-                <input class="w3-check"  id='zoom_${id}' type="checkbox">
-                <label>Zoom</label>
-            </div>
-            <div class='w3-row'>
-                <input class="w3-check"  id='showSubchart_${id}' type="checkbox" >
-                <label>Show subchart</label>
-            </div>
-            <div class='w3-row'>
-                <input class="w3-check"  id='showXGridLines_${id}' type="checkbox" >
-                <label>Show x grid lines</label>
-            </div>
-            <div class='w3-row'>
-                <input class="w3-check"  id='showYGridLines_${id}' type="checkbox" >
-                <label>Show y grid lines</label>
-            </div>
-            <div class='w3-row'>
-                <input class="w3-check"  id='logarithmicScale_${id}' type="checkbox" >
-                <label>Logarithmic scale</label>
-            </div>
-            <div class='w3-row'>
-                <input class="w3-check"  id='useCategoryLabels_${id}' type="checkbox" >
-                <label>Use category labels</label>
-            </div>
-        </div>
+      <table class="graphset">
+        <tr>
+          <td> <input class="w3-check"  id='zoom_${id}' type="checkbox">
+               <label>Zoom</label>
+          <td> <input class="w3-check"  id='showSubchart_${id}' type="checkbox" >
+               <label>Subchart</label>
+        </tr>
+        <tr>
+          <td> <input class="w3-check"  id='showXGridLines_${id}' type="checkbox" >
+               <label>X grid lines</label>
+          <td> <input class="w3-check"  id='showYGridLines_${id}' type="checkbox" >
+               <label>Y grid lines</label>
+        </tr>
+        <tr>
+          <td> <input class="w3-check"  id='logarithmicXScale_${id}' type="checkbox" >
+               <label>Logarithmic x-axis (base: </label> <input type=text id='logXBase_${id}' style="width:30px;margin-bottom:0px" value="e"><label>)</label> 
+          <td> <input class="w3-check"  id='logarithmicYScale_${id}' type="checkbox" >
+               <label>Logarithmic y-axis (base: </label> <input type=text id='logYBase_${id}' style="width:30px;margin-bottom:0px" value="e"><label>)</label>
+        </tr>
+        <tr>
+          <td> <input class="w3-check"  id='useCategoryLabels_${id}' type="checkbox" >
+               <label>Category labels</label>
+        </tr>
+        <tr>        
+          <td style="padding-top:10px;"> <label>Transform x labels</label>${infoButton('labels_list_x')}<br>
+               <input type=text id='labelsXTrfs_${id}' style="width:220px;">
+          <td style="padding-top:10px;"> <label>Transform y labels</label>${infoButton('labels_list_y')}<br>
+               <input type=text id='labelsYTrfs_${id}' style="width:220px;">
+        </tr>
+        </table>
     </div>
     <div class='w3-col s6'>
         <div class='box'>
