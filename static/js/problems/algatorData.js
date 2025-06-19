@@ -374,7 +374,10 @@ function drawChart(data, settings, divId) {
        }
      }
    });
-   d3.select(".c3-axis-x-label").attr("transform", "translate(0,-7)"); // premik labele gor (da se cela vidi)
+   d3.select(".c3-axis-x-label").attr("transform", "translate(0,7)"); // premik labele gor (da se cela vidi)
+   d3.select(".c3-axis-x-label").style("font-family", "sans-serif").style("font-size", "18px");
+   d3.select(".c3-axis-y-label").style("font-family", "sans-serif").style("font-size", "18px");
+
   }
   settings.chart = chart;
   return chart;
@@ -432,15 +435,15 @@ function filterColumns(data, columns) {
   } 
 }
 
-function drawTable(data, divId, height) {
+function drawTable(data, divId, height, hasAvg) {
   const table = document.createElement('table');
   table.className = 'w3-table w3-bordered w3-striped w3-border';
   table.id = divId+'Table';
 
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
+  headerRow.style = "background: #606060; color: white;"
 
- 
   data[0].forEach(headerText => {
     const th = document.createElement('th');
     th.textContent = headerText;
@@ -450,6 +453,20 @@ function drawTable(data, divId, height) {
   table.appendChild(thead);
 
   const tbody = document.createElement('tbody');
+
+  if (hasAvg) {
+    const avgTr = document.createElement('tr');
+    avgTr.style = "border-top:4px double lightgray; border-bottom: 4px double lightgray; background: #f5fff5;"
+    let avg = getColumnAverages(data);
+    let cnt = 0;
+    avg.forEach(a => {
+      const avgTd = document.createElement('td');
+      avgTd.textContent = cnt++ ? a : "AVG";
+      avgTr.appendChild(avgTd);
+    });
+    tbody.appendChild(avgTr);
+  }
+
   data.slice(1).forEach(rowData => {
     const tr = document.createElement('tr');
     rowData.forEach(cellText => {
@@ -465,7 +482,7 @@ function drawTable(data, divId, height) {
   tableContainer.style.maxHeight = height;
   tableContainer.style.overflowY = 'auto'; 
   tableContainer.appendChild(table);
- 
+
   const existingContainer = document.getElementById(divId);
   if (existingContainer) {
     existingContainer.innerHTML = ''; 
@@ -473,6 +490,33 @@ function drawTable(data, divId, height) {
   }
 
   return tableContainer;
+}
+
+
+function getColumnAverages(tableData) {
+  if (!Array.isArray(tableData) || tableData.length < 2) return [];
+
+  const headers = tableData[0];
+  const dataRows = tableData.slice(1);
+
+  const sums = new Array(headers.length).fill(0);
+  const counts = new Array(headers.length).fill(0);
+
+  for (const row of dataRows) {
+    row.forEach((cell, colIndex) => {
+      const value = parseFloat(cell);
+      if (!isNaN(value)) {
+        sums[colIndex] += value;
+        counts[colIndex]++;
+      }
+    });
+  }
+
+  const averages = sums.map((sum, i) =>
+    counts[i] > 0 ? (sum / counts[i]).toFixed(2) : ""
+  );
+
+  return averages;
 }
 
 

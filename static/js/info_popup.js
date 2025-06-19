@@ -88,7 +88,7 @@ Supported operators and functions:
            =round(y/1000, 2) ... change from milli seconds to seconds; use two decimal places
 `,
 'filterX':`<pre>
-  Filter defines values of X to be included in graph
+  Filter defines values of X to be included in graph. 
 
   Example: N > 10000        ... show rows with N > 10000
            ID>=4 and ID<10  ... show rows with ID>=4 and ID<10

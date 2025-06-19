@@ -371,7 +371,8 @@ class TableView extends AView {
 
   getDefaultJSON() {
     return {
-      "Columns": []
+      "Columns": [],
+      "HasAverage": false
     };
   }
 
@@ -379,9 +380,10 @@ class TableView extends AView {
     try {
       let data    = presenterData.get(this.presenterName);
       let columns = viewJSON["Columns"]; 
+      let avg     = viewJSON["HasAverage"];
 
       let tableData = filterColumns(data, columns);
-      drawTable(tableData, viewDIV, "370px");    
+      drawTable(tableData, viewDIV, "370px", avg);    
     } catch {}
   }
 
@@ -403,6 +405,8 @@ class TableView extends AView {
       let columnValues = addGroupAsterisks(data[0]);
       fillSelector(columnValues, selectedColumns, 'selected_columns_'+this.viewID, "Select columns");
       wireControl(this, "selected_columns", "Columns", "change");
+
+      wireCheckbox(this, "has_average" , "HasAverage");
     }
   
     this.draw();
@@ -414,7 +418,8 @@ class TableView extends AView {
             <div class='w3-row'>
                 <div class='w3-col s12'>
                     <label for="selected_columns_${id}">Columns:</label>
-                    <select name="selected_columns" id="selected_columns_${id}" multiple="multiple" style="width: 100%;">
+                    <select name="selected_columns" id="selected_columns_${id}" multiple="multiple" style="width: 70%;">
+                    <input type=checkbox id="has_average_${id}" style="margin-left:15px"><label for="has_average_${id}"> AVG</label>
                     </select> 
                 </div>
             </div>

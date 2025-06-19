@@ -51,7 +51,7 @@ async function queryChanged() {
   let playgroundJSON = pp.presenterJSONs.get(playgroundID);
   let queryPresenterData = await getData(url, projectName, playgroundJSON);
   presenterData.set(playgroundID, queryPresenterData);
-  drawTable(queryPresenterData, `presenterTable_${playgroundID}`, "350px");
+  drawTable(queryPresenterData, `presenterTable_${playgroundID}`, "350px", false);
 
   for (let [viewName, view] of playgroundViews) {
     view.fillControlsAfterDataChange();

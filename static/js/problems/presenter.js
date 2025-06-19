@@ -439,7 +439,7 @@ async function refreshData(presenterID) {
   let queryJson = (json != null) ? json["Query"] : {};
   let newPresenterData = await getData(url, projectName, json);
   presenterData.set(presenterID, newPresenterData);
-  drawTable(newPresenterData, `presenterTable_${presenterID}`, "350px");
+  drawTable(newPresenterData, `presenterTable_${presenterID}`, "350px", false);
 }
 
 
