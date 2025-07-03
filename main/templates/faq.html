@@ -12,24 +12,111 @@
      <div style="width:65%">
      <h1 style="margin: 0px;">FAQ</h1><hr class="hr">
      <div class="faq-container">
-        <div class="faq-item">
-          <div class="faq-title" onclick="toggleFAQAnswer(0)">What is ALGator?</div>
-          <div class="faq-answer">
-             ALGator is a system designed for easy, fair, and reproducible algorithm testing, evaluation, and comparison.
-           </div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-title" onclick="toggleFAQAnswer(1)">How do I install ALGator?</div>
-          <div class="faq-answer">
-             ALGator is already installed on the server, so no additional installation is required.
-          </div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-title" onclick="toggleFAQAnswer(2)">Can I use ALGator offline?</div>
-          <div class="faq-answer">
-             Yes, ALGator offers a standalone desktop version that can be installed and used on your computer. This version allows for better code development with your preferred IDE and enables faster algorithm execution, as you won’t need to wait for other jobs to finish on the server.
-          </div>
-        </div>
+
+<!-- GENERAL -->
+    <div class="faq-item">
+      <div class="faq-title" onclick="toggleFAQAnswer(0)">Q: What is ALGator?</div>
+      <div class="faq-answer">
+ALGator is a system designed for easy, fair, and reproducible algorithm testing, evaluation, and comparison.  
+It enables researchers and developers to define problems, implement multiple algorithmic solutions, and evaluate their performance across standardized test sets.  
+ALGator automatically manages the generation of test cases, executes algorithms under controlled conditions, and collects performance indicators such as execution time, memory usage, and correctness.  
+Results are stored in a structured way and can be visualized or exported for further analysis.  
+Its goal is to promote transparency, repeatability, and objectivity in algorithm evaluation, especially in educational and scientific environments.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-title" onclick="toggleFAQAnswer(1)">Q: Who is ALGator intended for?</div>
+      <div class="faq-answer">
+ALGator is primarily intended for researchers working in the field of algorithm design, but it is also suitable for educators and developers who want to teach, demonstrate, or test algorithm behavior in a controlled environment.
+      </div>
+    </div>
+
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(2)">Is ALGator free to use?</div>
+    <div class="faq-answer">
+Yes, ALGator is free to use. It was developed primarily for academic purposes to support researchers, educators, and students in evaluating algorithms. While institutional deployment may vary, the core system itself is freely available and intended for non-commercial use in research and education.
+    </div>
+  </div>
+
+<!-- INSTALLATION & SETUP -->
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(3)">Q: How do I install ALGator?</div>
+    <div class="faq-answer">
+       ALGator is already installed on the server, so no additional installation is required. 
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(4)">Q: Do I have to signup to use ALGator?</div>
+    <div class="faq-answer">
+No, no signup is required to use ALGator. However, users who do not sign up have limited access—mainly they can only view and observe results. Users who are signed up and logged in can add algorithms, test sets, and create their own projects.      
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(5)">Q: Does an offline version of ALGator exist?</div>
+    <div class="faq-answer">
+Yes, ALGator provides a standalone offline version that can be installed and run on your personal computer. This version is especially useful during the development and testing phase, as it allows you to work with your preferred IDE and execute algorithms instantly—without waiting in a shared server queue. However, be aware that results obtained offline may not be directly comparable to those on the server, as the hardware and environment can differ. Once your project is fully developed and tested, you can upload it to the ALGator server, making it accessible to the wider research community and enabling standardized, reproducible comparisons.    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(6)">Q: How do I create a new project in ALGator?</div>
+    <div class="faq-answer">
+A logged-in users can create new projects using the web interface. On the Projects subpage, click the menu icon (three lines) in the upper right corner and select "New Project...". The properties of the created project can be set and edited on the "Project Overview" and "Implementation" subpages.  
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(7)">Q: Is the data in my ALGator projects publicly accessible by default?</div>
+    <div class="faq-answer">
+By default, all entities in ALGator—such as projects, test sets, algorithms, and presenters—are private and visible only to their owner. This ensures that you can develop and prepare your work without concern that others will see or interfere with your research before it's ready. When you choose, you can change an entity’s privacy setting to make it publicly visible to all users of the system. 
+    </div>
+  </div>
+
+
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(8)">Q: How can I change the visibility and permissions of my project entities?</div>
+      <div class="faq-answer">
+To change an entity's privacy setting, click the lock icon next to its name. A closed lock means the entity is private, while an open lock indicates it is visible to other users. To adjust additional permissions, go to the Settings page, which can be accessed from the User menu.
+      </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(9)">Q: How do I add and define an algorithm in ALGator?</div>
+    <div class="faq-answer">
+Algorithms can be added in the Algorithms section of your project. First, enable Edit mode, then click the "+" icon in the top-left corner. To define an algorithm properly, you need to provide a short text description, a detailed HTML description, and the source code in Java.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(10)">Q: How do I define a test set in ALGator?</div>
+    <div class="faq-answer">
+To define a test set, go to the Test Set section of your project. First, enable Edit mode, then click the "+" icon in the top-left corner. You need to provide several parameters such as the number of tests (N), the test repeat count, and the time limit per run. Each test case is described in a separate line in the list of tests. You can also upload any additional files needed during the test case generation process.
+    </div>
+  </div>
+
+
+  <div class="faq-item">
+    <div class="faq-title" onclick="toggleFAQAnswer(11)">Q: How do I run an algorithm?</div>
+    <div class="faq-answer">
+To run algorithms, go to the "Testing Results" section of your project. Select the algorithms and test sets you want to use, then press "Run". You can also choose a specific computer family by clicking "Run with computer...". If no family is selected, ALGator will automatically use the most appropriate one.
+    </div>
+  </div>
+
+<div class="faq-item">
+  <div class="faq-title" onclick="toggleFAQAnswer(12)">Q: How do I create a presenter for displaying results?</div>
+  <div class="faq-answer">
+Presenters are created in the Presenters section of your project. They allow you to customize how results are visualized and reported. You can select or create presenter templates that best fit your data, such as charts, tables, or custom text reports.
+  </div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-title" onclick="toggleFAQAnswer(13)">Q: What is the "Results playground" feature in ALGator?</div>
+  <div class="faq-answer">
+The Playground is an interactive environment for quickly exploring and presenting the results of algorithm executions. It offers similar features to presenters but is intended for temporary use—any visualizations or presentations created in the Playground are only visible to the current user and only for the duration of their current session.  </div>
+</div>
+
      </div>
      </div>
   </div>

@@ -238,11 +238,12 @@ a.hp-pad {
 }
 .faq-answer {
   display: none;
-  padding: 10px 0px 0px 20px;
+  padding: 10px 10px 0px 20px;
   color: #555;
   font-size: 1em;
   line-height: 1.5;
   border-top: 1px solid #eee;
+  text-align: justify;
 }
 .faq-item.open .faq-answer {
   display: block;

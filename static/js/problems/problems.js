@@ -111,10 +111,11 @@ function createCards() {
 }
 
 function printCards() {
-  let searchString = document.getElementById('projectSearchInput').value;
-  let sortbyE      = document.getElementById('projectSearchSortby').value;
-  let descE        = document.getElementById('projectSearchDesc');
+  let searchString   = document.getElementById('projectSearchInput').value;
+  let sortbyE        = document.getElementById('projectSearchSortby').value;
+  let descE          = document.getElementById('projectSearchDesc');
   let onlyMine       = document.getElementById('show_only_my').checked;
+  let showSandboxes  = document.getElementById('show_sandboxes').checked;
 
   let newTab = [...projects];
 
@@ -122,16 +123,27 @@ function printCards() {
   if (onlyMine)
     newTab = newTab.filter(project => project.owner == current_user_uid);
 
+  if (!showSandboxes)
+    newTab = newTab.filter(project => !project.tags.includes('sandbox'));
+
   // filter out projects that contain searchString string
   newTab = newTab.filter(project => project.includes(searchString));
 
   // sort according to selected criteria
   newTab.sort((obj1, obj2) => {
     let direction = (descE.checked ? -1 : 1) * (sortbyE == "pop" ? -1 : 1);
-    if (sortbyE == "modified" || sortbyE == "pop") 
-      return direction * (obj2[sortbyE] - obj1[sortbyE]);
-    else
-      return direction * obj1[sortbyE].localeCompare(obj2[sortbyE]);
+    
+    let local1 = obj1.ownerName ? 0 : 1; 
+    let local2 = obj2.ownerName ? 0 : 1;
+    // local projects first
+    if (local1 ^ local2) 
+      return (local1 - local2); 
+    else {
+      if (sortbyE == "modified" || sortbyE == "pop") 
+        return direction * (obj2[sortbyE] - obj1[sortbyE]);
+      else
+        return direction * obj1[sortbyE].localeCompare(obj2[sortbyE]);
+    }
   });
 
   let container = document.getElementById('projectCardsContainer');

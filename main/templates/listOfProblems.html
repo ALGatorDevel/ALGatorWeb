@@ -17,7 +17,8 @@
 {% include "navbar.html" %}   
 <div class="mp-content">
   <div class="hp-content" id="main-content" style="min-height: calc(100vh - 60px); width:100%;display: flex; justify-content: center;">
-    <div style="width:60%">
+    <div style="width:70%">
+    <div>
       <h1 class="p-header">
           Projects
           <span style="display:flex; align-items:center">
@@ -37,17 +38,20 @@
           </span>
       </h1>
       <hr class="hr">
-
       <div class="p-search-panel" id="projectSearchPanel">
         <input id="projectSearchInput" class="search-input" type="text" placeholder="Search..." oninput="printCards()">  
         
         <span>
           <input id="show_only_my" type=checkbox onclick="printCards()"> Only my projects
         </span> 
-        
+        <span>
+          <input id="show_sandboxes" type=checkbox onclick="printCards()"> Show sandboxes
+        </span> 
+
         <span style="display:flex; align-items: center;"> 
           Sort by &nbsp;
           <select id="projectSearchSortby" onchange="printCards()">
+            <option value="shortTitle">Title</option>
             <option value="name">Name</option>
             <option value="modified">Date modified</option>
             <!--option value="pop">Popularity</option-->
@@ -55,7 +59,7 @@
           <input id="projectSearchDesc" type=checkbox value="desc" onchange="printCards()">&nbsp;Descending
         </span>
       </div>
-
+    </div>
       <div id="projectCardsContainer" class="w3-container myContainer">
         {% for project in projects_description %}   
           <script>

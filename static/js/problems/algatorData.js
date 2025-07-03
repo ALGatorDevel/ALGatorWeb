@@ -456,7 +456,7 @@ function drawTable(data, divId, height, hasAvg) {
 
   if (hasAvg) {
     const avgTr = document.createElement('tr');
-    avgTr.style = "border-top:4px double lightgray; border-bottom: 4px double lightgray; background: #f5fff5;"
+    avgTr.style = "border-top:4px double lightgray; border-bottom: 4px double lightgray; background: #f5fff5  ;"
     let avg = getColumnAverages(data);
     let cnt = 0;
     avg.forEach(a => {

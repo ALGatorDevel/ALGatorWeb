@@ -50,6 +50,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
+    'main.middleware.request_logger.AccessLogMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -157,3 +160,26 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "algator.root@gmail.com"
 EMAIL_HOST_PASSWORD = "xxx"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'handlers': {
+        'access_file': {
+            'level': 'INFO',
+            #'class': 'logging.FileHandler',
+            'class': 'logging.handlers.WatchedFileHandler',
+            'filename': 'access.log',
+        },
+    },
+    'loggers': {
+        'access_logger': {
+            'handlers': ['access_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+

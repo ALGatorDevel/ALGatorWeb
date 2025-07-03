@@ -14,6 +14,12 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from Classes.GlobalConfig import globalConfig
 from main.autils import rand_str
 
+import os
+from django.http import HttpResponse
+from django.conf import settings
+from django.utils.html import escape
+
+
 @ensure_csrf_cookie
 def index(request):
     context = {
@@ -129,6 +135,94 @@ def problems(request):
     }
 
     return render(request, 'listOfProblems.html', context)
+
+
+import os
+from datetime import datetime, timedelta
+from django.http import HttpResponse
+from django.conf import settings
+from django.utils.html import escape
+
+SESSION_TIMEOUT_MINUTES = 30
+
+def view_log_sessions(request):
+    if not (request.user.is_authenticated and request.user.username == "root"):
+        return HttpResponse("no allowed")
+
+
+    log_path = os.path.join(settings.BASE_DIR, 'access.log')  # Adjust if needed
+
+    if not os.path.exists(log_path):
+        return HttpResponse("Log file not found.", status=404)
+
+    all_entries = []
+
+    with open(log_path, 'r', encoding='utf-8') as log_file:
+        for line in log_file:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                # Example line:
+                # [2025-07-03 15:30:12] IP: 192.168.1.100 | User: alice | URL: https://example.com/home
+                timestamp_str = line.split(']')[0][1:]
+                timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+
+                parts = line.split('|')
+                ip = parts[0].strip().split('IP:')[1].strip()
+                user = parts[1].strip().split('User:')[1].strip()
+                url = parts[2].strip().split('URL:')[1].strip()
+
+                all_entries.append({
+                    'timestamp': timestamp,
+                    'ip': ip,
+                    'user': user,
+                    'url': url
+                })
+            except Exception:
+                continue  # Skip malformed lines
+
+    # Group by (ip, user) and then by session timeout
+    sessions = []
+    last_entry = None
+    current_session = None
+
+    for entry in all_entries:
+        key = (entry['ip'], entry['user'])
+
+        if (
+            last_entry is None
+            or (last_entry['ip'], last_entry['user']) != key
+            or (entry['timestamp'] - last_entry['timestamp']) > timedelta(minutes=SESSION_TIMEOUT_MINUTES)
+        ):
+            # Start a new session
+            current_session = {
+                'ip': entry['ip'],
+                'user': entry['user'],
+                'start_time': entry['timestamp'],
+                'end_time': entry['timestamp'],
+                'urls': [entry['url']]
+            }
+            sessions.append(current_session)
+        else:
+            # Continue current session
+            current_session['urls'].append(entry['url'])
+            current_session['end_time'] = entry['timestamp']
+
+        last_entry = entry
+
+    # Render sessions in HTML
+    html = "<h1>Access Log Sessions</h1>"
+    for i, session in enumerate(sessions):
+        html += (
+            f"<h4>{escape(session['ip'])} ({escape(session['user'])}) "
+            f" {session['start_time']}</h4><ul style='margin-bottom:0px'>"
+        )
+        for url in session['urls']:
+            html += f"<li>{escape(url)}</li>"
+        html += "</ul>"
+
+    return HttpResponse(html)
 
 
 
