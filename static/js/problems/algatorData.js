@@ -1,3 +1,25 @@
+async function getData(url, projectName, presenterJSON) {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), 5000);
+
+  const param = new URLSearchParams({
+    csrfmiddlewaretoken: window.CSRF_TOKEN,
+    q: `query {"ProjectName":"${projectName}", "Query":${JSON.stringify(presenterJSON.Query)}}}`
+  });
+
+  const response = await fetch(url, {
+    method: "POST",
+    body: param,
+    signal: controller.signal
+  });
+
+  const json = await response.json();
+  return parseResponse(json.answer);
+}
+
+// ******************* data manipuilation *************************
+
+
 function parseResponse (response) {        
   let rawData = response.split('\n')
   let newData = [];
@@ -19,26 +41,6 @@ function parseResponse (response) {
   return newData;
 }
 
-
-function getData(url, projectName, presenterJSON) {
-  return new Promise((resolve, reject) => {
-      
-    var param = {
-        csrfmiddlewaretoken: window.CSRF_TOKEN, 
-        q: `query {"ProjectName":"${projectName}", "Query":${JSON.stringify(presenterJSON.Query)}}}`
-    };
-    $.post(url, param, function(response) {
-        var answer = response.answer; //!response->answer 
-        var resData = parseResponse(answer);
-      
-        resolve(resData);
-        return;
-    }).fail(reject);
-  });
-}
-
-
-// ******************* data manipuilation *************************
 
 // Function to check if an array or Set contains a string
 function containsString(data, str) {
@@ -225,6 +227,50 @@ function wireControl(view, selector, property, action) {
   } 
 
 
+// Determine and remove common prefix of strings, ignoring the one with index xAxisIDX 
+// ["[F0.C0]_BasicSort", "[F0.C0]_QuickSort", "[F0.C0]_JavaSort", "N"], xAxisIDX=3  --> ["BasicSort", "QuickSort", "JavaSort", "N"]
+function stripPrefix(data, xAxisIDX) {
+  if (data.length === 0 || (data.length === 1 && xAxisIDX === 0)) return;
+
+  let prefix = xAxisIDX != 0 ? data[0][0] : data[0][1];
+  for (let i = 1; i < data[0].length; i++) {
+    if (i === xAxisIDX) continue; 
+    while (!data[0][i].startsWith(prefix) && prefix) {
+      prefix = prefix.slice(0, -1);
+    }
+  }
+  const lastDelimiter = Math.max(prefix.lastIndexOf("_"), prefix.lastIndexOf("."));
+  prefix = lastDelimiter >= 0 ? prefix.slice(0, lastDelimiter + 1) : "";
+
+  data[0] = data[0].map((s, i) =>
+    i === xAxisIDX ? s : s.startsWith(prefix) ? s.slice(prefix.length) : s
+  );
+}
+
+function stripSuffix(data, xAxisIDX) {
+  if (data.length === 0 || (data.length === 1 && xAxisIDX === 0)) return;
+  
+  let suffix = xAxisIDX != 0 ? data[0][0] : data[0][1]; 
+  let revSuffix = [...suffix].reverse().join("");
+  for (let i = 1; i < data[0].length; i++) {
+    if (i === xAxisIDX) continue; 
+    const revStr = [...data[0][i]].reverse().join("");
+    while (!revStr.startsWith(revSuffix) && revSuffix) {
+      revSuffix = revSuffix.slice(0, -1);
+    }
+  }  
+  // now revSuffix is the reversed common suffix
+  suffix = [...revSuffix].reverse().join("");
+  const lastDelimiter = Math.max(suffix.indexOf("_"), suffix.indexOf("."));
+  suffix = lastDelimiter >= 0 ? suffix.slice(lastDelimiter, suffix.length) : "";
+
+  data[0] = data[0].map((s, i) => 
+    i === xAxisIDX ? s : s.endsWith(suffix) ? s.slice(0, s.length - suffix.length) : s
+  );
+}
+
+
+
 function drawChart(data, settings, divId) {   
   if (!settings.xAxis === '') xAxis = "ID";
   
@@ -232,6 +278,9 @@ function drawChart(data, settings, divId) {
   if (xAxisIDX !== -1) {
     xAxis = settings.xAxis + ' '; 
   }
+
+  if (settings.stripPrefix) stripPrefix(data, xAxisIDX);
+  if (settings.stripSuffix) stripSuffix(data, xAxisIDX);
 
   if (settings.logXScale || settings.logYScale) {
    let xBase = Number(settings.logXbase); if (Number.isNaN(xBase)) xBase= Math.E;
@@ -284,6 +333,29 @@ function drawChart(data, settings, divId) {
     }
   }
 
+  let colorPattern = []; // colors for graph series
+  let usedAlgs = new Set(); // algorithm, that already appeared in this graph
+  let xes = data[0].map(item => item.split('.')[0].trim()); // seznam algoritmov
+  xes.forEach(alg =>{
+    // ce algoritem nima določene barve (ali je bila že uporabljena), nastavim -1 (bom zamenjal kasneje)
+    colorPattern.push(usedAlgs.has(alg) ? -1 : getAlgorithmColor(alg));
+    
+    // če sem algoritem Z DOLOČENO barvo že porabil, označim, da ne uporabim še enkrat
+    if (!settings.reuseColors)
+      usedAlgs.add(alg);
+  });
+
+  // katere barve so še na razpolago 
+  let availableColors = c3_series_colors.filter(item => !colorPattern.includes(item.hex)).map(item => item.hex);
+  // če ni nobene, dodam črno kot default ¸barva za vse nedoločene barve
+  if (availableColors.length == 0) availableColors.push("black");
+  // vse -1, -2, -3, ... spremenim v prosto barvo (ciklično)
+  let ix=0;
+  colorPattern = colorPattern.map(item => 
+    (item != -1) ? item : (availableColors[(ix++)%availableColors.length])
+  );
+  
+
   var xAxisType = '';
   if (settings.categoryLabels)  xAxisType = 'category';
 
@@ -316,7 +388,7 @@ function drawChart(data, settings, divId) {
          rows: data,
          type: settings.graphTypes
      },
-  
+
      bindto: '#'+divId,
      zoom: {
          enabled: settings.zoom, 
@@ -355,23 +427,26 @@ function drawChart(data, settings, divId) {
          height: 50
        },
        y: {
-           zoom: { enabled: true }, // to ne dela ... verjetno zaradi stare verzije c3
-           label: {
-               text: settings.yAxisTitle,
-               position: 'outer-middle'
-           },
-           tick: {
-             format: function(y) {
-               if (settings.labelsYTrfs && settings.labelsYTrfs.startsWith("=")) {
-                  const expr  = settings.labelsYTrfs.substring(1);
-                  const scope = { y: y };
-                  const result = math.evaluate(expr, scope);  
-                  return result;
-               } else
-                return y;
-             }
-           }
+         zoom: { enabled: true }, // to ne dela ... verjetno zaradi stare verzije c3
+         label: {
+           text: settings.yAxisTitle,
+           position: 'outer-middle'
+         },
+         tick: {
+          format: function(y) {
+            if (settings.labelsYTrfs && settings.labelsYTrfs.startsWith("=")) {
+               const expr  = settings.labelsYTrfs.substring(1);
+               const scope = { y: y };
+               const result = math.evaluate(expr, scope);  
+               return result;
+            } else
+             return y;
+          }
+         }
        }
+     },
+     color: {
+       pattern: colorPattern
      }
    });
    d3.select(".c3-axis-x-label").attr("transform", "translate(0,7)"); // premik labele gor (da se cela vidi)
@@ -435,44 +510,56 @@ function filterColumns(data, columns) {
   } 
 }
 
-function drawTable(data, divId, height, hasAvg) {
+function addCol(colTag, content, row, cellClass) {
+  const col = document.createElement(colTag);
+  if (cellClass) col.classList.add(cellClass);
+  col.textContent = content;
+  row.appendChild(col);
+  return col;
+}
+
+function addStatistics(tbody, statLabel, stat) {
+  const avgTr = document.createElement('tr');
+  avgTr.style = "border-top:4px double lightgray; border-bottom: 4px double lightgray; background: #f5fff5  ;"
+  addCol('td', statLabel, avgTr,'hiddenCell');
+  stat.forEach(a => {
+    addCol('td', a, avgTr)
+  });
+  tbody.appendChild(avgTr);
+}
+
+function drawTable(data, divId, height, hasStat) {
   const table = document.createElement('table');
-  table.className = 'w3-table w3-bordered w3-striped w3-border';
+  table.className = 'w3-table w3-bordered w3-striped w3-border prestab';
   table.id = divId+'Table';
 
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
   headerRow.style = "background: #606060; color: white;"
 
+  if (hasStat) addCol('th','',headerRow, 'hiddenCell');
   data[0].forEach(headerText => {
-    const th = document.createElement('th');
-    th.textContent = headerText;
-    headerRow.appendChild(th);
+    addCol('th', headerText, headerRow);
   });
   thead.appendChild(headerRow);
   table.appendChild(thead);
 
   const tbody = document.createElement('tbody');
 
-  if (hasAvg) {
-    const avgTr = document.createElement('tr');
-    avgTr.style = "border-top:4px double lightgray; border-bottom: 4px double lightgray; background: #f5fff5  ;"
-    let avg = getColumnAverages(data);
-    let cnt = 0;
-    avg.forEach(a => {
-      const avgTd = document.createElement('td');
-      avgTd.textContent = cnt++ ? a : "AVG";
-      avgTr.appendChild(avgTd);
-    });
-    tbody.appendChild(avgTr);
+  if (hasStat) {
+    let stat = getColumnStatistics(data);
+
+    addStatistics(tbody, 'AVG',    stat[0]);
+    addStatistics(tbody, 'STDEV',  stat[1]);
+    addStatistics(tbody, 'CV(%)', stat[2]);
   }
 
   data.slice(1).forEach(rowData => {
     const tr = document.createElement('tr');
+    if (hasStat) addCol('td','',tr, 'hiddenCell');
     rowData.forEach(cellText => {
-      const td = document.createElement('td');
-      td.textContent = cellText;
-      tr.appendChild(td);
+      let coll = addCol('td',cellText, tr);
+      if (isNaN(cellText)) coll.setAttribute("data-type", "text");
     });
     tbody.appendChild(tr);
   });
@@ -493,21 +580,23 @@ function drawTable(data, divId, height, hasAvg) {
 }
 
 
-function getColumnAverages(tableData) {
+function getColumnStatistics(tableData) {
   if (!Array.isArray(tableData) || tableData.length < 2) return [];
 
   const headers = tableData[0];
   const dataRows = tableData.slice(1);
 
-  const sums = new Array(headers.length).fill(0);
-  const counts = new Array(headers.length).fill(0);
+  const sums          = new Array(headers.length).fill(0);
+  const sumsOfSquares = new Array(headers.length).fill(0);
+  const counts        = new Array(headers.length).fill(0);
 
   for (const row of dataRows) {
     row.forEach((cell, colIndex) => {
       const value = parseFloat(cell);
       if (!isNaN(value)) {
-        sums[colIndex] += value;
-        counts[colIndex]++;
+        sums[colIndex]           += value;
+        sumsOfSquares[colIndex]  += value*value;
+        counts[colIndex]         += 1;
       }
     });
   }
@@ -515,8 +604,14 @@ function getColumnAverages(tableData) {
   const averages = sums.map((sum, i) =>
     counts[i] > 0 ? (sum / counts[i]).toFixed(2) : ""
   );
+  const stddevs = sums.map((sum, i) =>     
+    counts[i] > 0 ?  (Math.sqrt((sumsOfSquares[i] - sum*sum / counts[i]) / (counts[i] - 1))).toFixed(2) : ""
+  );
+  const cvs = stddevs.map((sd, i) => 
+    (sd !== "" && counts[i] > 0) ? (100 * sd / (sums[i] / counts[i])).toFixed(2) : ""
+  );
 
-  return averages;
+  return [averages, stddevs, cvs];
 }
 
 

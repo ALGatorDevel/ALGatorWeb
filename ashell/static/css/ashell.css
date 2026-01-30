@@ -27,11 +27,13 @@
 
 div.elt {
   margin: 1px;
-  background-color: rgb(245,245,245);
+  background-color: white; /* rgb(245,245,245);*/
 } 
 
 .vpis {
 	border: 0;
+  padding-top: 6px;
+  border-bottom: 1px solid gray;
 }
 .vpis:focus{
    outline: 1px solid rgba(255,255,255,1);
@@ -169,14 +171,14 @@ div.elt {
 
 /* ************************* Tooltips *********************** */
 /* Tooltip container */
-.tooltip {
+.tooltipAS {
   position: relative;
   display: inline-block;
   border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
 }
 
 /* Tooltip text */
-.tooltip .tooltiptext {
+.tooltipAS .tooltiptextAS {
   visibility: hidden;
   width: 120px;
   background-color: #555;
@@ -198,7 +200,7 @@ div.elt {
 }
 
 /* Tooltip arrow */
-.tooltip .tooltiptext::after {
+.tooltipAS .tooltiptextAS::after {
   content: "";
   position: absolute;
   top: 100%;
@@ -210,7 +212,7 @@ div.elt {
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext {
+.tooltipAS:hover .tooltiptextAS {
   visibility: visible;
   opacity: 1;
 }
@@ -279,4 +281,48 @@ div.elt {
   text-align: right;
   margin: 5px 10px 0 0;
   cursor: pointer;  
+}
+
+
+/* ..............*/
+.menuitem, .menuCommand, .projectname {
+  cursor: pointer; 
+}
+.menuitem:hover, .menuCommand:hover, .projectname:hover{
+  text-decoration: underline;
+}  
+.menupanel {
+  padding: 7px;
+}
+
+.dragableBorder:hover {
+  cursor: move; 
+}
+
+
+.clicable:hover {
+  text-decoration: underline;
+  cursor: pointer;  
+}
+
+
+
+
+.zebraTable {
+  border-collapse: collapse;
+  width: 100%;
+}
+.zebraTable th,
+.zebraTable td {
+  padding: 8px 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+/* odd rows lighter */
+.zebraTable tbody tr:nth-child(odd) {
+  background: #ffffff; /* lighter */
+}
+.zebraTable tbody tr:nth-child(even) {
+  background: #f3f3f3; /* darker */
 }

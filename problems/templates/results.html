@@ -5,15 +5,23 @@
 
 <div style="height:50px;"></div>
 
-<div class="subNavBar">
-  <div class="editMode" w="{{ project.eid }} car" id="presenterDropdown" style="float:right; margin-top:-3px;" 
-       onclick="createNewPresenter()" title="Create a presenter">
-    <i class="far fa-plus-square icon" id="presenterDropdownIcon"></i>&nbsp;&nbsp;
-  </div>
-  <span id="presentersCont"></span>
-</div>
+<!-- editProject tabs -->
+<div id="tabwrapper_presenters" class="tab-wrapper" style="max-width:100%;"></div>
+<script>
+  const curPage="presenters";
+  addTabPane(curPage);
+
+  const newButton = addTab(curPage, "newpresenter", "＋ New ", createNewPresenter, 1);
+  newButton.classList.add('editMode');
+  newButton.setAttribute('w', '{{ project.eid }} car');
+
+  wireTabs(curPage);
+</script>
+
 
 <div class="innerContent" id="presentersContent"> 
   <div class='w3-container' id='newPresenter' style='display: none;'></div>
-  <div class="w3-container" id='presenters'><div id='nopresenters'>... loading presenters</div></div>
+  <div id="loading_presenters_div" style="padding: 15px;">... loading presenters</div>
+  <div id="no_presenters_div"      style="padding: 15px; display: none">No presenters defined.</div>
+  <div class="w3-container" id='presenters'></div>
 </div>

@@ -1,5 +1,12 @@
 class PagePresenters extends PageData {
   services = {
+    'get_presenter': {
+      'endpoint': '/projects/get_presenter',
+      'method'  : 'GET',
+      'params'  : ["ProjectName", "PresenterName", "Deep"],
+      'comment' : ''
+    },
+
     'get_presenters': {
       'endpoint': '/projects/get_presenters',
       'method'  : 'GET',
@@ -16,10 +23,15 @@ class PagePresenters extends PageData {
     this.navbar            = [];
   }
 
-  setVar(type, value) {
+  setVar(type, value, params) {
     switch (type) {
+      case "get_presenter" : this.storeOnePresenterData(value); break;
       case "get_presenters": this.storePresenters(value); break;  
     }
+  }
+
+  storeOnePresenterData(value) {
+    this.presenterJSONs.set(value[0], value[1])
   }
 
   storePresenters(value) {
@@ -32,43 +44,52 @@ class PagePresenters extends PageData {
 pp = new PagePresenters();
 presentersShown = false;
 
-
 async function showPresenters() {
   if (!presentersShown) {
     await pp.waitForDataToLoad(["get_presenters"], false, {'ProjectName': projectName}); 
-    let presentersDiv = document.getElementById("presenters");
     pp.projectPresenters.forEach(pName => {
       try {
         let presenter = pp.presenterJSONs.get(pName);
-        presentersDiv.innerHTML += getPresenterDivHtml(pName, presenter.Title, true, false);
-        let flc = 0;
-        presenter.Layout.forEach(row => { 
-          document.getElementById(`views_${pName}`).innerHTML += `<div class="w3-row" id="${pName}_${++flc}_container"></div>`;
-          row.forEach(cell => {
-              document.getElementById(`${pName}_${flc}_container`).innerHTML += getViewOuterHtml(pName,cell);
-              createNewView(pName, cell);
-          });
-        });
-        document.getElementById(`myPlusDropdownIcon_${pName}`).addEventListener("click", function() {
-          var dropdownContent = document.getElementById(`myPlusDropdownContent_${pName}`);
-          dropdownContent.style.display = (dropdownContent.style.display === "block") ? "none" : "block";
-        });
-        document.getElementById(`myPlusDropdownContent_${pName}`).innerHTML += getViewsDropDownItems(pName);
-        addPresenterToNavbar(pName, presenter.ShortTitle);
+        addTab("presenters", pName, presenter.ShortTitle, showPresenter);
       } catch (e){}      
     });
-    await populatePrivatnessSpans("presenter");
-    showHidePrivatenessIcons();
-    if (pp.projectPresenters.length > 0) scrollToPresenter(pp.projectPresenters[0]);
-    document.getElementById("nopresenters").innerHTML = pp.projectPresenters.length == 0 ? "No presenters available." : "";
     presentersShown = true;
   }
   
+  let hasPresenters = pp.projectPresenters.length > 0;
+  showCorPresenterDiv(hasPresenters); 
+  if (hasPresenters) showPresenter("presenters", pp.projectPresenters[0]);
+}
+
+async function showPresenter(paneID, tabID) {
+  selectTab(paneID, tabID);
+
+  await pp.waitForDataToLoad(["get_presenter"], true, {'ProjectName': projectName, 'PresenterName': tabID, 'Deep':1});
+  let presentersDiv = document.getElementById("presenters");
+
+  const pName     = tabID;
+  const presenter = pp.presenterJSONs.get(pName);
+  presentersDiv.innerHTML = getPresenterDivHtml(pName, presenter.Title, true, false);
+  await addLockersToPresenter(pName);
+
+  let flc = 0;
+  presenter.Layout.forEach(row => { 
+    document.getElementById(`views_${pName}`).innerHTML += `<div class="w3-row" id="${pName}_${++flc}_container"></div>`;
+    row.forEach(cell => {
+        document.getElementById(`${pName}_${flc}_container`).innerHTML += getViewOuterHtml(pName,cell);
+        createNewView(pName, cell);
+    });
+  });
+
+  document.getElementById(`myPlusDropdownIcon_${pName}`).addEventListener("click", function() {
+    var dropdownContent = document.getElementById(`myPlusDropdownContent_${pName}`);
+    dropdownContent.style.display = (dropdownContent.style.display === "block") ? "none" : "block";
+  });
+  document.getElementById(`myPlusDropdownContent_${pName}`).innerHTML += getViewsDropDownItems(pName);
+
   enableEditMode(isEditMode);
 
-  fillReportData(projectName);
-  repaintViews();
-  MathJax.typeset();
+  fillReportData(projectName, pName);
 }
 
 
@@ -79,7 +100,7 @@ editPresenterID = "editPresenter";
 function getQueryDefaultJSON(){
     return {
             "Algorithms": ["*"],
-            "ComputerID": "",
+            "ComputerID": [],
             "Count": false,
             "Filter": [],
             "GroupBy": [],
@@ -141,7 +162,7 @@ function getPresenterTitleDivHTML(pName, pTitle, editButtonsQ, okCancelQ) {
     <div id="presenterEditButtons_${pName}" w="${pEID} cw" class='editMode' style="float:right;">
         
       <div>
-        <span name="privateness_span_holder" key="${pEID}" ename="${pName}">#</span>        
+        <span name="privateness_span_holder" key="${pEID}" ename="${pName}"></span>        
         <i class="far fa-edit icon" style="margin-bottom: 2px;" title="Edit presenter data" onclick="editPresenter('${pName}')"></i>        
         <div class="myPlusDropdown" id="myPlusDropdown_${pName}">
             <!--img id="myPlusDropdownIcon_${pName}" src="/static/images/new.png" style="width:18px;" -->
@@ -154,8 +175,11 @@ function getPresenterTitleDivHTML(pName, pTitle, editButtonsQ, okCancelQ) {
         &nbsp;
       </div>
     </div>
+    <div>
+    <i class="far fa-list-alt icon" style="float: right; padding: 6px 5px;" title="Show presenter data" onclick="showPresenterData('${pName}')"></i>        
+    </div>
   `;
-  let okCancelButtons = getOkCancelButtonsHTML(pName, okCancelQ);
+  let okCancelButtons = getOkCancelButtonsHTML(pName, okCancelQ, "margin: 0px 11px;");
   return `
     <div class='w3-row' id="title_${pName}">
       <div class='w3-col s8'>
@@ -167,6 +191,15 @@ function getPresenterTitleDivHTML(pName, pTitle, editButtonsQ, okCancelQ) {
   </div>  
   `; 
 }
+
+function showPresenterData(presenterName) {
+  const presenter = pp.presenterJSONs.get(presenterName);
+  if (presenter) {
+    let data = array2DToHTMLTable(presenterData.get(presenterName));
+    showModalDisplay("Query data of " + presenter.ShortTitle, data, 1, 95 );
+  }
+}
+
 
 function getPresenterHTML(id, author, date) {
   return `
@@ -262,7 +295,7 @@ function getQueryHTML(id, clock=false) {
                         </div>
                         <div class='w3-row'>
                             <label for="qComputerID_${id}">ComputerID:</label>
-                            <select class="w3-select" id="qComputerID_${id}" style="width: 100%;">
+                            <select id="qComputerID_${id}" multiple="multiple" style="width: 100%;">
                             </select>
                         </div>
                         <div class='w3-row'>
@@ -372,7 +405,8 @@ function fillAndWireQuery(json, presenterID, refreshAction) {
     fillSelector(getProjectParameters(), json["Query"]["SortBy"],   "qSortby_"+presenterID, "Select ...")
     wirePControl(presenterID, "qSortby", json["Query"], "SortBy",   "change", refreshAction);
 
-    fillSelector(['', "F0", ...projectComputers], [""]/*json["Query"]["ComputerID"]*/,   "qComputerID_"+presenterID, "")
+    //fillSelector(['', "F0", ...projectComputers], [""]/*json["Query"]["ComputerID"]*/,   "qComputerID_"+presenterID, "")
+    fillSelector(['', ...projectComputers], json["Query"]["ComputerID"],   "qComputerID_"+presenterID, "Select ...")
     wirePControl(presenterID, "qComputerID", json["Query"], "ComputerID",   "change", refreshAction);
 
     wirePCheckbox(presenterID, "qCount", json["Query"], "Count", refreshAction);
@@ -395,9 +429,9 @@ function fillPresenterDiv(presenterID, divID, okAction, cancelAction, refreshAct
     wireButton(presenterID+"_cancel", cancelAction);
     wireButton(presenterID+"_ok",     okAction);
 
-    wirePControl(presenterID, "presenterMTitle", json, "Title",        "keyup");
-    wirePControl(presenterID, "presenterSTitle", json, "ShortTitle",   "keyup");
-    wirePControl(presenterID, "presenterDesc",   json, "Descripotion", "keyup");
+    wirePControl(presenterID, "presenterMTitle", json, "Title",       "keyup");
+    wirePControl(presenterID, "presenterSTitle", json, "ShortTitle",  "keyup");
+    wirePControl(presenterID, "presenterDesc",   json, "Description", "keyup");
 
     fillAndWireQuery(json, presenterID, refreshAction);
   }
@@ -410,9 +444,12 @@ function closeNewPresenterView() {
 }
 
 function cancelNewPresenter() {
+  // show tabs
+  const tabPane = document.getElementById("tabwrapper_presenters");
+  tabPane.style.display="flex";
+
   closeNewPresenterView();
 }
-
 
 async function createNewPresenter() {
     var pJSON = getPresenterDefaultJSON(newPresenterID);
@@ -425,6 +462,10 @@ async function createNewPresenter() {
     document.getElementById("OKCancelButtons_" + newPresenterID).style.display = "flex";
     $('#newPresenter').show();
     $('#presenters').hide();
+
+    // hide tabs
+    const tabPane = document.getElementById("tabwrapper_presenters");
+    tabPane.style.display="none";
 }
 
 function refreshNewPresenterData() {
@@ -475,6 +516,11 @@ function addPresenterToNavbar(newPresenterName, shortTitle) {
 }
 
 async function newPresenterDone() {
+    // show tabs
+    const tabPane = document.getElementById("tabwrapper_presenters");
+    tabPane.style.display="flex";
+
+
     let newPresenter =  await addNewPresenter();
     // check correctness of answer
     if (!(newPresenter && typeof newPresenter === 'object')) {
@@ -507,16 +553,12 @@ async function newPresenterDone() {
             pp.projectPresenters.push(newPresenterName);
             add_entity('et4', newPresenterEID, newPresenterName, true);
 
-
             closeNewPresenterView();
-            let pHTML = getPresenterDivHtml(newPresenterName, presenterJSON["Title"], true, false);
-            $('#presenters').append(pHTML);
-            document.getElementById("myPlusDropdownContent_"+newPresenterName).innerHTML += 
-              getViewsDropDownItems(newPresenterName);
 
-            addLockersToNewPresenter(newPresenterName);
+            addTab("presenters",newPresenterName, presenterJSON.ShortTitle, showPresenter);
+            showPresenter("presenters", newPresenterName);
+            showCorPresenterDiv(true); 
 
-            scrollToPresenter(newPresenterName);
 
             var nopresentersDiv = document.getElementById("nopresenters");
             if (nopresentersDiv) nopresentersDiv.style.display="none";
@@ -525,8 +567,8 @@ async function newPresenterDone() {
     });
 }
 
-async function addLockersToNewPresenter(newPresenterName) {
-  let privatnessHolder = document.getElementById("presenterEditButtons_"+newPresenterName);
+async function addLockersToPresenter(presenterName) {
+  let privatnessHolder = document.getElementById("presenterEditButtons_"+presenterName);
   if (privatnessHolder) {
     await populatePrivatnessSpans("presenter", privatnessHolder);
     showHidePrivatenessIcons(privatnessHolder);
@@ -568,6 +610,8 @@ function editPresenterDone() {
     let pData         = presenterData.get(editPresenterID);
     let presenterName = presenterJSON["Name"];
     resotrePresenterViewAfterEdit(presenterName);
+
+    changeTabTitle("presenters", presenterName, presenterJSON.ShortTitle);
 
     var param = {
         csrfmiddlewaretoken: window.CSRF_TOKEN, 
@@ -611,13 +655,13 @@ function unfreezDivs(selectorID) {
 }
 
 
-async function fillReportData(projectName) {
-  for (let [presenterName, presenterJSON] of pp.presenterJSONs) {
-    let data = await getData(url, projectName, presenterJSON);
-    presenterData.set(presenterName, data);
-    populatePresenterDiv(data, presenterJSON);
-  };
+async function fillReportData(projectName, presenterName) {
+  let presenterJSON = pp.presenterJSONs.get(presenterName);
+  let data = await getData(url, projectName, presenterJSON);
+  presenterData.set(presenterName, data);
+  populatePresenterDiv(data, presenterJSON);
 }
+
 
 // remove all 's' (s2, s3, s4, s6, ...) classes 
 function removeSClasses(element) {
@@ -704,17 +748,28 @@ function deletePresenterPhase2(answer, presenterName){
 
     if(answer.includes('"Status":0')){
       $('#'+presenterName).remove();
-    
-      $('#navBarEl'+presenterName).remove();
-      pp.navbar = pp.navbar.filter(element => element !== presenterName);
-    
+        
       pp.presenterJSONs.delete(presenterName);
       presenterData.delete(presenterName);
       let idx = pp.projectPresenters.indexOf(presenterName);
       if (idx !== -1) 
         pp.projectPresenters.splice(idx, 1);
+
+      let nextTabID = removeTab("presenters", presenterName);
+
+      if (pp.projectPresenters.length > 0)
+        showPresenter("presenters", nextTabID);
+      else
+        showCorPresenterDiv(false);
     }
 
 
   })
 }
+
+function showCorPresenterDiv(hasEntities) {
+  document.getElementById("loading_presenters_div").style.display  =  "none";
+  document.getElementById(`no_presenters_div`)     .style.display  =  hasEntities ? "none" : "";
+  document.getElementById(`presenters`)            .style.display  =  hasEntities ? ""     : "none";
+}
+

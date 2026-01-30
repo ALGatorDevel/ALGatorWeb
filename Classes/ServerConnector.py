@@ -30,7 +30,7 @@ class ServerConnector(object):
       data  = ' '.join(parts)
       encoded_data = data.encode("utf-8")
 
-      response = requests.post(url, data=encoded_data, headers=headers)
+      response = requests.post(url, data=encoded_data, headers=headers, timeout=5)
 
       return response.text
 

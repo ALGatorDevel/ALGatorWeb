@@ -1,5 +1,7 @@
 // open modal dialog with a question
-function openDialog(question, checker, inputElement=undefined) {
+// guiFOrmating ... method to format gui (inputElement) if needed
+// getResult    ... method to get value of inputElement (if not default)
+function openDialog(question, checker, inputElement=undefined, guiFormating=null, customResult=null) {
     return new Promise((resolve) => {
         // Create modal elements
         const modal = document.createElement('div');
@@ -38,7 +40,7 @@ function openDialog(question, checker, inputElement=undefined) {
         }
 
         const okClicked = () => {
-            resolve(inputElement.value);
+            resolve(customResult ? customResult(inputElement) : inputElement.value);
             document.body.removeChild(modal);
         };
         const cancelClicked = () => {
@@ -83,6 +85,8 @@ function openDialog(question, checker, inputElement=undefined) {
 
         cancelButton.addEventListener('click', cancelClicked);
 
+        if (guiFormating) guiFormating();
+
         inputElement.focus();
     });
 }
@@ -93,9 +97,17 @@ function openDialog(question, checker, inputElement=undefined) {
 
 // Function to open the modal and display the string content as plain text
 // two types of display: 0 ... text, 1 ... html 
-    function showModalDisplay(title, content, type=0) {
+    function showModalDisplay(title, content, type=0, size=80) {
         const modalTemplate = document.getElementById("modal-template");
         const modal = modalTemplate.cloneNode(true); // Clone the modal template
+
+        // resize according to given value of "size"
+        const modalDlg = modal.querySelector("#modal-content-dlg");
+        if (modalDlg) {
+            modalDlg.style.width  = size+"vw";
+            modalDlg.style.height = size+"vh";
+        }
+
 
         // Add the 'modal' class to the cloned element to apply the modal styles
         modal.classList.add("modal");

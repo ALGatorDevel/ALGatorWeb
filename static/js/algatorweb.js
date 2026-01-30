@@ -388,3 +388,48 @@ function XpopulateSelect(selectElement, optionsArray) {
       select.append(option);
   });
 }
+
+
+
+
+// ************  array2DToHTMLTable *********************************
+
+function array2DToHTMLTable(data, options = {}) {
+  if (!Array.isArray(data) || data.length === 0) return "";
+
+  const {
+    header = true,
+    evenRowColor = "#f5f5f5",
+    oddRowColor = "#ffffff",
+    headerColor = "#dddddd"
+  } = options;
+
+  let html = `<table style="border-collapse:collapse; width:100%;">`;
+
+  // Header
+  if (header) {
+    html += `<thead><tr style="background:${headerColor}; font-weight:bold;">`;
+    data[0].forEach(cell => {
+      html += `<th style="border:1px solid #ccc; padding:6px;">${cell}</th>`;
+    });
+    html += `</tr></thead>`;
+  }
+
+  // Body
+  html += `<tbody>`;
+  const startRow = header ? 1 : 0;
+
+  for (let i = startRow; i < data.length; i++) {
+    const bg = i % 2 === 0 ? evenRowColor : oddRowColor;
+    html += `<tr style="background:${bg};">`;
+
+    data[i].forEach(cell => {
+      html += `<td style="border:1px solid #ccc; padding:6px;">${cell}</td>`;
+    });
+
+    html += `</tr>`;
+  }
+
+  html += `</tbody></table>`;
+  return html;
+}

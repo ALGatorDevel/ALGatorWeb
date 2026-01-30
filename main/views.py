@@ -33,7 +33,6 @@ def pAskServer(request):
 
     return JsonResponse({"answer" : connector.talkToServer(question, getUID(request))})
 
-
 def append_middlefix(filename, suffix):
     basename, extension = os.path.splitext(filename)
     new_filename = f"{basename}_{suffix}{extension}"
@@ -172,12 +171,16 @@ def view_log_sessions(request):
                 ip = parts[0].strip().split('IP:')[1].strip()
                 user = parts[1].strip().split('User:')[1].strip()
                 url = parts[2].strip().split('URL:')[1].strip()
+                agent = parts[4].strip().split('User-Agent:')[1].strip() if len(parts) >= 5 and 'User-Agent:' in parts[4] else ""
+                ref = parts[5].strip().split('Referrer:')[1].strip() if len(parts) >= 6 and 'Referrer:' in parts[5] else ""
 
                 all_entries.append({
                     'timestamp': timestamp,
                     'ip': ip,
                     'user': user,
-                    'url': url
+                    'url': url,
+                    'agent':agent,
+                    'ref':ref
                 })
             except Exception:
                 continue  # Skip malformed lines
@@ -190,6 +193,8 @@ def view_log_sessions(request):
     for entry in all_entries:
         key = (entry['ip'], entry['user'])
 
+        urlX = f"{entry['url']} (ref: {entry['ref']}), agent: {entry['agent']}"
+
         if (
             last_entry is None
             or (last_entry['ip'], last_entry['user']) != key
@@ -201,12 +206,14 @@ def view_log_sessions(request):
                 'user': entry['user'],
                 'start_time': entry['timestamp'],
                 'end_time': entry['timestamp'],
-                'urls': [entry['url']]
+                'urls': [urlX],
+                'agent': [entry['agent']],
+                'ref': [entry['ref']]
             }
             sessions.append(current_session)
         else:
             # Continue current session
-            current_session['urls'].append(entry['url'])
+            current_session['urls'].append(urlX)
             current_session['end_time'] = entry['timestamp']
 
         last_entry = entry

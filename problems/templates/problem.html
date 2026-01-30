@@ -15,16 +15,38 @@
 
 <link rel="stylesheet" href="{% static 'css/upload.css' %}">
 <link rel="stylesheet" href="{% static 'css/problems/problem.css' %}">
+<link rel="stylesheet" href="{% static 'css/algtabs.css' %}">
 
 <script src="{% static 'js/upload.js' %}"></script>
 <script src="{% static 'js/math.min.js' %}"></script>
 <script src="{% static 'js/problems/algatorData.js' %}"></script>
 <script src="{% static 'js/main/main.js' %}"></script>
 <script src="{% static 'js/edit.js' %}"></script>
+<script src="{% static 'js/gcolors.js' %}"></script>
 <script src="{% static 'js/problems/problem.js' %}"></script>
+<script src="{% static 'js/algtabs.js' %}"></script>
+<script src="{% static 'js/algatorweb.js' %}"></script>
 
 
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'],['\\(', '\\)']],
+    displayMath: [['$$','$$']]
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style'],
+    ignoreHtmlClass: 'tex-content tex-editor'
+  }
+};
+</script>
+
+<!--script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script-->
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
 
 </head>
 <body>
@@ -65,6 +87,10 @@
         <div id="playground-top"></div>
         {% include "playground.html" %}
     </div>
+    <div id="algatorshell" style="display: none;">
+        <div id="algatorshell-top"></div>
+        {% include "algatorshell.html" %}
+    </div>    
 </div>
 
 <script>
@@ -72,6 +98,7 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("projectNameSpan").innerHTML = "{{ project.name}}" + (printEID ?  " [{{ project.eid }}]":"");
   showSectionSideNavbar("projectDescription");  
 });
+
 </script>
 
 

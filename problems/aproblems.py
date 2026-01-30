@@ -6,10 +6,10 @@ from django.http import HttpResponse
 
 from Classes.ServerConnector import connector
 from Classes.NEntities import getValue, read_entities, read_project, read_testset_files, read_testset_file, \
-    read_testsets_common_files
+    read_testsets_common_files, read_entity
 from ausers.ausers import try_get_user
 from ausers.autools import is_valid_request_and_data, au_response
-from problems.utils import replaceStaticLinks, updateResourcesIfNeeded, getPresentersData
+from problems.utils import replaceStaticLinks, updateResourcesIfNeeded, getPresentersData, getPresenter
 
 def get_computer_familes(request: HttpResponse) -> HttpResponse:
     try:
@@ -99,6 +99,19 @@ def get_project_properties(request: HttpResponse, data: dict) -> HttpResponse:
     except Exception as e:
         au_response("Can't read project properties: " + str(e), 1)
 
+def get_testset(request: HttpResponse, data: dict) -> HttpResponse:
+  fields = ['ProjectName', 'EntityName']
+  if not is_valid_request_and_data(request, data, fields):
+    return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
+
+  uid = try_get_user(request)
+  projectName = data['ProjectName']
+  entityName  = data['EntityName']
+
+  testset = read_entity(uid, projectName, "TestSet", entityName)
+
+  return au_response(testset)
+
 
 def get_testsets(request: HttpResponse, data: dict) -> HttpResponse:
   fields = ['ProjectName']
@@ -166,7 +179,18 @@ def remove_testset_file(request: HttpResponse, data: dict) -> HttpResponse:
 
   return au_response(result)
 
+def get_algorithm(request: HttpResponse, data: dict) -> HttpResponse:
+  fields = ['ProjectName', 'EntityName']
+  if not is_valid_request_and_data(request, data, fields):
+    return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
 
+  uid = try_get_user(request)
+  projectName = data['ProjectName']
+  entityName = data['EntityName']
+
+  algorithms = read_entity(uid, projectName, "Algorithm", entityName)
+
+  return au_response(algorithms)
 def get_algorithms(request: HttpResponse, data: dict) -> HttpResponse:
   fields = ['ProjectName']
   if not is_valid_request_and_data(request, data, fields):
@@ -178,6 +202,22 @@ def get_algorithms(request: HttpResponse, data: dict) -> HttpResponse:
   algorithms = read_entities(uid, projectName, "Algorithm")
 
   return au_response(algorithms)
+
+def get_presenter(request: HttpResponse, data: dict) -> HttpResponse:
+  fields = ['ProjectName', 'PresenterName', 'Deep']
+  if not is_valid_request_and_data(request, data, fields):
+    return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
+
+  uid = try_get_user(request)
+  projectName   = data['ProjectName']
+  presenterName = data['PresenterName']
+  deep          = data['Deep']
+
+
+  presenter = getPresenter(projectName, presenterName, uid, deep)
+
+  return au_response([presenterName, presenter])
+
 
 def get_presenters(request: HttpResponse, data: dict) -> HttpResponse:
   fields = ['ProjectName']

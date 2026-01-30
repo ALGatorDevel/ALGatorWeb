@@ -1,0 +1,7 @@
+.json-pre { font-family: monospace; white-space: pre; line-height: 1.4; }
+.json-key   { color: #7b5096; }   /* key names */
+.json-string{ color: #0b6623; }   /* string values */
+.json-number{ color: #1a5fb4; }   /* numbers */
+.json-boolean{ color: #b04b00; }  /* booleans */
+.json-null  { color: #6c6c6c; }   /* null */
+.json-brace { color: #404040; }   /* braces/brackets/commas/colons */

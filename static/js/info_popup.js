@@ -31,7 +31,7 @@ let messages = {
 
 <pre>
 
-  CMP+SWAP AS X1
+  @CMP+@SWAP AS X1
   0.15*@N AS LIN1 
   0.01*@N*log(@N) AS LIN 
   floor(10*sin(@JavaSort.Tmin)) AS KN
@@ -44,7 +44,7 @@ Supported operators and functions:
   Multiplication: '2 * 2',  Division: '2 / 2'
   Exponential: '2 ^ 2',     Modulo: '2 % 2'
   
-  abs: absolute value
+  <b>abs</b>: absolute value
   acos: arc cosine
   asin: arc sine
   atan: arc tangent

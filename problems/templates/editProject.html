@@ -1,20 +1,20 @@
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'codemirror/lib/codemirror.css' %}">
-    <link rel="stylesheet" href="{% static 'codemirror/theme/abcdef.css' %}">
-    <link rel="stylesheet" href="{% static 'codemirror/theme/eclipse.css' %}">
-    <link rel="stylesheet" href="{% static 'codemirror/addon/hint/show-hint.css' %}">
-    <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
-    <script src="{% static 'codemirror/addon/edit/matchbrackets.js' %}"></script>
-    <script src="{% static 'codemirror/addon/hint/show-hint.js' %}"></script>
-    <script src="{% static 'codemirror/mode/clike/clike.js' %}"></script>
+{% load static %}
+<link rel="stylesheet" href="{% static 'codemirror/lib/codemirror.css' %}">
+<link rel="stylesheet" href="{% static 'codemirror/theme/abcdef.css' %}">
+<link rel="stylesheet" href="{% static 'codemirror/theme/eclipse.css' %}">
+<link rel="stylesheet" href="{% static 'codemirror/addon/hint/show-hint.css' %}">
+<script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
+<script src="{% static 'codemirror/addon/edit/matchbrackets.js' %}"></script>
+<script src="{% static 'codemirror/addon/hint/show-hint.js' %}"></script>
+<script src="{% static 'codemirror/mode/clike/clike.js' %}"></script>
 
-    <link href="{% static 'css/select2.css' %}"              rel="stylesheet">
-    <script type="text/javascript" src="{% static 'js/select2.js' %}"></script> 
+<link href="{% static 'css/select2.css' %}"              rel="stylesheet">
+<script type="text/javascript" src="{% static 'js/select2.js' %}"></script> 
 
-    <script type="text/javascript" src="{% static 'js/base64.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/base64.min.js' %}"></script>
  
 
-    <link href="{% static 'css/edit.css' %}" rel="stylesheet">
+<link href="{% static 'css/edit.css' %}" rel="stylesheet">
 
     
 <script>
@@ -26,25 +26,13 @@
 
 <div style="height: 50px"></div>    
 
-<div class="subNavBar" id="menuitems">
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#general"     onclick="selectMenuItem(this)">General</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#input"       onclick="selectMenuItem(this)">Input</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#output"      onclick="selectMenuItem(this)">Output</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#parameters"  onclick="selectMenuItem(this)">Parameters</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#generators"  onclick="selectMenuItem(this)">Generators</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#timers"      onclick="selectMenuItem(this)">Timers</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#indicators"  onclick="selectMenuItem(this)">Indicators</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#counters"    onclick="selectMenuItem(this)">Counters</span>
-  <span name="mi" class="w3-bar-item navBarEl bw" href="#tools"       onclick="selectMenuItem(this)">Tools</span>
 
-
-  <div id="menu-dot" style="top:57px; right:5px;" onclick="saveContent()"></div>
-
-</div> 
+<!-- editProject tabs -->
+<div id="tabwrapper_editProject" class="tab-wrapper" style="max-width:100%;"></div>
 
 <div class="innerContent" id="editProjectContent">
   <div id="editOkCancelPanel">
-    <div id="editProjectButtons" class="editMode" w="{{ project.eid }} cw" style="display: flex;flex-direction: row-reverse;margin-right: 10px;">
+    <div id="editProjectButtons" class="editMode" w="{{ project.eid }} cw" style="display: flex;flex-direction: row-reverse;margin-right: 10px; padding-top: 5px;">
       <i id="edit_editProjectSection" class="far fa-edit icon" onclick="editSection()"></i>
     </div>
   </div>
@@ -65,28 +53,36 @@
         <span id="output-list_panel"></span>
       </div>      
       <div id="parameters-list" class="submenuitem">
-        <hi> Project parameters</hi> 
-        <span id="parameters-list_panel"></span>
+        <div class="sectionTitle">Project parameters</div> 
+        <span id="parameters-list_panel">
+          <div id="tabwrapper_parameters" class="tab-wrapper" style="max-width:100%;"></div>
+        </span>
       </div>
       <div id="generators-list" class="submenuitem">
-        <hi>Testcase generators</hi> 
-        <span id="generators-list_panel"></span>
+        <div class="sectionTitle">Generators</div> 
+        <span id="generators-list_panel">
+          <div id="tabwrapper_generators" class="tab-wrapper" style="max-width:100%;"></div>
+        </span>
       </div>
-
       <div id="timers-list" class="submenuitem">
-        <hi>Timers</hi> 
-        <span id="timers-list_panel"></span>
+        <div class="sectionTitle">Timers</div> 
+        <span id="timers-list_panel">
+          <div id="tabwrapper_timers" class="tab-wrapper" style="max-width:100%;"></div>
+        </span>
       </div>
-
       <div id="indicators-list" class="submenuitem">
-        <hi>Indicators</hi> 
-        <span id="indicators-list_panel"></span>
+        <div class="sectionTitle">Indicators</div> 
+        <span id="indicators-list_panel">
+          <div id="tabwrapper_indicators" class="tab-wrapper" style="max-width:100%;"></div>
+        </span>
+      </div>
+      <div id="counters-list" class="submenuitem">
+        <div class="sectionTitle">Counters</div> 
+        <span id="counters-list_panel">
+          <div id="tabwrapper_counters" class="tab-wrapper" style="max-width:100%;"></div>
+        </span>
       </div>
 
-      <div id="counters-list" class="submenuitem">
-        <hi>Counters</hi> 
-        <span id="counters-list_panel"></span>
-      </div>
        <div id="tools-list" class="submenuitem">
         <hi>Tools</hi> 
         <span id="tools-list_panel"></span>
@@ -122,87 +118,33 @@
         </div>
 
         <div id="parameters-div" class="content-div">
-            <div id="parameterElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
-              <label for="newparname">Create a new parameter: &nbsp; &nbsp;</label><input style="width:200px;" type="text" id="newparname">
-              &nbsp;<input type="checkbox" id="isInputP" name="isInputP">  <label for="isInputP">Input parameter? </label>&nbsp;
-              <span id="addParamButton" class="tooltip-button" data-tooltip="Add" onclick="newParameter('{{project.name}}')" style="content:'Add';">
-                  <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>
-
-              <script>
-                registerClickOnEnter("newparname", "addParamButton");
-                registerClickOnEnter("isInputP", "addParamButton");
-                insertNewSubNavbarItem("parameterElt", "parameterlink", "parameters-list_panel");
-              </script>
-              <hr>
-            </div>
-
-            <div id="inputParameters" style="background: #FAFFFA;"><h4 style="padding-left: 10px; border:1px solid gray;">Input Parameters</h4></div>
-            <div id="otherParameters" style="background: #FFFFF5 ;"><h4 style="padding-left: 10px; border:1px solid gray;">Other Parameters</h4></div>
+          <div id="loading_parameters-div" style="display:block">... loading           </div>
+          <div id="no_parameters-div"      style="display:none" >No parameters defined.</div>
+          <div id="cont_parameters-div"    style="display:none" ></div>
         </div>
 
         <div id="generators-div" class="content-div">
-            <div id="generatorElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
-              <label for="newgenname">Create a new generator of type: &nbsp; &nbsp;</label><input style="width:200px;" type="number" min="0" value="0" id="newgenname">
-              &nbsp;<label for="newgenparam">Parameters: &nbsp; &nbsp;</label><select class="multiselect" id="newgenparam" multiple style="width: 400px;"></select> &nbsp;
-                <span id="addGButton" class="tooltip-button" data-tooltip="Add" onclick="newGenerator('{{project.name}}')" style="content:'Add';">
-                  <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>
-              <hr>
-            </div>
-            <script>
-              setNewGenParamValue();
-              insertNewSubNavbarItem("generatorElt", "generatorlink", "generators-list_panel");
-            </script>
-
-            <div id="generators-div"></div>
+          <div id="loading_generators-div" style="display:block">... loading           </div>
+          <div id="no_generators-div"      style="display:none" >No generators defined.</div>
+          <div id="cont_generators-div"    style="display:none" ></div>
         </div>
 
         <div id="timers-div" class="content-div">
-          <div>
-            <div id="timerElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
-              <label for="newtimer">Create a new timer: &nbsp; &nbsp;</label><input style="width:300px;" type="text" id="newtimer" onchange="" value="">&nbsp;
-              <span id="newTimerButton" class="tooltip-button" data-tooltip="Add" onclick="newTimer('{{project.name}}')" style="content:'Add';">
-                  <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>  
-              <hr>            
-            </div>
-            <script>
-              registerClickOnEnter("newtimer", "newTimerButton");
-              insertNewSubNavbarItem("timerElt", "timerlink", "timers-list_panel");
-            </script>
-            <div id="timers-div"></div>
-          </div>
+          <div id="loading_timers-div" style="display:block">... loading           </div>
+          <div id="no_timers-div"      style="display:none" >No timers defined.</div>
+          <div id="cont_timers-div"    style="display:none" ></div>
         </div>
 
         <div id="indicators-div" class="content-div">
-            <div id="indicatorElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
-              <label for="newindicator">Create a new indicator: &nbsp; &nbsp;</label><input style="width:300px;" type="text" id="newindicator">&nbsp;
-              <span id="newIndicatorButton" class="tooltip-button" data-tooltip="Add" onclick="newIndicator('{{project.name}}')" 
-                 style="content:'Add';"><img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>  
-              <hr>
-            </div>
-            <script>
-              registerClickOnEnter("newindicator", "newIndicatorButton");
-              insertNewSubNavbarItem("indicatorElt", "indicatorlink", "indicators-list_panel");
-            </script>         
-            <div id="indicators-div"></div>   
+          <div id="loading_indicators-div" style="display:block">... loading           </div>
+          <div id="no_indicators-div"      style="display:none" >No indicators defined.</div>
+          <div id="cont_indicators-div"    style="display:none" ></div>
         </div>
 
         <div id="counters-div" class="content-div">
-            <div id="counterElt-(New)" style="vertical-align:bottom; padding-top:15px; display:none;" class="pEditV">
-              <label for="newcounter">Create a new counter: &nbsp; &nbsp;</label><input style="width:300px;" type="text" id="newcounter">&nbsp;
-              <span id="newCounterButton" class="tooltip-button" data-tooltip="Add" onclick="newCounter('{{project.name}}')" style="content:'Add';">
-                  <img style="padding-bottom: 5px; width: 16px;" src="{% static 'images/new.png' %}"/>
-              </span>   
-              <hr>
-            </div>
-            <script>
-              registerClickOnEnter("newcounter", "newCounterButton");
-              insertNewSubNavbarItem("counterElt", "counterlink", "counters-list_panel");
-            </script>                     
-            <div id="counters-div"></div>              
+          <div id="loading_counters-div" style="display:block">... loading           </div>
+          <div id="no_counters-div"      style="display:none" >No counters defined.</div>
+          <div id="cont_counters-div"    style="display:none" ></div>
         </div>
 
         <div id="tools-div" class="content-div">
@@ -217,9 +159,12 @@
             </script>            
         </div>
       </div>
+  </div>
 </div>
 
 <script>
+  initImplementationTabs();
+
 
   let editProjSection = "editProjectSection";
   document.getElementById("editProjectButtons").innerHTML += 
@@ -227,20 +172,17 @@
   wireButton(editProjSection+"_cancel", editProjectSectionCancel, editProjSection);
   wireButton(editProjSection+"_ok",     editProjectSectionSave,   editProjSection);
 
-
-window.addEventListener('beforeunload', function (event) {
+  window.addEventListener('beforeunload', function (event) {
     if (contentModified) {
-        // Display a confirmation message when attempting to close the page
-        var message = "You have unsaved changes. Are you sure you want to leave?";
-        event.returnValue = message;
-        return message;
+      var message = "You have unsaved changes. Are you sure you want to leave?";
+      event.returnValue = message;
+      return message;
     }
-}); 
+  }); 
 
-  
-window.onload = window.onresize = function () {
-  setEditPageHeight();  
-};
+  window.onload = window.onresize = function () {
+    setEditPageHeight();  
+  };
 
   
 $('.multiselect').each((function() {
@@ -248,9 +190,8 @@ $('.multiselect').each((function() {
 }));  
 
 </script>
-    
-    {% else %}
-    Can't load project. 
-    {% endif %}
 
-</div>
+
+{% else %}
+Can't load project.
+{% endif %}

@@ -256,14 +256,15 @@ env = new Environment();
 ///************
 ///************  Data class and subclasses ************///
 class Data {
-  static get TEXT_DATA()    { return "TextData"; }          // tekstovni podatki
-  static get ERROR_DATA()   { return "ErrorData"; }         // sporočilo o napaki
-  static get TABLE_DATA()   { return "TableData"; }         // tabela podatkov
-  static get PLOT_DATA()    { return "PlotData"; }          // tabela podatkov
-  static get EDITOR_DATA()  { return "EditorData"; }        // urejevalnik podatkov
-  static get FILES_DATA()   { return "FilesData"; }         // list of files
-  static get PLIST_DATA()   { return "ProjectListData"; }   // list of projects
-  static get RESULTS_DATA() { return "ResultsData"; }       // results (status, files, ...)
+  static get TEXT_DATA()     { return "TextData"; }          // tekstovni podatki
+  static get ERROR_DATA()    { return "ErrorData"; }         // sporočilo o napaki
+  static get TABLE_DATA()    { return "TableData"; }         // tabela podatkov
+  static get PLOT_DATA()     { return "PlotData"; }          // tabela podatkov
+  static get EDITOR_DATA()   { return "EditorData"; }        // urejevalnik podatkov
+  static get FILES_DATA()    { return "FilesData"; }         // list of files
+  static get PLIST_DATA()    { return "ProjectListData"; }   // list of projects
+  static get RESULTS_DATA()  { return "ResultsData"; }       // results (status, files, ...)
+  static get RESPONSE_DATA() { return "ResponseData"; }      // servers response data (different types: clients, ...)
 
   constructor(type) {
     this.type    = type;    
@@ -319,7 +320,7 @@ class TextData extends Data {
 
   toHtml() {
     var escaped = escapeHtml(this.textData)
-    var preText = '<pre class="panel" style="padding-left: 0px;padding-top: 0px;">'  +
+    var preText = '<pre class="panel" style="padding-left: 0px;padding-top: 0px;margin-top:0px">'  +
                       escaped.replace(/(~.*\n)/g, "<b>$1</b>")        +
                   '</pre>';
     return preText;
@@ -595,7 +596,7 @@ class FilesData extends Data {
     // add TabTitle
     var ulh = document.getElementById("tabsh-"+blockID);
     var lih = document.createElement("li");
-    // '<div class="tooltip">'+fileName.split("/").pop()+'<span class="tooltiptext">'+fileName+'</span></div>'
+    // '<div class="tooltipAS">'+fileName.split("/").pop()+'<span class="tooltiptextAS">'+fileName+'</span></div>'
     var tabTitle = fileName.split("/").pop();
     lih.appendChild(document.createTextNode(tabTitle));
 
@@ -977,6 +978,80 @@ class ResultsData extends Data {
 }
 
 
+class ResponseData extends Data {
+  constructor(blockID, answer, msg) {
+    super(Data.RESPONSE_DATA);
+    this.blockID    = blockID;
+
+    this.data       = answer;
+    this.msg        = msg;
+
+    // this.setData();
+  }
+
+  setData() {
+    this.answerID = this.data.AnswerID; 
+  }
+
+  toHtml() {
+    switch (this.msg) {
+      case 'Active task clients': 
+        return getTaskClientsHTML(this.data);
+      case 'getTasks':
+        return jsonToHtml(this.data, 4).outerHTML;
+      default:
+        return getGeneralResponseHTML(this.msg, this.data);
+    }
+  }
+}
+
+function getGeneralResponseHTML(msg, data) {
+  var stringData = (data !== null && (typeof data === "object" || Array.isArray(data))) ? JSON.stringify(data) : data; 
+
+  var div = `<div>Message: ${msg}</div><div>${stringData}</div>`;
+
+  return div;
+}
+
+
+function getTaskClientsHTML(data) {
+  var aClients = "<table class='zebraTable' style='width:95%'>"
+  data.forEach(cl => {
+    aClients += `<tr><td style="width:15%;align-content: baseline;">
+                       <div title='${cl.Client}'>${cl.ComputerName}
+                         <span class="clicable" onclick="toggleDVisibility('rstst_${cl.Client}')">…</span>
+                       </div> 
+                     </td>`;
+    aClients += `<td><div>${cl.RStatus[0]}</div><div id="rstst_${cl.Client}" style="display:none">`;
+    cl.RStatus.forEach((rst, idx) => {
+      if (idx > 0)
+        aClients += `- ${rst}<br>`;
+    });
+    aClients += "</div></td>";
+    aClients += "</tr>";
+  });
+
+
+  var div = 
+`
+<div>
+  <b>Active clients</b>
+  ${aClients}
+</div>
+`;
+
+  return div;
+}
+
+
+function toggleDVisibility(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    const currentDisplay = window.getComputedStyle(element).display;
+    element.style.display = currentDisplay === 'none' ? 'block' : 'none';
+  } 
+}
+
 ///************
 ///************
 ///************
@@ -1098,32 +1173,35 @@ function waitForServerAnswer(blockID, commandID) {
 }
 
 function novElement() {
-  env.blockID++;
+  env.blockID++; //▲
 
   var cont = '                                                                                    \
-    <div class="elt panel" id="cmdDiv-_hID_" style="border-style: solid; border-color: #eeeeee;">\
+    <div class="elt panel" id="cmdDiv-_hID_" style="border-style: solid; border-color: white;">\
       <table class="panel" id="cmdTable-_hID_" width=100% style="table-layout:fixed">                                                      \
         <tr>                                                                                    \
             <td align=right style="width: 80px; min-width:80px">\
-              <input id="cmdStatusB-_hID_" type="button" style="background-color: green; height: 9px; width: 9px;" value="" class="myBtn" onclick="stopCMD(_hID_);">\
+              <input id="cmdStatusB-_hID_" type="button" style="background-color: green; height: 11px; width: 11px; padding-inline:0px" value="" class="myBtn" onclick="stopCMD(_hID_);">\
               [%_hID_]:\
             </td>                                            \
-            <td><input class="vpis" id="cmdQuestion-_hID_" type="text" autocomplete="off" style="width: calc(100% - 60px);" onKeyDown="keyDown(event, _hID_);" onKeyPress="processKey(event, _hID_)"; onFocus="gotFocus(event, _hID_);"/>\
+            <td><input class="vpis" id="cmdQuestion-_hID_" type="text" autocomplete="off" style="width: calc(100% - 60px); margin-bottom:0px" onKeyDown="keyDown(event, _hID_);" onKeyPress="processKey(event, _hID_)"; onFocus="gotFocus(event, _hID_);"/>\
                 <!--namesto zgornjega inputa bi lahko dal textarea, da preprečim hint: textarea class="vpis" id="cmdQuestion-_hID_" type="text" rows=1 style="padding: 9px 0 0 5px;overflow:hidden; resize:none; min-height:fit-content; width: calc(100% - 60px);" onKeyDown="keyDown(event, _hID_);" onKeyPress="processKey(event, _hID_);" oninput="this.value=this.value.replace(/\n/g,\"\");"></textarea-->\
                 <img id="clockOn-_hID_"   onclick="clockOnOff(_hID_,0);" src="/static/images/clock16_active.png" style="float: right; margin: 5px;   display: none;">\
                 <img id="clockOf-_hID_"   onclick="clockOnOff(_hID_,1);" src="/static/images/clock16_inactive.png" style="float: right; margin: 5px; display: inline;">\
-            <td width="30"><input id="cmdDeleteB-_hID_" type="button" style="background-color: #eeeeee;" value="x" class="myBtn" onclick="deleteCMD(_hID_);"> \
+            <td style="width:7px">\
+              <!--input id="cmdDeleteB-_hID_" type="button" style="background-color: #eeeeee;" value="x" class="myBtn" onclick="deleteCMD(_hID_);"--> \
+              <i class="fa fa-times icon" style="font-size:12px;" onclick="deleteCMD(_hID_);"></i>\
             </td> \
         </tr> \
         <tr id="ansTR-_hID_" style="display: none;"> \
             <td valign=top align=right style="padding-top:7px;">└──>\
             </td> \
-            <td style="border-top: 2px solid lightblue; padding-top:7px;">\
+            <!--td style="border-top: 2px solid lightblue; padding-top:7px;"-->\
+            <td style="padding-top:7px;">\
                 <div id="cmdAnswer-_hID_" style="max-height: 350px; overflow: auto;"></div>   \
             </td>\
-            <td valign=bottom>\
-                <div id="trikotnik-_hID_" style="height:12px; width: 100%; text-align: center;" draggable="true"\
-                  ondragstart="dragStart(event)" ondrag="doDrag(event, _hID_)">▲</p>\
+            <td valign=bottom style="border: 1px solid gray; border-left: none; border-bottom: 3px double gray;">\
+                <div class="dragableBorder" id="trikotnik-_hID_" style="height:12px; width: 100%; text-align: center;" draggable="true"\
+                  ondragstart="dragStart(event, _hID_)" ondrag="doDrag(event, _hID_)" ondragstop="dragStop(event, _hID_)" ondblclick="ondlbclickborder(event, _hID_)">&nbsp;</p>\
             </td>\
         </tr>\
         <tr><td></td><td><div id="mydragbar" ondragstart="dragStart(event)" ondrag="doDrag(event, _hID_)"></div></td></tr>\
@@ -1133,6 +1211,8 @@ function novElement() {
 
   cont = cont.replace(/_hID_/g, env.blockID);
   $("#vsebina").append(cont);
+
+  env.lastSelectedBlock = env.blockID;
 
   var vpis = document.getElementById("cmdQuestion-" + env.blockID);
   vpis.focus();
@@ -1152,7 +1232,8 @@ function deleteCMDPhase2(confirmAnswer, blockID) {
     var element = document.getElementById("cmdDiv-"+blockID);
     element.parentNode.removeChild(element);
 
-    env.data.get(blockID).destroy();
+    if (env.data.get(blockID))
+      env.data.get(blockID).destroy();
 
     env.commands.delete(blockID);
     env.data.delete(blockID);    
@@ -1170,21 +1251,34 @@ function stopCMD(blockID) {
   }
 }
 
-function dragStart(event) {
-  lastDragY = event.clientY;
+function dragStart(event, blockID) {
+  origDragY = event.clientY;
+  origHeight = document.getElementById("cmdAnswer-"+blockID).clientHeight;
 }
 function doDrag(event, blockID) {
   var curY = event.clientY;
-  var divID = "cmdAnswer-"+blockID;
   
-  var height    = document.getElementById(divID).clientHeight; //document.getElementById(divID).style.height;
-  var heightDif = (curY - lastDragY);
-  document.getElementById(divID).style.maxHeight = (height + heightDif)+"px";
-  document.getElementById(divID).style.height    = (height + heightDif)+"px";
+  var newHeight=origHeight + (curY - origDragY);
 
-  lastDragY = curY;
+  if (newHeight > 10) {
+    document.getElementById("cmdAnswer-"+blockID).style.maxHeight = newHeight+"px";
+    document.getElementById("cmdAnswer-"+blockID).style.height    = newHeight+"px";
+  }
+}
+function dragStop(event, blockID) {
 }
 
+
+function ondlbclickborder(event, blockID) {
+  var divID = "cmdAnswer-"+blockID;
+
+  const container = document.getElementById(divID);
+  const totalHeight = Array.from(container.querySelectorAll('p, div, pre, table'))
+    .reduce((sum, div) => sum + div.clientHeight, 0);
+
+  document.getElementById(divID).style.maxHeight = (totalHeight)+"px";
+  document.getElementById(divID).style.height    = (totalHeight)+"px";
+} 
 
 
 // Questions and Answers
@@ -1232,7 +1326,7 @@ function processQuestion(blockID) {
       processCommand(blockID, vpr);
       break;
     case '>':
-      askASServer(vpr.substring(1).trim(), blockID, showServerAnswer);
+      askASServer(vpr.substring(1).trim(), blockID, /*showServerAnswer*/ showResponse);
       break;
     default:
       processShellCommand(blockID, vpr);
@@ -1425,8 +1519,12 @@ function processShellCommand(blockID, vpr) {
 
     // show project results   
     case "results":
-        askASServer("getresultstatus " + allPars, blockID, showResultStatus);
+      askASServer("getresultstatus " + allPars, blockID, showResultStatus);
       break; 
+
+    case "clients":
+      askASServer('activeClients {"Details":true}', blockID, showResponse);
+      break;  
 
     case "help":
       showAnswer(blockID, new TextData(helpMessage), blockID);
@@ -1457,6 +1555,21 @@ function showResultStatus(blockID, answer) {
   try {response.Answer = atob(response.Answer)} catch (e) {}
   showAnswer(blockID, new ResultsData(blockID, response.Answer))
 }
+
+function showResponse(blockID, answer) {
+  var ans = answer, msg    = "/",  status = 0;
+  try {
+    var response = toJSON(answer, true, true, true);
+    if (response.Answer)  ans    = response.Answer;
+    if (response.Message) msg    = response.Message;
+    if (response.Status)  status = response.Status;
+  } catch (e) {}
+  if (status == 0)
+    showAnswer(blockID, new ResponseData(blockID, ans, msg));
+  else
+    showAnswer(blockID, new ErrorData(ans, blockID));
+}
+
 
 
 function clockOnOff(blockID, kaj) {
@@ -1554,6 +1667,139 @@ function addTask(element) {
   
 }
 
+
+
+/* from html file */
+  function showMenuPanel(panel) {
+    document.querySelectorAll('.menupanel').forEach(function(el) {
+      el.style.display = 'none';
+    });
+    document.getElementById(panel).style.display='block';
+  }
+
+  function showHideMenu(display) {
+    document.getElementById("menupanel").style.display=display;
+  }
+
+  function selectProject(blockID, projName) {
+    env.currentProject = projName;
+
+    $("#sel_proj").text(projName);
+    $("#sel_proj_pane").css('display', 'block');
+
+    if (blockID > 0)
+      showAnswer(blockID, new TextData("Project " + projName +" selected."));
+  }
+
+  function toggleSH(blockID, idx) {
+    var spanElt = document.getElementById("spanSH-"   + blockID + "-" + idx); 
+    var tabElt  = document.getElementById("famTable-" + blockID + "-" + idx);     
+    var cont = spanElt.innerHTML;
+    if (cont.indexOf("plus") > 0) {
+      spanElt.innerHTML = '<img src="/static/images/minus24.png" width=12 />';
+      tabElt.style.display = 'block';
+    } else {
+      spanElt.innerHTML = '<img src="/static/images/plus24.png" width=12 />';
+      tabElt.style.display = 'none';
+    }
+    env.data.get(blockID).shStatus.set(idx, tabElt.style.display);
+  }
+
+
+  // param is just a way to pass a param from caller of showConfirmBox to callback function
+  function showConfirmBox(question, callback, param) {
+    lastConfirmAnswer = 0; 
+    answerCallback    = callback;
+    answerParam       = param;
+    document.getElementById("cd-message-text").innerHTML = question;
+    document.getElementById("cd-overlay").hidden = false;
+  }
+  function closeConfirmBox() {
+    document.getElementById("cd-overlay").hidden = true;
+    answerCallback(lastConfirmAnswer, answerParam);
+  }
+
+  function isConfirm(answer) {
+    lastConfirmAnswer = answer ? 1 : 2;
+    closeConfirmBox();
+  }
+
+
+  // options on menu click 
+  var optionSelected = function() {
+    var id = this.id;
+    var inputElt = document.getElementById("cmdQuestion-"+env.lastSelectedBlock);
+    if (inputElt == null) {
+      alert("Please, choose the answer-destination block.");
+      return;
+    }
+    var defaultProj = "<project>";
+    var defaultFile = "<file>";
+    
+    var cmd = "", setFocus = true, scrollInView = true, execCmd = true;
+    switch (id) {
+      case 'alg_version':
+        cmd = '$Version';
+
+        break;
+      case 'web_version':
+        cmd = 'version';
+        break;
+      case 'srvr_status':
+        cmd = '>status';
+        break;
+      case 'db_info':
+        cmd = '>dbinfo';
+        break;
+      case 'who':
+        cmd = '>who';        
+        break;
+
+      case 'help':
+        cmd = 'help';
+        break;
+
+
+      case 'editFile':
+        cmd = 'file ' + 
+                (env.currentProject ? env.currentProject : defaultProj) + ' ' + 
+                defaultFile;
+        execCmd = false;
+        break;
+
+      case 'editProject':
+        cmd = 'project ' + (env.currentProject ? env.currentProject : defaultProj);
+        execCmd = (env.currentProject) ? true : false;
+        break;
+
+      case 'setProject':        
+        cmd = 'setProject';
+        break;
+
+      case 'resultStatus':        
+        cmd = 'results {"Project":"' + (env.currentProject ? env.currentProject : defaultProj) + '", "MType":"em"}';
+        execCmd = (env.currentProject) ? true : false;
+        break;
+
+      case 'tasksShowTasks':
+        cmd = '>getTasks';
+        break;
+
+      case 'tasksShowTaskClients':
+        cmd = 'clients';
+        break;
+
+    }
+    if (cmd != "") 
+      inputElt.value = cmd;
+    if (setFocus)  
+      inputElt.focus();
+    if (execCmd)   
+      processQuestion(env.lastSelectedBlock);
+    if (scrollInView)   
+      $("#cmdAnswer-" + +env.lastSelectedBlock).scrollTop($("#cmdQuestion-"+env.lastSelectedBlock)[0].scrollHeight);
+  }
+  
 
 /************** ResultsData - checkboxes and other ******************/
 

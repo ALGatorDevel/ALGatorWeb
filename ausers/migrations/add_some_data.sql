@@ -1,7 +1,7 @@
 USE algator;
 
-exit
-
+INSERT INTO ausers_user (`uid`, `owner`, `username`, `password`, `first_name`, `last_name`, `email`, `affiliation`, `address`, `country`, `is_superuser`, `is_staff`, `is_active`, `date_joined`, `last_login`) VALUES ('u_42', 'u0_ro0jpj4wp', 'U42', 'pbkdf2_sha256$260000$267lb8At8ZQS2hLRmGrQdk$Uo+hHibSNrpu+uYTmaS3aXL5ptF0er7k2nKvNFrKmcw=', 'U', '42', 'U42@42.si', ' ', ' ', ' ', '0', '0', '1', '2024-01-01 00:00:00', '2024-01-01 00:00:00');
+INSERT INTO ausers_user (`uid`, `owner`, `username`, `password`, `first_name`, `last_name`, `email`, `affiliation`, `address`, `country`, `is_superuser`, `is_staff`, `is_active`, `date_joined`, `last_login`) VALUES ('u_24', 'u_42',         'U24', 'pbkdf2_sha256$260000$CEC0zyacv7tlHvxvbV4V5i$7tl4HAUTiLOAP46R2pAIAWQAvRhBC3da5Jd7PmcPupw=', 'U', '24', 'U24@24.si', ' ', ' ', ' ', '0', '0', '1', '2024-01-01 00:00:00', '2024-01-01 00:00:00');
 
 INSERT INTO ausers_entities (`id`, `name`, `is_private`, `entity_type_id`, `owner_id`, `parent_id`) VALUES ('e_100', 'BasicSort',     '0', 'et1', 'u0_ro0jpj4wp', 'e0_P');
 CALL after_insert_project('e_100', 'u0_ro0jpj4wp');

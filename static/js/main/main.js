@@ -68,3 +68,13 @@ function preventNonNumKeys(event) {
   if (!(charCode >= 48 && charCode <= 57))  
     event.preventDefault();
 }
+
+
+function formatMath(container) {
+  if (!container || !window.MathJax) return;
+
+  MathJax.startup.promise.then(() => {
+    MathJax.typesetClear([container]);
+    MathJax.typesetPromise([container]);
+  });
+}

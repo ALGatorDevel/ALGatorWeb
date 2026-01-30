@@ -112,14 +112,14 @@ class TextboxView extends AView {
       this.drawTextbox(htmltext, viewDIV);          
     } catch {}
   }
-  drawTextbox (htmltext, viewDIV) {
+  drawTextbox (htmltext, viewDIV, format=true) {
     let div = document.getElementById(viewDIV);
     if (div != null) {
       div.innerHTML = `<div style="height:360px; overflow:auto;">
         ${htmltext}
       </div>`;
     }
-    MathJax.typeset();
+    if (format) formatMath(div);
   }
 
   fillDataAndWireControls(onChange) {
@@ -198,6 +198,8 @@ class GraphView extends AView {
       "categoryLabels": false,
       "labelsXTrfs":"",
       "labelsYTrfs":"",
+      "stripPrefix":false,
+      "stripSuffix":false,
       "gridX": false,
       "gridY": false,
       "logXScale": false,
@@ -206,7 +208,8 @@ class GraphView extends AView {
       "logYbase":"e",
       "manData": {},
       "subchart": false,
-      "zoom": false
+      "zoom": false,
+      "reuseColors": false,
     };
   }
 
@@ -228,6 +231,10 @@ class GraphView extends AView {
 
     let xAxis = this.viewJSON["xAxis"];
     fillSelector(data[0], xAxis, 'selected_x_'+this.viewID, "");  
+
+    let yAxes = this.viewJSON["yAxes"];
+    let yData = data ? addGroupAsterisks(data[0]) : "";
+    fillSelector(yData, yAxes, 'selected_y_'+this.viewID, "Select y");
   }
 
 
@@ -249,18 +256,23 @@ class GraphView extends AView {
 
     wireControl(this, "filter_x", "filterX", "keyup");
 
-    wireCheckbox(this, "zoom"             ,  "zoom");
-    wireCheckbox(this, "showSubchart"     ,  "subchart");
-    wireCheckbox(this, "showXGridLines"   ,  "gridX");
-    wireCheckbox(this, "showYGridLines"   ,  "gridY");
-    wireCheckbox(this, "logarithmicXScale" , "logXScale");
+    wireCheckbox(this, "zoom"             ,    "zoom");
+    wireCheckbox(this, "showSubchart"     ,    "subchart");
+    wireCheckbox(this, "showXGridLines"   ,    "gridX");
+    wireCheckbox(this, "showYGridLines"   ,    "gridY");
+    wireCheckbox(this, "logarithmicXScale" ,   "logXScale");
     wireControl (this, "logXBase", "logXbase", "keyup");
-    wireCheckbox(this, "logarithmicYScale" , "logYScale");
+    wireCheckbox(this, "logarithmicYScale" ,   "logYScale");
     wireControl (this, "logYBase", "logYbase", "keyup");
+    wireCheckbox(this, "reuseColors",          "reuseColors");
+
 
     wireCheckbox(this, "useCategoryLabels",  "categoryLabels");
     wireControl (this, "labelsXTrfs", "labelsXTrfs", "keyup");
     wireControl (this, "labelsYTrfs", "labelsYTrfs", "keyup");
+
+    wireCheckbox(this, "stripSuffix",  "stripSuffix");
+    wireCheckbox(this, "stripPrefix",  "stripPrefix");
 
 
     wireControl(this, "xAxisTitle", "xAxisTitle", "keyup");
@@ -326,12 +338,21 @@ class GraphView extends AView {
         <tr>
           <td> <input class="w3-check"  id='useCategoryLabels_${id}' type="checkbox" >
                <label>Category labels</label>
+          <td> <input class="w3-check"  id='reuseColors_${id}' type="checkbox" >
+               <label>Re-use algorithm color</label>
+
         </tr>
         <tr>        
           <td style="padding-top:10px;"> <label>Transform x labels</label>${infoButton('labels_list_x')}<br>
                <input type=text id='labelsXTrfs_${id}' style="width:220px;">
           <td style="padding-top:10px;"> <label>Transform y labels</label>${infoButton('labels_list_y')}<br>
                <input type=text id='labelsYTrfs_${id}' style="width:220px;">
+        </tr>
+        <tr>
+          <td> <input class="w3-check"  id='stripPrefix_${id}' type="checkbox" >
+               <label>Trim shared legend label prefixes</label>
+          <td> <input class="w3-check"  id='stripSuffix_${id}' type="checkbox" >
+               <label>Trim shared legend label suffixes</label>
         </tr>
         </table>
     </div>
@@ -419,7 +440,7 @@ class TableView extends AView {
                 <div class='w3-col s12'>
                     <label for="selected_columns_${id}">Columns:</label>
                     <select name="selected_columns" id="selected_columns_${id}" multiple="multiple" style="width: 70%;">
-                    <input type=checkbox id="has_average_${id}" style="margin-left:15px"><label for="has_average_${id}"> AVG</label>
+                    <input type=checkbox id="has_average_${id}" style="margin-left:15px"><label for="has_average_${id}"> Statistics</label>
                     </select> 
                 </div>
             </div>

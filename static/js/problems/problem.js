@@ -91,9 +91,9 @@ function adjustMainMargin() {
 
 }
 
-var sectionTitle = ['Problem Overview',       'Implementation',  'Testsets',    'Algorithms', 'Testing results', 'Presentation',  'Results playground'  ];       
-var sections     = ['projectDescription',     'editProject',     'testsets',    'algorithms', 'awResults',       'results',               'playground'          ];    
-var sectionIcons = ['fas fa-project-diagram', 'fa fa-wrench',    'fas fa-vial', 'fas fa-fan', 'fas fa-running',  'fa fa-chart-line',      'fas fa-cog fa-pulse' ];  
+var sectionTitle = ['Problem Overview',       'Implementation',  'Testsets',    'Algorithms', 'Testing results', 'Presentation',     'Results playground',   '#ALGator shell'     ];       
+var sections     = ['projectDescription',     'editProject',     'testsets',    'algorithms', 'awResults',       'results',          'playground',           'algatorshell'       ];    
+var sectionIcons = ['fas fa-project-diagram', 'fa fa-wrench',    'fas fa-vial', 'fas fa-fan', 'fas fa-running',  'fa fa-chart-line', 'fa-solid fa-terminal', 'fas fa-cog fa-pulse'];  
 
 var numberOfTopItems = 6;
 
@@ -102,7 +102,7 @@ async function showItem(item) {
  switch (item) {
     case 'xConsole': // XConsole is shown only to superuser
       return current_user_is_superuser;
-    case 'aShell': // ALGator shell is shown only to superuser
+    case 'aShell': case 'algatorshell': // ALGator shell is shown only to superuser
       return current_user_is_superuser;
     case 'groups':
       const canEditUsers = await can('e0_S', "can_edit_users");
@@ -150,8 +150,8 @@ async function getSideBarItemsHTML(topItems) {
   </div>  `;  
 }
 
-// pages that have not been displayed yet
-const undisplayedPages  = new Set(sections);
+// pages that have already been displayed
+const displayedPages  = new Set();
 
 function showSectionSideNavbar(sectionId) {
   sections.forEach(function(id) {
@@ -167,25 +167,27 @@ function showSectionSideNavbar(sectionId) {
   document.getElementById("sectionTitleSpan").innerHTML = title;
 
   // only click on first menu item (to show first subpage) the first time the page is shown
-  if (undisplayedPages.has(sectionId))
-    try {document.getElementById(sectionId).getElementsByClassName('navBarEl')[0].click();undisplayedPages.delete(sectionId)} catch (e){}
+  if (!displayedPages.has(sectionId)) {
+    //try {document.getElementById(sectionId).getElementsByClassName('navBarEl')[0].click();} catch (e){}
 
-  switch (sectionId) {
-    // EDIT PROJECT
-    case "projectDescription": showProblemDescription(); break;
-    case "results":            showPresenters(); break;
-    case "awResults":          showTestingResults(); break;
-    case "editProject":        showImplementation(); break;
-    case "testsets":           showListOfEntities('testset', pageProject.testsets); 
-                               fillTestsetsFilesPanel(); break;  
-    case "algorithms" :        showListOfEntities('algorithm', pageProject.algorithms); break;
-    case "playground":         showPlayground();break;
-    // SETTINGS
-    case "profile":            loadProfilePage(); break;
-    case "password":           loadChangePasswordPage(); break;  
-    case "permissions":        getEntities(); break;  
-    case "groups":             loadGroupsPage(); break;
-    case "aShell":             openAShellInWindow(); break;
+    switch (sectionId) {
+      // EDIT PROJECT
+      case "projectDescription": showProblemDescription(); break;
+      case "results":            showPresenters(); break;
+      case "awResults":          showTestingResults(); break;
+      case "editProject":        showImplementation(); break;
+      case "testsets":           showEntitiesPage('testset', pageProject.testsets); break;
+      case "algorithms" :        showEntitiesPage('algorithm', pageProject.algorithms); break;
+      case "playground":         showPlayground();break;
+      case "algatorshell":       showAlgatorShell();break;
+      // SETTINGS
+      case "profile":            loadProfilePage(); break;
+      case "password":           loadChangePasswordPage(); break;  
+      case "permissions":        getEntities(); break;  
+      case "groups":             loadGroupsPage(); break;
+      case "aShell":             openAShellInWindow(); break;
+    }
+    displayedPages.add(sectionId);
   }
 }
 
@@ -272,7 +274,7 @@ function repaintViews() {
       aLayout.views.forEach((view)=>view.repaint());
     if (typeof  playgroundViews !== "undefined")
       for (let [viewName, view] of playgroundViews) view.repaint();
-  }, 500);
+  }, 200);
 }
 
 function redrawPresenterViews(presenterName) {
@@ -303,13 +305,12 @@ function getOkCancelButtonsHTML(id, okCancelQ, style) {
 
 function scrollToDescriptionDiv(id) {
   $('.pdElt').css("color", '#333');
-  document.getElementById("navBarEl"+id).style.color = "var(--submenu_color)"; //'#27ae60';
 
   var myElement = document.getElementById(id);
   var topPos = myElement.offsetTop;
   $("#descriptionInnerContent").animate({
     scrollTop: topPos - 105
-  }, 800); 
+  }, 500); 
 }
 
 pdNavbar =  [{'sId': 'html_desc',            'text': 'Problem Description'},
@@ -320,34 +321,35 @@ pdNavbar =  [{'sId': 'html_desc',            'text': 'Problem Description'},
             ];
 
 
-function getProjectDescJSON() {
-  askServer
+function showSection(paneID, tabID) {
+  selectTab(paneID, tabID);
+  scrollToDescriptionDiv(tabID);
 }
 
 async function showProblemDescription() {
   await pageProject.waitForDataToLoad(["get_project_html_description"], false, {'ProjectName': projectName});
 
-  let navBar = document.getElementById("ProblemDescriptionSubNavBar");
-  navBar.innerHTML = "";
+  const tTabs = "problemOverview";
+  addTabPane(tTabs);  
 
-  document.getElementById("descriptionInnerContent").innerHTML = "";
+  let descCont = document.getElementById("descriptionInnerContent");
+  descCont.innerHTML = "";
 
   pdNavbar.forEach(nb => {
-    navBar.innerHTML += `
-      <a  id="navBarEl${nb.sId}"  class="w3-bar-item navBarEl bw pdElt"  
-          onclick="scrollToDescriptionDiv('${nb.sId}');">${nb.text} </a>              
-    `;
+    addTab(tTabs, nb.sId, nb.text, showSection);
+
     addAndWireProblemDescriptionTitleDiv(projectEID, nb.sId, nb.text);
   });
   
-  scrollToDescriptionDiv(pdNavbar[0].sId);
-
-  MathJax.typeset();
-
+  wireTabs(tTabs);
+  showSection(tTabs, pdNavbar[0].sId);
+  
   // ko se prva stran naloži, sprožim še nalaganje vseh ostalih podatkov spletne strani, da bodo na voljo, ko jih bodo ostale podstrani potrebovale
-  pageProject.waitForDataToLoad(["get_computer_familes", "get_project_general_data", "get_project_properties", "get_testsets", "get_algorithms", "get_presenters"], 
+  pageProject.waitForDataToLoad(["get_computer_familes", "get_project_general_data", "get_project_properties"], 
       false, {'ProjectName': projectName});
   pp.waitForDataToLoad(["get_presenters"], false, {'ProjectName': projectName});
+  
+  formatMath(descCont);
 }
 
 function getProblemDescriptionTitleDiv(pEID, sectionID, title, content) {
@@ -447,13 +449,17 @@ function editProblemDescriptionSave(event) {
 
 function editProblemDescriptionSavePhase2(sectionID, htmlContent, newHtmlText) {
   document.getElementById("descriptionDisplay_"+sectionID).innerHTML = htmlContent;
+  formatMath(document.getElementById("descriptionInnerContent"));
+
 
   newHtmlText = replaceStaticProjDocLinkWithDolarStatic(newHtmlText);
-
   let json = JSON.stringify({"Type":sectionID, "Content": btoa(unescape(encodeURIComponent(newHtmlText)))});
   askServer(null, sectionID, "saveHTML", 
      `alter {'Action':'SaveHTML', 'ProjectName':'${projectName}', 'Data':${json}}`);
 }
+
+
+
 
 function testsetLineHTML(testset) {
   return `
@@ -466,10 +472,20 @@ function testsetLineHTML(testset) {
 }
 
 let playgroungFilled = false;
-function showPlayground() {
+async function showPlayground() {
   if (!playgroungFilled) {
+    await pageProject.waitForDataToLoad(["get_project_properties"], false, {'ProjectName':projectName});
     playgroungFilled = true;
     fillPlaygroundDiv();  
     fillAndWireQuery(getPresenterDefaultJSON(), playgroundID, queryChanged);
+  }
+}
+
+let algatorShellLoaded = false;
+function showAlgatorShell() {
+  if (!algatorShellLoaded) {
+    algatorShellLoaded = true;
+
+    $("#algatorshell_container").load("/ashell/", {'project' : projectName,       csrfmiddlewaretoken : window.CSRF_TOKEN});
   }
 }

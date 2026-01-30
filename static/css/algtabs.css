@@ -1,0 +1,113 @@
+.tab-wrapper {
+    display:flex;
+    position: relative;
+    background: #f8f8f8;
+    border-bottom: 1px solid #ccc;
+    overflow: hidden; 
+}
+
+.tab-container {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+    padding: 0;
+    margin: 0;
+}
+.tab-container::-webkit-scrollbar { display: none; }
+
+.tab {
+    padding: 2px 22px;
+    white-space: nowrap;
+    border-right: 1px solid #e3e3e3;
+    color: #555;
+    cursor: pointer;
+    user-select: none;
+    background: #f8f8f8;
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.tab:hover { background: #eaeaea; }
+
+.tab.selected {
+    font-weight: 600;
+    background: #ffffff;
+    color: #222;
+    border-bottom: 2px solid #7bc240;
+}
+
+.tab-marker {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;                 
+    height: 36px;                
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    pointer-events: auto;
+    color: #7bc240;              
+    font-size: 24px;             
+    font-weight: bold;
+    transition: opacity 0.15s;
+    cursor: pointer;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85); 
+    box-shadow: 0 0 4px rgba(0,0,0,0.15);
+}
+
+
+/* left marker gradient */
+.tab-marker.left {
+    left: 6px;
+}
+
+/* right marker gradient */
+.tab-marker.right {
+    right: 6px;
+}
+
+
+/* special first tab: add new */
+.tab-new {
+  white-space: nowrap;
+  align-items: center;
+  padding: 3px 22px;
+  font-weight: 600;
+  color: #7bc240;
+  background: #eef7e8;
+  border-right: 1px dashed #7bc240;
+  cursor: pointer;
+  height:28px;
+}
+.tab-new:hover {
+  background: #e3f2d9;
+}
+.tab-new.selected {
+  background: #eef7e8;
+  border-bottom: none;
+}
+
+/* container for fixed (nonscrolable) tabs */
+.tab-fixed {
+  display: inline-flex;
+  background: #f8f8f8;
+  border-right: 1px solid #ccc;
+  z-index: 5;
+}
+
+.content-area {
+    padding: 20px;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.tools { padding: 12px 20px; background: #fff; }
+.tools button { margin-right: 8px; }

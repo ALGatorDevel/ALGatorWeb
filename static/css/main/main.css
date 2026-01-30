@@ -144,3 +144,12 @@
     white-space: pre;
     font-family: 'Courier New', Courier, monospace;
 }
+
+
+
+/* select, kadar je disabled, ne sme imeti puščice desno za prikaz seznama*/ 
+select:disabled {
+  -webkit-appearance: none; /* Chrome, Safari */
+  -moz-appearance: none;    /* Firefox */
+  appearance: none;
+}

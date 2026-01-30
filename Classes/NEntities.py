@@ -111,3 +111,22 @@ def read_entities(uid="__internal__", project_name="", entityID="TestSet"):
     except: pass
 
   return entities
+
+def read_entity(uid="__internal__", project_name="", entityID="TestSet", entity_name=""):
+  # change "TestSet" to "Testset"; for "Algorithms" this is unnecessary
+  entityID = entityID.capitalize()
+
+  etrs = connector.talkToServer(f"getData {{'Type':{entityID}, 'ProjectName':'{project_name}', {entityID+'Name'}:'{entity_name}', 'Deep':true}}",uid)
+  res = {}
+  try:
+    server_response = json.loads(etrs)
+    ett = getValue(server_response, "Status", -1)
+    if ett == 0:
+      entity = getValue(server_response, "Answer", "")
+      if entity != "":
+        if "HtmlFileContent" in entity:
+          entity["HtmlFileContent"] = replaceStaticLinks(entity["HtmlFileContent"], project_name)
+        res = entity
+  except: pass
+  return res
+

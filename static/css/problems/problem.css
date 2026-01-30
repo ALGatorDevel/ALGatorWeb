@@ -234,3 +234,55 @@ a{
     .content-inner {
         max-width: calc(100% - 200px); /* Subtract left toolbar width from full width */
     }
+
+
+/* For hidden (invisible) cells in  presentation tables (for AVG, STDDEV, ... columns)*/
+.hiddenCell {
+    opacity: 1;
+    background: white;
+    border: 1px solid white;
+    width: 100px;
+}
+
+
+
+/* table with fixed (non-scrolable) header; used in presenters */
+.prestab {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.prestab th, 
+.prestab td {
+  padding: 3px 5px;
+  text-align: right;
+  vertical-align: middle;  /* vertical centering */
+  max-width: 200px;   
+  overflow-x: auto;   
+  white-space: nowrap;
+}
+.prestab th:not(:first-child),
+.prestab td:not(:first-child) {
+  border: 1px solid #ccc;
+}
+
+/* First column only: no borders, only content */
+.prestab th:first-child,
+.prestab td:first-child {
+  border: none;
+}
+.prestab th {
+  text-align: center;    
+} 
+
+.prestab td[data-type="text"] {
+  text-align: center;
+}
+
+.prestab thead th {
+  position: sticky;       /* make header sticky */
+  top: 0;                 /* stick to top */
+  background-color: rgb(96,96,96); /* background to cover rows behind */
+  z-index: 2;             /* make sure header is above tbody */
+}

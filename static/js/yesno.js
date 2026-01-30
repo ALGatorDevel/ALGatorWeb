@@ -5,15 +5,19 @@ var yesnoaction = null;
 // first two parameters are of type String, and the last two of type Object
 var yesnoO1 = null;
 var yesnoO2 = null;
-function showYesNoDialog(question, action, param1, param2, param3, param4) {
+function showYesNoDialog(question, action, param1, param2, param3, param4, showCancel=false) {
   yesnoO1 = param3;
   yesnoO2 = param4;
+
+  let cancelButton = showCancel ? `<button onclick="buttonClicked(2, '${param1}','${param2}')">Cancel</button>` : "";
+
   let dialogHTML =`
     <div id="yesnodialog" class="yesnodialog">
       <div class="yesnodialog-content">
         <p id="dialogQuestion" style="width:200px;"></p>
         <button onclick="buttonClicked(0, '${param1}','${param2}')">Yes</button>
         <button onclick="buttonClicked(1, '${param1}','${param2}')">No</button>
+        ${cancelButton} 
       </div>
     </div>
   `;

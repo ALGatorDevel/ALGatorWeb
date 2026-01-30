@@ -171,7 +171,7 @@ services = {
     this.groupsuser                = {}   // members of each group 
   }
 
-  setVar(type, value) {
+  setVar(type, value, params) {
     switch (type) {
       case "get_users":                             this.users                     = value; break;
       case "get_groups":                            this.groups                    = value; break;

@@ -9,15 +9,22 @@ def getProjectData(problemName, uid="__internal__"):
     projectJSON = connector.talkToServer(f'getData {{"Type":"Project", "ProjectName":"{problemName}"}}', uid)
     return json.loads(projectJSON)
 
+
+def getPresenter(problemName, presenterName, uid="__internal__", deep=0):
+    presenterJSON = json.loads(connector.talkToServer(
+        f'getData {{"Type":"Presenter", "ProjectName":"{problemName}", "PresenterName":"{presenterName}", "Deep":{deep} }}', uid))
+    if presenterJSON["Status"] == 0:
+        presenterDICT = presenterJSON["Answer"]
+        if 'Name' in presenterDICT:
+            return traverse_and_transform(presenterDICT, lambda text: replaceStaticLinks(text, problemName))
+    return None
+
 def getPresentersData(projectData, problemName, uid="__internal__"):
     presenters_data_dict = {}
     projPresenters = projectData['ProjPresenters'] if  'ProjPresenters' in projectData else []
     for presenter in projPresenters:
-      presenterJSON = json.loads(connector.talkToServer(f'getData {{"Type":"Presenter", "ProjectName":"{problemName}", "PresenterName":"{presenter}"}}', uid))
-      if presenterJSON["Status"] == 0:
-        presenterDICT = presenterJSON["Answer"]
-        if 'Name' in presenterDICT:
-          presenterDICT = traverse_and_transform(presenterDICT, lambda text: replaceStaticLinks(text, problemName))
+      presenterDICT = getPresenter(problemName, presenter, uid, 0)
+      if presenterDICT:
           presenters_data_dict[presenter]=presenterDICT
 
     return [projPresenters, presenters_data_dict]

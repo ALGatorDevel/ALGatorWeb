@@ -48,10 +48,19 @@ function toggleEditModeBoolean(){
 }
 
 
-flexEditButtons = new Set();
-flexEditButtons.add("editProjectButtons");
-//flexEditButtons.add("new_testset_panel");
-flexEditButtons.add("new_algorithm_panel");
+flexEditButtons = new Map();
+flexEditButtons.set("editProjectButtons", "flex");
+flexEditButtons.set("editButtons_testsets_common", "flex");
+flexEditButtons.set("testsetEditButtons", "flex");
+flexEditButtons.set("algorithmEditButtons", "flex");
+flexEditButtons.set("tab-presenters_newpresenter", "flex");
+flexEditButtons.set("tab-algorithms_newalgorithm", "flex");
+flexEditButtons.set("tab-testsets_newtestset", "flex");
+flexEditButtons.set("compile_project_tr", "");
+flexEditButtons.set("run_algts_tr", "");
+flexEditButtons.set("compile_alg_tr", "");
+flexEditButtons.set("run_generator_tr", "");
+
 
 function enableEditMode(isEditMode, context=document){
     var editElements = context.querySelectorAll('.editMode');
@@ -61,11 +70,11 @@ function enableEditMode(isEditMode, context=document){
       try {
         let w = element.getAttribute("w").split(" ");
         canEdit = await can(w[0], pShorts.get(w[1]));
-        console.log(cenEdit);
+        console.log(w[0] + "," + w[1] + ": " + pShorts.get(w[1]) + "=" + canEdit);
       } catch (e) {}
       if (isEditMode && canEdit) {
         if (flexEditButtons.has(element.id))
-          element.style.display = 'flex'; 
+          element.style.display = flexEditButtons.get(element.id); 
         else
           element.style.display = 'inline'; 
       } else {
@@ -233,7 +242,7 @@ function showTaskResults(projectName, taskType, eid) {
   let cancelBut = document.getElementById(`cancel_buttton_${eid}`);
 
   modal.parentElement.style.padding = "20px 20px 0px 20px";
-  resultDiv.style.height   = (modal.parentElement.offsetHeight - 154) + "px";
+  resultDiv.style.height   = "calc(100% - 154px)";  //  resultDiv.style.height   = (modal.parentElement.offsetHeight - 154) + "px";
   resultDiv.style.overflow = "auto";
 
   // stop executing task if page is unload
@@ -270,7 +279,7 @@ function showTaskResults(projectName, taskType, eid) {
               askServer((pName, resID, jResp)=>{
                 let ans = jResp.Answer;
                 if (ans && ((typeof ans != "object") || ans.FileContent)) { // only print if content is not empty
-                  resultDiv.innerHTML = (typeof ans === "object") ? ans.FileContent : ans;
+                  resultDiv.innerHTML = (typeof ans === "object") ? tryJSONIFY(ans.FileContent) : ans;
                   resultDiv.scrollTop = resultDiv.scrollHeight; // scroll to end of printed text
                 }
               }, projectName, "Results", resultsQ);
@@ -283,6 +292,17 @@ function showTaskResults(projectName, taskType, eid) {
 }
 
 
+// pogleda, če se niz začne z "{" -> v tem primeru gre ajbrž za JSNO object (v string obliki), zato poskusi
+// ustvariti objekt in ga izpisati v string obliki (poravnano na dva presledka)
+function tryJSONIFY(text) {
+  if (text[0]="{") {
+    try {
+      const andO = JSON.parse(text);
+      text = JSON.stringify(andO, null, 2);
+    } catch (e) {}
+  }
+  return text;
+}
 
 // misc
 

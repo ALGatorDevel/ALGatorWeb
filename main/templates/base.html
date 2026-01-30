@@ -57,7 +57,7 @@
 <div id="popupDiv"></div>
 
 <div id="modal-template" style="display:none;">
-    <div class="modal-content">
+    <div id="modal-content-dlg" class="modal-content">
         <div class="modal-header">
             <span id="modal-title" class="modal-title">Modal Title</span>
             <span id="close-btn" class="close-btn">&times;</span>
@@ -65,7 +65,7 @@
         <div id="modal-body" class="modal-body"></div>
     </div>
 </div>
-    
+
 <script>
 window.CSRF_TOKEN = "{{ csrf_token }}";
 

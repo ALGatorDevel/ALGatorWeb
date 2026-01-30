@@ -26,6 +26,11 @@ def get_project_html_description(request):
     data = QueryDict.dict(request.GET)
     return aproblems.get_project_html_description(request, data)
 
+def get_testset(request):
+  data = QueryDict.dict(request.GET)
+  return aproblems.get_testset(request, data)
+
+
 def get_testsets(request):
   data = QueryDict.dict(request.GET)
   return aproblems.get_testsets(request, data)
@@ -45,9 +50,17 @@ def remove_testset_file(request):
     data = QueryDict.dict(request.GET)
     return aproblems.remove_testset_file(request, data)
 
+def get_algorithm(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_algorithm(request, data)
+
 def get_algorithms(request):
     data = QueryDict.dict(request.GET)
     return aproblems.get_algorithms(request, data)
+
+def get_presenter(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_presenter(request, data)
 
 def get_presenters(request):
     data = QueryDict.dict(request.GET)

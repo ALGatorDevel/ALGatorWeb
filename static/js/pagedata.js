@@ -7,7 +7,7 @@ class PageData {
   }
 
   // to be overriden
-  setVar(type, value) {}
+  setVar(type, value, params=null) {}
 
   async loadData(typesToLoad, params=null) {
     typesToLoad.forEach((ttl) => {
@@ -25,7 +25,7 @@ class PageData {
       for(let idx = 0; idx<typesToLoad.length; idx++) {
         try {
           let jres =  JSON.parse(result[idx]);
-          this.setVar(typesToLoad[idx],  (jres.Status==0) ? jres.Answer : {});
+          this.setVar(typesToLoad[idx],  (jres.Status==0) ? jres.Answer : {}, params);
         } catch (e) {}
         this.dataLoaded[typesToLoad[idx]] = true;
       } 

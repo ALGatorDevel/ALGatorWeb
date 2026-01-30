@@ -3,10 +3,10 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="home"),
-    path("projects", views.problems, name="problems"),
-    path('pAskServer', views.pAskServer, name='pAskServer'),
-    path('uploadimage', views.uploadimage, name='uploadimage'),
-    path('moveimages', views.moveimages, name='moveimages'),
+    path("projects",     views.problems, name="problems"),
+    path('pAskServer',   views.pAskServer, name='pAskServer'),
+    path('uploadimage',  views.uploadimage, name='uploadimage'),
+    path('moveimages',   views.moveimages, name='moveimages'),
 
     path("viewlog",   views.view_log_sessions, name="problems"),
 
