@@ -1,28 +1,54 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block headcss %}
-  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/alghp.css' %}">
 {% endblock %}
+
 {% block content %}
 
 {% include "navbar.html" %}   
-<div class="mp-content">
-  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 256px); width:100%;display: flex; justify-content: center;">
-    <div style="width:60%">
-      <h1 style="margin: 0px;">Download <span class=algator>ALGator</span>&nbsp;</h1><hr class="hr">
+
+<div id="page-scroll">
+<main>
+<section class="container" style="padding-top: 80px; text-align: justify;">
+
+<div class="container">
+  <h1 style="margin: 0px;">Download <span class=algator>ALGator</span>&nbsp;</h1><hr class="hr">
+</div>
+ 
+    <div class="container">
+
       <p class="pa">    
         ALGator can be used either as a web application or as a standalone desktop application. The primary advantage of the web application is that project data is accessible to all users. However, writing algorithm code within the web interface can be more challenging. When installed as a desktop application, ALGator allows users to edit the project's code using their preferred editor (such as NetBeans, IntelliJ IDEA, etc.). Projects created in the desktop application can later be uploaded to the web, making them available to other users.
       </p>
-      <p class="pa">    
-        To install ALGator as a standalone application, follow the instructions provided for:
-        <ul>
-          <li><a href="https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/install_windows.md">Windows users</a></li>
-          <li><a href="https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/install_linux.md">Linux/macOS users</a></li>
-        </ul>
+      <table style="width:100%">
+        <tr class="pa" style="text-align:center">
+          <td><a href="https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/install_windows.md">
+                Windows users<br>
+                <img src="{% static 'images/install_win.png' %}" style="width:90%;display:block">
+              </a>
+          </td>
+          <td><a href="https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/install_linux.md">
+                Linux/macOS users<br>
+                <img src="{% static 'images/install_lin.png' %}" style="width:90%;display:block">
+              </a>
+          </td>
+        </tr>  
+      </table>
     </div>
-  </div>
-  {% include "footer.html" %}   
-</div>
-     
 
-{% endblock %}a
+</section>
+</main>
+
+{% include "footer.html" %}   
+</div>
+
+<script>
+document.querySelectorAll(".download_menu").forEach(el => el.setAttribute("selected", ''));
+
+document.getElementById("site-header").classList.add("visible");
+</script>
+
+
+{% endblock %}

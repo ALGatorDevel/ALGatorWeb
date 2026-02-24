@@ -1,7 +1,5 @@
-@font-face {
-    font-family: 'customFont';
-    src: url('../../fonts/Lambda-mLv6V.ttf') format('truetype');
-}
+@import "../afont.css";
+
 
 .background{
     background-color: rgb(238, 237, 237);

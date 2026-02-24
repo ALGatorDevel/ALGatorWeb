@@ -956,7 +956,7 @@ function showMEntities(sectId) {
 
 function showMEntity(sectId, pID) {
   if (meChanges.get(sectId).size > 0)
-    showYesNoDialog(`Do you want to save changes in ${meNames.get(sectId)} '${currentMEntity.get(sectID)}'?`, showMEntityPhase2, sectId, pID, null, null, true);
+    showYesNoDialog(`Do you want to save changes in ${meNames.get(sectId)} '${currentMEntity.get(sectID)}'?`, showMEntityPhase2, sectId, pID, null, null, null, true);
   else showMEntityPhase2(3,sectId, pID);
 }
 function showMEntityPhase2(answer, sectId, pID) {
@@ -2553,7 +2553,7 @@ function updateDotColor(color) {
 }
 function setContentModified(modified) {
   contentModified = modified;
-  updateDotColor(contentModified ? 'red' : 'green');
+  updateDotColor(contentModified ? 'red' : 'green'); 
 }
 
 
@@ -2755,28 +2755,76 @@ function newProjectPhase2(projectName, key, response) {
 
 
 
+async function openImportFileDialog() {
+  let fileInput = document.getElementById('fileInput');
+  fileInput.click();
+  fileInput.onchange = async () => {
+      document.body.style.cursor = "wait";
+      if (fileInput.files.length > 0)  {
+        let uploadResult = await uploadFiles([fileInput.files[0]], new Map([["type", "importProject"],[]]));
+        if (uploadResult.Status == 0) {
+          let path     = uploadResult.Answer.Location;
+          let filename = fileInput.files[0].name;
+          askServer(importProjectPhase2, projectName, "import", `alter {'Action':'ImportProject', 'Path':'${path}', 'Filename':'${filename}', 'ProjectName':'?'}`); 
+        } else  {
+          document.body.style.cursor = "default";
+          showPopup(uploadResult.Answer);
+        }
+      }      
+  };
+}
+
+
+function importProjectPhase2(p1, p2, response) {
+  document.body.style.cursor = "default";
+
+  if (response.Status==0) {
+    // response.Answer = "Project 'BasicSort04' imported successfully."
+    const match = response.Answer.match(/'([^']+)'/);
+    if (match) {
+      // redirect to the imported project
+      window.location.href = "/project/" + match[1];
+    }
+  } else {
+    showPopup(response.Answer);
+  }  
+}
+
+
+
+
 //////////////********** PRIVATENESS icons **************/////////////////
-function getPrivatenessIconsHTML(key, ename, entity='it') {
+function getPrivatenessIconsHTML(key, ename, entity='it', callback) {
+  let cbname = callback?.name;
+  //${cbname ? cbname + "('" + key  + "');" : ''}
   return `
-    <span name="entity_privateness_span" key="${key}" ename="${ename}" onclick="changeLockState(event, '${key}', '${ename}')">
+    <span name="entity_privateness_span" key="${key}" ename="${ename}" onclick="changeLockState(event, '${key}', '${ename}'${cbname? ', '+cbname : ''});">
         <i id="entity_locked_${key}_${ename}"   style="display: none; color:crimson" title="Make ${entity} public (open access)" class="fas fa-lock icon"></i>
         <i id="entity_unlocked_${key}_${ename}" style="display: none; color:green" title="Make ${entity} private (restrict access)" class="fas fa-lock-open icon"></i>
     </span>
   `;
 }
 
-async function populatePrivatnessSpans(entity, rootElt=document) {
-//  document.getElementsByName("privateness_span_holder").forEach(async function(elt) {
-  rootElt.querySelectorAll('[name="privateness_span_holder"]').forEach(async function(elt) {  
-    let key   = elt.getAttribute("key");
-    let ename = elt.getAttribute("ename");
-    let showLockers = await can(key, "can_write");
-    //let showLockers = await isOwner(key);  ... ne vem, zakaj to ne dela!
-    if (showLockers) {
-      elt.innerHTML = getPrivatenessIconsHTML(key, ename, entity);
-    } 
-  });
+async function populatePrivatnessSpans(entity, rootElt = document, callback=null) {
+  const elts = [...rootElt.querySelectorAll('[name="privateness_span_holder"]')];
+
+  await Promise.all(
+    elts.map(async elt => {
+      const key   = elt.getAttribute("key");
+      const ename = elt.getAttribute("ename");
+
+      const showLockers = await can(key, "can_write");
+
+      if (showLockers) {
+        elt.innerHTML = getPrivatenessIconsHTML(key, ename, entity, callback);
+      }
+    })
+  );
 }
+
+
+
+
 
 function showHidePrivatenessIcons(rootElt=document) {
 //  document.getElementsByName("entity_privateness_span").forEach(async function(elt) {        
@@ -2801,7 +2849,7 @@ function showHidePrivatenessIcon(key, ename, is_private) {
   unlockElement.classList.toggle("grayed-icon", !is_entity); unlockElement.classList.toggle("icon", is_entity);
 }
 
-function changeLockState(event, key, ename) {
+function changeLockState(event, key, ename, callback) {
   let entity = find_entity(ausers.entities, key);
   if (entity) {
     let is_private = !entity.is_private;
@@ -2811,6 +2859,8 @@ function changeLockState(event, key, ename) {
       } else {
         entity.is_private = is_private;
         showHidePrivatenessIcon(key, ename, is_private);
+
+        if (callback) callback(entity, is_private);
       }
     });
   } 

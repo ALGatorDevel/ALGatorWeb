@@ -1,20 +1,23 @@
-function removeEntity(elt) {
+// callback is given only when function is used to remove project from landing page; in this case
+// type = "project", and project name is given as third parameter 
+function removeEntity(elt, callback, pName) {
   let eid    = elt.getAttribute("eid");
   let entity = find_entity(ausers.entities, eid);
-  if (entity) {
-    let type = new Map([['et1', 'project'],['et2', 'algorithm'],['et3', 'testset'], ['et4', 'presenter']]).get(entity.entity_type) || "unknown";
+  if (entity || callback) {
+    let type = callback ? "project" : new Map([['et1', 'project'],['et2', 'algorithm'],['et3', 'testset'], ['et4', 'presenter']]).get(entity.entity_type) || "unknown";
 
     if (type != "unknown") {
-      let projectName=entity.name;
+      let projectName=callback ? pName : entity.name;
       if (type != "project") try {projectName = find_entity(ausers.entities, entity.parent.slice(0, -2)).name} catch (e) {};
-      showYesNoDialog(`Do you want to remove ${type} '${entity.name}'?`, removeEntityPhase2, projectName, eid, entity.name, type);
+      let entityName = callback ? pName : entity.name;
+      showYesNoDialog(`Do you want to remove ${type} '${entityName}'?`, removeEntityPhase2, projectName, eid, entityName, type, callback);
     }
   }
 }
 
 //function askServer(callback, projectName, key, request='', callbackError=null) {  
 
-function removeEntityPhase2(answer, projectName, eid, entityName, type) {
+function removeEntityPhase2(answer, projectName, eid, entityName, type, callback) {
   if (answer == 0) {
     let request = "";
     switch (type) {
@@ -23,13 +26,17 @@ function removeEntityPhase2(answer, projectName, eid, entityName, type) {
       case "testset":   request = `alter {'Action':'RemoveTestset',   'ProjectName':'${projectName}', 'TestsetName'  :'${entityName}'}`; break;
       case "presenter": request = `alter {'Action':'RemovePresenter', 'ProjectName':'${projectName}', 'PresenterName':'${entityName}'}`; break;
     }
-    askServer(removeEntityPhase3, projectName, entityName, request, null, eid); 
+    askServer(removeEntityPhase3, projectName, entityName, request, null, eid, callback); 
   }
 }
 
-function removeEntityPhase3(projectName, entityName, response, eid) {
-  let eidDiv = document.getElementById("entity_" + eid);
-  if (eidDiv) eidDiv.remove();
+function removeEntityPhase3(projectName, entityName, response, eid, callback) {
+  if (callback)
+    callback(eid, entityName);
+  else {
+    let eidDiv = document.getElementById("entity_" + eid);
+    if (eidDiv) eidDiv.remove();
+  }
 }
 
 

@@ -1,19 +1,32 @@
+
 {% extends "base.html" %}
 {% load static %}
+
 {% block headcss %}
-  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/alghp.css' %}">
 {% endblock %}
+
 {% block content %}
 
 {% include "navbar.html" %}   
-<div class="mp-content">
-  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 260px); width:100%;display: flex; justify-content: center;">
-     <div style="width:65%">
-       {% include "how_algator_works.html" %}   
-     </div>
-  </div>
-  {% include "footer.html" %}   
-</div>
-     
 
-{% endblock %}
+<div id="page-scroll">
+<main>
+<section class="container" style="padding-top: 80px; text-align: justify;">
+
+<div class="container">
+       {% include "how_algator_works.html" %}   
+</div>
+
+</section>
+</main>
+
+{% include "footer.html" %}   
+</div>
+
+<script>
+  document.getElementById("site-header").classList.add("visible");
+</script>
+
+
+{% endblock %}  

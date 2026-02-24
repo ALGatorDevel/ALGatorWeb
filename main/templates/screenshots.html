@@ -1,27 +1,37 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block headcss %}
-  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/alghp.css' %}">
 {% endblock %}
+
 {% block content %}
 
 {% include "navbar.html" %}   
-<div class="mp-content">
-  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 78px); width:100%;display: flex; justify-content: center;">
-     <div style="width:65%">
-       <h1 style="margin: 0px;"><span class=algator>ALGator</span>&nbsp; usage screenshots</h1><hr class="hr">
-         <div class="ss-gallery" id="ssGalery"></div>         
-     </div>
-   </div>
+
+<div id="page-scroll">
+<main>
+<section class="container" style="padding-top: 80px; text-align: justify;">
+
+<div class="container">
+  <h1 style="margin: 0px;"><span class=algator>ALGator</span> usage screenshots</h1><hr class="hr">
+</div>
+
+<div id="ssGalery" class="ss-gallery">
    <div id="SSModal" class="ss-modal">
       <span class="ss-close" onclick="closeSSModal()">&times;</span>
       <img class="ss-modal-content" id="expandedImage">
    </div>
 
-  {% include "footer.html" %}   
+</div>
+</section>
+</main>
+
+{% include "footer.html" %}   
 </div>
 
-<script>  
+<script>
+
 let ssImages = ['ss02.png', 'ss04.png','ss15.png','ss08.png','ss16.png']
 function getThumbnailHTML(imgSrc) {
   return `
@@ -59,6 +69,12 @@ document.addEventListener("DOMContentLoaded", function () {
   if (galery)
     ssImages.forEach(img => galery.innerHTML += getThumbnailHTML(img));
 });
+
+document.querySelectorAll(".scrsht_menu").forEach(el => el.setAttribute("selected", ''));
+
+document.getElementById("site-header").classList.add("visible");
+
+
 </script>
 
 {% endblock %}

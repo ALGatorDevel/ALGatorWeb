@@ -2,40 +2,134 @@
 {% load static %}
 
 {% block headcss %}
-  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/alghp.css' %}">
 {% endblock %}
 
 {% block content %}
 
 {% include "navbar.html" %}   
-<div class="mp-content">
-  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 240px);">
-    <div style="width: 100%;text-align: center;padding: 32px;">
-    <img src="{% static 'images/logo_large.png' %}" style="height: min(calc((100vh - 128px) / 2), 70vw);" alt="ALGator">
+
+<div id="page-scroll">
+
+<main>
+  <section class="hero">
+    <div class="container">
+
+      <div class="hero-logo" id="heroLogo">
+        <img src="{% static 'images/logo_algator.png' %}" alt="ALGator">
+      </div>
+
+      <h1>A gateway to the world of algorithm evaluation</h1>
+      <p style="text-align: justify;">
+ALGator is a research-oriented system for the systematic modeling, execution, and empirical evaluation of algorithms, enabling transparent, reproducible analysis and performance comparison across well-defined problem domains, test sets, and implementations, with explicit support for empirical correctness assessment.
+      </p>
+
+      <div class="hero-actions">
+        <a href="projects" class="btn btn-primary">Explore Projects</a>
+        <a href="about" class="btn btn-secondary">Learn more</a>
+      </div>
+
     </div>
-    <div class="hp-dic">
-     <a href="/about" class="hp-pad">
-        <div style="width:100%">
-          <div class="pad-title lg" >About</div><br>
-          <img class="lg"  src="{% static 'images/pikice_i.png' %}" style="width: 80px;">
+  </section>
+
+
+  <!-- Features -->
+  <section class="features">
+    <div class="container">
+      <h2>What ALGator provides</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3>Formal Algorithm Modeling</h3>
+          <p>Structured and explicit modeling of algorithms, inputs, parameters, and problem domains.</p>
         </div>
-     </a>
-     <a href="/faq" class="hp-pad">
-        <div style="width:100%">
-          <div class="pad-title lg">FAQ</div><br>
-          <img class="lg" src="{% static 'images/faq_i.png' %}" style="width: 80px;">
-        </div>             
-     </a>
-     <a href="/projects" class="hp-pad">
-        <div style="width:100%">
-          <div class="pad-title lg">Projects</div><br>
-          <i class="fas fa-puzzle-piece lg" style="font-size: 60px;"></i>
+        <div class="feature">
+          <h3>Automated and Controlled Execution</h3>
+          <p>Repeatable execution of algorithms across diverse and well-defined test sets.</p>
         </div>
-    </a>
+        <div class="feature">
+          <h3>Performance and Result Analysis</h3>
+          <p>Systematic collection, analysis, and comparison of performance data and execution results.</p>
+        </div>
+        <div class="feature">
+          <h3>Empirical Correctness and Reproducibility</h3>
+          <p>Explicit support for empirical correctness assessment, transparent experimentation, and reproducible results.</p>
+        </div>
+      </div>
     </div>
-  </div>
-  {% include "footer.html" %}   
-</div>
+  </section>
+
+  <!-- Workflow -->
+  <section>
+    <div class="container">
+      <h2>How it works</h2>
+      <div class="workflow">
+        <div class="step">
+          <span>Step 1</span>
+          <h3>Problem</h3>
+          <p>Define the problem with its parameters.</p>
+        </div>
+        <div class="step">
+          <span>Step 2</span>
+          <h3>Test Sets</h3>
+          <p>Prepare structured input data.</p>
+        </div>
+        <div class="step">
+          <span>Step 3</span>
+          <h3>Algorithms</h3>
+          <p>Implement one or more algorithms.</p>
+        </div>
+      </div>
+      <div class="workflow">
+        <div class="step">
+          <span>Step 4</span>
+          <h3>Execution</h3>
+          <p>Run controlled and repeatable experiments.</p>
+        </div>
+        <div class="step">
+          <span>Step 5</span>
+          <h3>Analysis</h3>
+          <p>Evaluate and compare results.</p>
+        </div>
+        <div class="step">
+          <span>Step 6</span>
+          <h3>Presentation</h3>
+          <p>Prepare and publish visual representations of results.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Audience -->
+  <section class="audience">
+    <div class="container">
+      <h2>Who is ALGator for?</h2>
+      <ul>
+        <li>Algorithm researchers</li>
+        <li>Developers interested in empirical evaluation</li>
+        <li>Computer science teachers and students</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+{% include "footer.html" %}   
      
+</div>
+
+<script>
+const scrollContainer = document.getElementById("page-scroll");
+const header = document.getElementById("site-header");
+
+scrollContainer.addEventListener("scroll", () => {
+  if (scrollContainer.scrollTop > 70) {
+    header.classList.add("visible");
+  } else {
+    header.classList.remove("visible");
+  }
+});
+
+</script>
+
 
 {% endblock %}

@@ -1,17 +1,23 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block headcss %}
-  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/alghp.css' %}">
 {% endblock %}
 
 {% block content %}
 
 {% include "navbar.html" %}   
-<div class="mp-content">
-  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 256px); width:100%;display: flex; justify-content: center;">
-     <div style="width:65%">
-     <h1 style="margin: 0px;">FAQ</h1><hr class="hr">
-     <div class="faq-container">
+
+<div id="page-scroll">
+<main>
+<section class="container" style="padding-top: 80px; text-align: justify;">
+
+<div class="container">
+  <h1 style="margin: 0px;"><span class=algator>ALGator</span> FAQ</h1><hr class="hr">
+</div>
+
+<div class="container faq-container">
 
 <!-- GENERAL -->
     <div class="faq-item">
@@ -117,13 +123,19 @@ Presenters are created in the Presenters section of your project. They allow you
 The Playground is an interactive environment for quickly exploring and presenting the results of algorithm executions. It offers similar features to presenters but is intended for temporary use—any visualizations or presentations created in the Playground are only visible to the current user and only for the duration of their current session.  </div>
 </div>
 
-     </div>
-     </div>
-  </div>
-  {% include "footer.html" %}   
+
 </div>
-     
+</section>
+</main>
+
+{% include "footer.html" %}   
+</div>
+
 <script>
+document.querySelectorAll(".faq_menu").forEach(el => el.setAttribute("selected", ''));
+document.getElementById("site-header").classList.add("visible");
+
+
   function toggleFAQAnswer(clickedIndex) {
     const allAnswers = document.querySelectorAll('.faq-answer');
     allAnswers.forEach((answer, index) => {
@@ -134,5 +146,8 @@ The Playground is an interactive environment for quickly exploring and presentin
       }
     });
   }
+
 </script>
+
+
 {% endblock %}

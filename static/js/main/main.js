@@ -36,7 +36,19 @@ function redirectToUrlWithPathAndParams(basePath, params, addSlash=true) {
   }
   redirectToUrlWithParams(basePath,params);
 }  
-    
+   
+function setCookie(name, value, max_age=3600) {
+  document.cookie =
+    `${name}=${encodeURIComponent(value)}; ` +
+    `path=/; ` +
+    `max-age=${max_age};` +
+    `SameSite=Lax`;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + "=; max-age=0; path=/";
+}
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

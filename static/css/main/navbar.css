@@ -1,3 +1,5 @@
+@import "../afont.css";
+
 
 :root {
  --navbar_background: #404040;
@@ -6,11 +8,6 @@
  --submenu_color: #7bc240;
 }
 
-
-@font-face {
-    font-family: 'customFont';
-    src: url('../../fonts/Lambda-mLv6V.ttf') format('truetype');
-}
 
 /*  */ 
 .navBarSim {

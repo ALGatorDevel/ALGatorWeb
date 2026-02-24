@@ -1,14 +1,14 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en" style="overflow:hidden;">
+<html lang="en" style="x.overflow:hidden;">
+
 <head>
     
     <meta charset="utf-8" />
     <title>{% block title %}ALGator{% endblock %}</title>
 
     <link rel="icon"       href="{% static 'images/favicon.png' %}">
-    {% block headcss %}{% endblock %}
     
     <link rel="stylesheet" href="{% static 'css/w3.css' %}">
     <link rel="stylesheet" href="{% static 'fa/css/all.css' %}">    
@@ -23,6 +23,9 @@
     <link rel="stylesheet" href="{% static 'tex/src/tex.css' %}">
     <link rel="stylesheet" href="{% static 'css/main/main.css' %}">
     <link rel="stylesheet" href="{% static 'css/problems/aview.css' %}">
+    {% block headcss %}{% endblock %}
+
+
 
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/highlight.min.js' %}"></script>

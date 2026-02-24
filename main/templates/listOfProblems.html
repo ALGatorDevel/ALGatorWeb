@@ -1,78 +1,90 @@
 {% extends "base.html" %}
 {% load static %}
-{% block headcss %}
-  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
-  <link rel="stylesheet" href="{% static 'css/edit.css' %}">
-  <link rel="stylesheet" href="{% static 'css/problems/problems.css' %}">
 
+{% block headcss %}
+  <link rel="stylesheet" href="{% static 'css/alghp.css' %}">
 {% endblock %}
 {% block headjs %}
-  <script src="{% static 'js/upload.js' %}"></script>   
+  <script src="{% static 'js/upload.js' %}"></script>     
+  <script src="{% static 'js/projects.js' %}"></script>     
   <script src="{% static 'js/edit.js' %}"></script>   
-  <script src="{% static 'js/problems/problems.js' %}"></script>     
+  <script src="{% static 'js/permissions.js' %}"></script>   
+
 {% endblock %}
 
-
 {% block content %}
-{% include "navbar.html" %}   
-<div class="mp-content">
-  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 60px); width:100%;display: flex; justify-content: center;">
-    <div style="width:70%">
-    <div>
-      <h1 class="p-header">
-          Projects
-          <span style="display:flex; align-items:center">
-              <!--i class="fas fa-filter filter-icon" style="font-size:20px; color:gray; margin-right:20px; cursor:pointer;" onclick="switchSearchPanel()"></i-->
-              <!--a id="new_project_button" class="p-add-text" onclick="newProject()">New project ...</a-->
-              <!--span id="new_project_button" class="menu_opener">&#9776;</span-->
-              
-              <div class="hp_menu-container" id="menuContainer">
-                <span class="hp_menu-icon" id="menuIcon">&#9776;</span>
-                   <div class="hp_dropdown-menu" id="dropdownMenu">
-                       <div id="filter_menu_item" class="hp_menu-item" onclick="handleMenuClick('find')">Filter ...</div>
-                       <div id="newP_menu_item" class="hp_menu-item" onclick="handleMenuClick('newProject')">New Project ...</div>
-                       <div id="impP_menu_item" class="hp_menu-item" onclick="handleMenuClick('importProject')">Import Project ...</div>
-                   </div>
-              </div>   
-              <input type="file" id="fileInput" style="display: none;" accept=".zip"/>       
-          </span>
-      </h1>
-      <hr class="hr">
-      <div class="p-search-panel" id="projectSearchPanel">
-        <input id="projectSearchInput" class="search-input" type="text" placeholder="Search..." oninput="printCards()">  
-        
-        <span>
-          <input id="show_only_my" type=checkbox onclick="printCards()"> Only my projects
-        </span> 
-        <span>
-          <input id="show_sandboxes" type=checkbox onclick="printCards()"> Show sandboxes
-        </span> 
 
-        <span style="display:flex; align-items: center;"> 
-          Sort by &nbsp;
-          <select id="projectSearchSortby" onchange="printCards()">
-            <option value="shortTitle">Title</option>
-            <option value="name">Name</option>
-            <option value="modified">Date modified</option>
-            <!--option value="pop">Popularity</option-->
-          </select>&nbsp;&nbsp;
-          <input id="projectSearchDesc" type=checkbox value="desc" onchange="printCards()">&nbsp;Descending
-        </span>
-      </div>
-    </div>
-      <div id="projectCardsContainer" class="w3-container myContainer">
-        {% for project in projects_description %}   
-          <script>
-            addProject('{{ project.eid }}', '{{ project.Name }}', '{{ project.St }}', '{{ project.De }}', {{ project.Tg | safe}}, 
-                {{ project.Mo }}, {{ project.Na }}, {{ project.Nt }}, '{{ project.Ow }}', '{{ project.On }}', {{ project.Po }});
-          </script> 
-        {% empty %}
-            <p>No projects available.</p>
-        {% endfor %}
-      </div>
-    </div>
+{% include "navbar.html" %}   
+
+<div id="page-scroll">
+
+<main>
+<section class="container" style="padding-top: 80px; text-align: justify;">
+
+  <div class="container">
+    <h1 style="margin: 0px;">Projects</h1><hr class="hr">
   </div>
-  {% include "footer.html" %}   
+
+  <div class="container">
+
+    <div class="controls-bar">
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="Search by projects name, description, owner, tags, ...">
+        <span id="clearSearch" class="clear-btn">&times;</span>
+      </div>
+      <div class="filters">
+        <button id="btnAll"     class="filter-btn">All</button>
+        <button id="btnMy"      class="filter-btn">My</button>
+        <button id="btnSandbox" class="filter-btn">Sandboxed</button>
+      </div>
+      <div class="action-dropdown">
+        <button id="menuToggle" class="menu-dots-btn" title="Project Actions">
+          &#8942; </button>
+        <div id="dropdownMenu" class="dropdown-content">
+          <a href="#" id="actionNew"    onclick="newProject()    ">   <span class="icon">+</span> New project...</a>
+          <a href="#" id="actionImport" onclick="openImportFileDialog()"><span class="icon">&#10515;</span> Import project...</a>
+          <input type="file" id="fileInput" style="display: none;" accept=".zip"/>       
+        </div>
+      </div>
+    </div>
+    
+    <div class="project-list-container" style="margin-bottom:20px">
+      <table id="projectsTable">
+        <thead>
+          <tr>
+            <th>Project Name & Description</th>
+            <th style="max-width:200px">Owner</th>
+            <th style="max-width:200px">Last Modified</th>
+            <th style="width:100px"></th>
+          </tr>
+        </thead>
+        <tbody id="projectsBody">
+        </tbody>
+      </table>
+    </div>
+
+    <div id="no_problems" style="padding-left:20px">... loading projects</div> 
+  </div>
+</section>
+</main>
+
+{% include "footer.html" %}   
 </div>
+
+<script>
+const which = current_user_username ? "My" : "All";
+document.getElementById("btn"+which).classList.add("active");
+
+{% for project in projects_description %}   
+  addProject('{{ project.eid }}', '{{ project.Name }}', '{{ project.St }}', '{{ project.De }}', {{ project.Tg | safe}}, 
+                {{ project.Mo }}, {{ project.Na }}, {{ project.Nt }}, '{{ project.Ow }}', '{{ project.On }}', {{ project.Po }});
+{% endfor %}
+createCards();
+
+document.querySelectorAll(".projects_menu").forEach(el => el.setAttribute("selected", ''));
+document.getElementById("site-header").classList.add("visible");
+
+</script>
+
 
 {% endblock %}

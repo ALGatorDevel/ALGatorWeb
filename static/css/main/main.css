@@ -1,16 +1,21 @@
-@font-face {
-    font-family: 'customFont';
-    src: url('../../fonts/Lambda-mLv6V.ttf') format('truetype');
-}
+@import "../afont.css";
+
+
 
 .algator {
     font-family: 'Courier New', monospace;
     font-variant: small-caps;
+    font-size: 1.1em;
 }
 
 .pa {
   text-align: justify;
   padding: 10px 0;
+}
+
+.pali a, 
+.pa a {
+  color:var(--algreen);
 }
 
 #myContainer{

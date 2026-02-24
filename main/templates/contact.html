@@ -1,19 +1,23 @@
 {% extends "base.html" %}
 {% load static %}
-{% block headcss %}
-  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
-{% endblock %}
 
+{% block headcss %}
+  <link rel="stylesheet" href="{% static 'css/alghp.css' %}">
+{% endblock %}
 
 {% block content %}
 
 {% include "navbar.html" %}   
-<div class="mp-content">
-  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 239px); width:100%;display: flex; justify-content: center;">
-     <div id="sendmail_div" style="width:65%">
-       <h1 style="margin: 0px;">Contact us</h1><hr class="hr">
-       
 
+<div id="page-scroll">
+<main>
+<section class="container" style="padding-top: 80px; text-align: justify;">
+
+  <div class="container">
+    <h1 style="margin: 0px;">Contact us</h1><hr class="hr">
+  </div>
+
+  <div class="container" id="sendmail_div">
       <form id="contact_form" method="POST" class="w3-container">
         {% csrf_token %}
         <div class='w3-margin' style="text-align: left;"> 
@@ -32,11 +36,13 @@
           <div class="w3-button w3-block w3-section w3-green w3-ripple w3-padding" onclick="sendMail()">Send</div>
         </div>
       </form>
-     </div>
-  </div>
-  {% include "footer.html" %}   
+   </div >
+</section>
+</main>
+
+{% include "footer.html" %}   
 </div>
- 
+
 <script>
 function sendMail() {
   let form  = document.getElementById("contact_form");
@@ -53,6 +59,10 @@ function sendMail() {
     });
   } else form.reportValidity();
 }
+
+  document.querySelectorAll(".contact_menu").forEach(el => el.setAttribute("selected", ''));
+  document.getElementById("site-header").classList.add("visible");
 </script>
+
 
 {% endblock %}

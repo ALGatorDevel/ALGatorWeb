@@ -112,7 +112,7 @@ def moveimages(request):
     return JsonResponse({'Status':3, 'Answer': f'Error moving image: {str(e)}'}, status=400)
 
 
-def problems(request):
+def problemsOld(request):
     projects_response = connector.talkToServer('getData {"Type":"Projects"}', getUID(request))
     projects_dict = json.loads(projects_response)
     projects_list = projects_dict.get("Answer", [])
@@ -135,6 +135,18 @@ def problems(request):
 
     return render(request, 'listOfProblems.html', context)
 
+def problems(request):
+    projects_response = connector.talkToServer('getData {"Type":"ProjectsExtended"}', getUID(request))
+    projects_dict = json.loads(projects_response)
+    projects_list = projects_dict.get("Answer", [])
+
+    context = {
+        'isDBMode'             : not isAnonymousMode(),
+        'ALGatorServerURL'     : connector.get_server_url(),
+        'projects_description' : projects_list
+    }
+
+    return render(request, 'listOfProblems.html', context)
 
 import os
 from datetime import datetime, timedelta

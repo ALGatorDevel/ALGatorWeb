@@ -2,16 +2,22 @@
 {% load static %}
 
 {% block headcss %}
-  <link rel="stylesheet" href="{% static 'css/hp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/alghp.css' %}">
 {% endblock %}
 
 {% block content %}
 
 {% include "navbar.html" %}   
-<div class="mp-content">
-  <div class="hp-content" id="main-content" style="min-height: calc(100vh - 256px); width:100%;display: flex; justify-content: center;">
-     <div style="width:65%">
-       <h1 style="margin: 0px;">About &nbsp;<span class=algator>ALGator</span>&nbsp;</h1><hr class="hr">
+
+<div id="page-scroll">
+<main>
+<section class="container" style="padding-top: 80px; text-align: justify;">
+
+<div class="container">
+  <h1 style="margin: 0px;">About &nbsp;<span class=algator>ALGator</span>&nbsp;</h1><hr class="hr">
+</div>
+
+<div class="container">
        
 <p><strong><span class="algator">ALGator</span></strong> is a comprehensive and open framework designed to automate the rigorous process of algorithm testing and evaluation. It enables researchers, developers, and practitioners to efficiently assess the performance and correctness of algorithm implementations by executing them on well-defined test sets and analyzing a broad spectrum of performance metrics.</p>
 
@@ -44,11 +50,20 @@
 <p>Through these capabilities, <span class="algator">ALGator</span> greatly simplifies the experimental workflow, making it easier for researchers and developers to collaborate, validate findings, and continuously improve algorithmic solutions.</p>
 
 
-       <p class="pa">For more information see the <a href="/howItWorks">how it works</a> section.</p>
-     </div>
-  </div>
-  {% include "footer.html" %}   
+<p class="pa">For more information see the <a href="/howItWorks">how it works</a> section.</p>
+
 </div>
-     
+</section>
+</main>
+
+{% include "footer.html" %}   
+</div>
+
+<script>
+document.querySelectorAll(".about_menu").forEach(el => el.setAttribute("selected", ''));
+
+document.getElementById("site-header").classList.add("visible");
+</script>
+
 
 {% endblock %}

@@ -70,7 +70,7 @@ function enableEditMode(isEditMode, context=document){
       try {
         let w = element.getAttribute("w").split(" ");
         canEdit = await can(w[0], pShorts.get(w[1]));
-        console.log(w[0] + "," + w[1] + ": " + pShorts.get(w[1]) + "=" + canEdit);
+        // console.log(w[0] + "," + w[1] + ": " + pShorts.get(w[1]) + "=" + canEdit);
       } catch (e) {}
       if (isEditMode && canEdit) {
         if (flexEditButtons.has(element.id))

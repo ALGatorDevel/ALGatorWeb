@@ -30,7 +30,11 @@ class ServerConnector(object):
       data  = ' '.join(parts)
       encoded_data = data.encode("utf-8")
 
-      response = requests.post(url, data=encoded_data, headers=headers, timeout=5)
+      # Timeout za to post zahtevo sem nastavil na 30s, kar je veliko prevec. Pri manjši
+      # vrednosti (5s) se nekatere zahteve niso sprocesirale do konca, prikaz rezultata 
+      # pa je bil prekinjen (npr. pri zahtevi GETAWRESULTS). Bolje kot povečevanje 
+      # timeout vrednosti je popravek storitev, da bodo delale hitreje!
+      response = requests.post(url, data=encoded_data, headers=headers, timeout=30)
 
       return response.text
 

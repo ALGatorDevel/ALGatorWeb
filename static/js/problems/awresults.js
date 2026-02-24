@@ -17,29 +17,32 @@ function showAWResults(pageID, resultsDiv='', getQuery=null,  getCardHolders=nul
 
   inShowAWResults = true;
 
-  var currentAWR = activeAWRs.has(pageID) ? activeAWRs.get(pageID) : [0, getQuery, 0, resultsDiv, getCardHolders];
+  try {
+    var currentAWR = activeAWRs.has(pageID) ? activeAWRs.get(pageID) : [0, getQuery, 0, resultsDiv, getCardHolders];
+    var query      = currentAWR[1]();
+    askServer((projectName, key, response) => {
+      if (response.Status == 0) {   
+        var answerID = response.Answer.AnswerID;
+        activeAWRs.set(pageID, [answerID, currentAWR[1], currentAWR[2], currentAWR[3], currentAWR[4]]);
 
-  var query      = currentAWR[1]();
-  askServer((projectName, key, response) => {
-    if (response.Status == 0) {   
-      var answerID = response.Answer.AnswerID;
-      activeAWRs.set(pageID, [answerID, currentAWR[1], currentAWR[2], currentAWR[3], currentAWR[4]]);
+        var awrDiv = document.getElementById(currentAWR[3]);
+        if (awrDiv && currentAWR[4]) 
+          awrDiv.innerHTML = currentAWR[4](response.Answer);
 
-      var awrDiv = document.getElementById(currentAWR[3]);
-      if (awrDiv && currentAWR[4]) 
-        awrDiv.innerHTML = currentAWR[4](response.Answer);
+        // show content of response
+        refreshAWResults(response.Answer);
 
-      // show content of response
-      refreshAWResults(response.Answer);
+        // is showAWResults called for the first time?
+        if (currentAWR[0] == 0) {
+        	establishRefreshOnTimer(pageID);
+        }
 
-      // is showAWResults called for the first time?
-      if (currentAWR[0] == 0) {
-      	establishRefreshOnTimer(pageID);
+        inShowAWResults = false;
       }
-
-      inShowAWResults = false;
-    }
-  }, projectName, "awresults", query, () => inShowAWResults = false);            
+    }, projectName, "awresults", query, () => inShowAWResults = false);            
+  } catch (e) {
+    inShowAWResults = false;
+  }
 }
 
 function establishRefreshOnTimer(pageID) {
