@@ -1098,7 +1098,11 @@ function processKey(event, blockID) {
       input.value += ' {"Project": ""}';
       input.setSelectionRange(21,21);
       event.preventDefault();
-    }    
+    } else  if (cont === ">tasklog") {
+      input.value += ' {"TaskID": 0}';
+      input.setSelectionRange(20,21);
+      event.preventDefault(); 
+    }
   }
 }
 

@@ -76,7 +76,7 @@ const which = current_user_username ? "My" : "All";
 document.getElementById("btn"+which).classList.add("active");
 
 {% for project in projects_description %}   
-  addProject('{{ project.eid }}', '{{ project.Name }}', '{{ project.St }}', '{{ project.De }}', {{ project.Tg | safe}}, 
+  addProject('{{ project.eid }}', '{{ project.Name }}', '{{ project.St }}', '{{ project.De  | linebreaksbr }}', {{ project.Tg | safe}}, 
                 {{ project.Mo }}, {{ project.Na }}, {{ project.Nt }}, '{{ project.Ow }}', '{{ project.On }}', {{ project.Po }});
 {% endfor %}
 createCards();

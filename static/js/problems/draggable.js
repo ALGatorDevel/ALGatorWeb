@@ -214,7 +214,7 @@ async function updatePresenterLayout(presenterDataJSON, presenter){
     return new Promise((resolve, reject) => {
         var param = {
             csrfmiddlewaretoken: window.CSRF_TOKEN, 
-            q: `alter {"Action":"SavePresenter", "ProjectName":"${projectName}", "PresenterName":"${presenter}",  "PresenterData":${JSON.stringify(presenterDataJSON)}}`
+            q: `alter {"Action":"SavePresenter", "ProjectName":"${projectName}", "PresenterName":"${presenter}",  "PresenterData":${presenterToCleanString(presenterDataJSON)}}`
         };
         $.post(url, param, function(response) {
             var answer = response.answer; //!response->answer

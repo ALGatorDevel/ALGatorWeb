@@ -46,8 +46,8 @@ class AView {
     let id       = getViewID(this.presenterName, this.viewName);
     let controls = this.getEditorControls(id); 
     return `
-      <div id="preview_${id}" class='box w3-row'></div> 
-      <div>${controls}</div>
+      <div id="preview_${id}" class='w3-row'></div> 
+      <div style="margin-top:20px">${controls}</div>
     `;
   }
 
@@ -219,7 +219,16 @@ class GraphView extends AView {
       let xAxis = viewJSON["xAxis"];
       let yAxes = viewJSON["yAxes"]; 
 
-      let grafData = generateXColumns(data, xAxis, yAxes);
+      let grafData = data;
+
+      // filtriranje po kriteriju (npr. "n > 1000 and m < 5") in grupiranje)
+      if (viewJSON["filterX"]) {
+        const ops = viewJSON["filterX"];
+        grafData = groupbyFilterData(grafData, ops);
+      }
+      this.graphData = grafData; 
+
+      grafData = generateXColumns(grafData, xAxis, yAxes);
 
       let chart = drawChart(grafData, viewJSON, viewDIV);        
       this.chart = chart;
@@ -254,7 +263,8 @@ class GraphView extends AView {
     fillSelector(yData, yAxes, 'selected_y_'+this.viewID, "Select y");
     wireControl(this, "selected_y", "yAxes", "change");
 
-    wireControl(this, "filter_x", "filterX", "keyup");
+    fillSelector(["groupby: ", "filter: "], filterX, 'filter_x_'+this.viewID, "Enter filter and/or groupby");
+    wireControl(this, "filter_x", "filterX", "change");
 
     wireCheckbox(this, "zoom"             ,    "zoom");
     wireCheckbox(this, "showSubchart"     ,    "subchart");
@@ -292,19 +302,33 @@ class GraphView extends AView {
   getEditorControls(id) {
     var cont = `   
     <div class='box'>
-      <div class='w3-row'>
+    
+    <div style="display: table; width: 100%;">
+      <div style="display: table-row;">
+
+        <div style="display: table-cell; white-space:nowrap; padding-right:10px;">
+            Filter and group data ${infoButton('filterX')}
+        </div>
+
+        <div style="display: table-cell; width:100%;">
+            <select id="filter_x_${id}" multiple="multiple" style="width:100%;"></select>
+        </div>
+
+        <div style="display: table-cell; width:1%; white-space:nowrap;">
+            <i class="far fa-list-alt icon" style="padding:6px 5px; cursor:pointer;" onclick="showGraphData('${id}')"></i>
+        </div>
+
+      </div>
+    </div>
+
+
+    </div>  
+    <div class='box'>
+      <div class='w3-row' style="display: flex;align-items: flex-start;">
         <div class='w3-col s6'>
-          <div class='w3-col s7'>
-            <div style='margin-left: 5px; margin-right: 5px;'>
-              <label for="selected_x_${id}" style="padding-right:10px;">X:</label>
-              <select class="w3-select" id="selected_x_${id}" style="width: 90%;"></select>
-            </div>
-          </div>
-          <div class='w3-col s5'>
-            <div style='margin-left: -5px; margin-right: 5px; padding-top:1px'>
-              <!--select class="w3-select" multiple="multiple" id="filter_x_${id}" style="width: 70%;"></select-->
-              <input type=text id='filter_x_${id}' style="width:90%; height:37px" placeholder="Filter ...">${infoButton('filterX')}<br>
-            </div>
+          <div style='margin-left: 5px; margin-right: 5px;'>
+            <label for="selected_x_${id}" style="padding-right:10px;">X:</label>
+            <select class="w3-select" id="selected_x_${id}" style="width: 90%;"></select>
           </div>
         </div>
         <div class='w3-col s6'>
@@ -312,7 +336,7 @@ class GraphView extends AView {
             <label for="selected_y_${id}">Y:</label>
             <select id="selected_y_${id}" multiple="multiple" style="width: 90%;"></select>
           </div>
-        </div>
+        </div>        
       </div>
     </div>
     <div class='w3-col s6'>
@@ -575,7 +599,7 @@ function getViewsDropDownItems(pName) {
 }
 
 function savePresenter(projectName, presenterName, presenterJSON, actionPhase2) {
-  let json = JSON.stringify(presenterJSON);
+  let json = presenterToCleanString(presenterJSON);
   askServer(actionPhase2, projectName, "savePresenter", 
      `alter {'Action':'SavePresenter', 'ProjectName':'${projectName}', 'PresenterName':'${presenterName}', 'PresenterData':${json}}` );
 }
@@ -619,4 +643,13 @@ function startNewView(viewType, presenterName) {
     newViewObject.initNewMode();
     editView(presenterName, viewName, 2, newViewObject);
 }
+
+
+function showGraphData(graphID) {
+  let view = graphID.startsWith("playground") ? 
+    playgroundViews.get(graphID.replaceAll("playground_","")) : aLayout.views.get(graphID);
+  let data = array2DToHTMLTable(view.graphData);
+  showModalDisplay("Graph data", data, 1, 95 );
+}
+
 

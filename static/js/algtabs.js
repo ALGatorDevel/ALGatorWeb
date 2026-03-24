@@ -1,9 +1,14 @@
 function addTabPane(paneID) {
   const paneContent = `
-    <div class="fixed-tab" id="fixedtabContainer_${paneID}"></div>
-    <div class="tab-marker left" id="markerLeft_${paneID}" title="Scroll left" aria-hidden="false">&#8249;</div>
-    <div class="tab-container" id="tabContainer_${paneID}"></div>
-    <div class="tab-marker right" id="markerRight_${paneID}" title="Scroll right" aria-hidden="false">&#8250;</div-->
+    <div class="tab-fixed" id="fixedtabContainer_${paneID}"></div>
+
+    <div class="tab-scroll-wrapper">
+      <div class="tab-marker left" id="markerLeft_${paneID}">&#8249;</div>
+      <div class="tab-container" id="tabContainer_${paneID}"></div>
+      <div class="tab-marker right" id="markerRight_${paneID}">&#8250;</div>
+    </div>
+
+    <div class="tab-dropdown" id="dropdown_${paneID}">&#9662;</div>
   `;
   const paneWrapper = document.getElementById("tabwrapper_" + paneID);
   if (paneWrapper) paneWrapper.innerHTML = paneContent;
@@ -33,6 +38,9 @@ function addTab(paneID, tabID, title, callback, possition=0) {
     tabs.appendChild(span); // insert at the end
   else 
     tabs.insertBefore(span, tabs.lastElementChild);  // pen-ultimum insert: left to the last element 
+
+  updateDropdownVisibility(paneID);
+
   return span;
 }
 
@@ -49,6 +57,7 @@ function removeTab(paneID, tabID) {
   const index = Array.from(parent.children).indexOf(tabEl);
 
   parent.removeChild(tabEl);
+  updateDropdownVisibility(paneID);
 
   if (tabEl.classList.contains('selected')) {
     const newSelected = parent.children[index - 1] || parent.children[0];
@@ -130,5 +139,99 @@ function wireTabs(paneID) {
   //make markers clickable to scroll a bit (optional, user-friendly) 
   leftMarker.addEventListener ('click', () => {scrollTab(tabs, -1)});
   rightMarker.addEventListener('click', () => {scrollTab(tabs, 1)});
+
+  const dropdown = document.getElementById('dropdown_' + paneID);
+  if (dropdown) {
+    dropdown.addEventListener('click', () => showTabDropdown(paneID));
+}
+}
+
+function showTabDropdown(paneID) {
+  const tabs = document.querySelectorAll(`#tabContainer_${paneID} .tab`);
+  
+  const menu = document.createElement("div");
+  menu.className = "tab-dropdown-menu";
+
+  // --- SEARCH BOX
+  const search = document.createElement("input");
+  search.type = "text";
+  search.placeholder = "Search tabs...";
+  search.className = "tab-dropdown-search";
+  menu.appendChild(search);
+
+  // --- ITEMS CONTAINER
+  const list = document.createElement("div");
+  list.className = "tab-dropdown-list";
+  menu.appendChild(list);
+
+  // --- CREATE ITEMS
+  const items = [];
+  tabs.forEach(t => {
+    const item = document.createElement("div");
+    item.textContent = t.textContent;
+    item.dataset.tabid = t.id.split('_')[1];
+
+    item.onclick = () => {
+      //selectTab(paneID, item.dataset.tabid);
+      t.click();
+      menu.remove();
+    };
+
+    list.appendChild(item);
+    items.push(item);
+  });
+
+  // --- FILTER LOGIC
+  search.addEventListener("input", () => {
+    const q = search.value.toLowerCase();
+
+    items.forEach(item => {
+      const match = item.textContent.toLowerCase().includes(q);
+      item.style.display = match ? "" : "none";
+    });
+  });
+
+  document.body.appendChild(menu);
+
+  // --- POSITIONING (same as before)
+  const btn = document.getElementById("dropdown_" + paneID);
+  const rect = btn.getBoundingClientRect();
+
+  let left = rect.left;
+  let top  = rect.bottom;
+
+  const menuRect = menu.getBoundingClientRect();
+
+  if (left + menuRect.width > window.innerWidth) {
+    left = window.innerWidth - menuRect.width - 4;
+  }
+  if (left < 4) left = 4;
+
+  menu.style.position = "absolute";
+  menu.style.left = left + "px";
+  menu.style.top = top + "px";
+
+  // --- CLOSE ON OUTSIDE CLICK
+  setTimeout(() => {
+    function close(e) {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener("click", close);
+      }
+    }
+    document.addEventListener("click", close);
+  }, 0);
+
+  // focus input immediately
+  search.focus();
+}
+
+function updateDropdownVisibility(paneID) {
+  const tabs = document.querySelectorAll(`#tabContainer_${paneID} .tab`);
+  const dropdown = document.getElementById("dropdown_" + paneID);
+
+  if (!dropdown) return;
+
+  dropdown.style.display = (tabs.length >= 2) ? "flex" : "none";
 }
 

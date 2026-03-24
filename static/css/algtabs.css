@@ -1,21 +1,3 @@
-.tab-wrapper {
-    display:flex;
-    position: relative;
-    background: #f8f8f8;
-    border-bottom: 1px solid #ccc;
-    overflow: hidden; 
-}
-
-.tab-container {
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-    scroll-behavior: smooth;
-    padding: 0;
-    margin: 0;
-}
-.tab-container::-webkit-scrollbar { display: none; }
-
 .tab {
     padding: 2px 22px;
     white-space: nowrap;
@@ -40,35 +22,28 @@
 
 .tab-marker {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 36px;                 
-    height: 36px;                
+    top: -3px;
+    bottom: 0;
+    width: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 50;
-    pointer-events: auto;
-    color: #7bc240;              
-    font-size: 24px;             
-    font-weight: bold;
-    transition: opacity 0.15s;
     cursor: pointer;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.85); 
-    box-shadow: 0 0 4px rgba(0,0,0,0.15);
+
+    /* visual */
+    background: #f8f8f8;
+    color: #7bc240;
+    font-size: 18px;
+    font-weight: bold;
+
+    border-radius: 0;       /* square */
+    box-shadow: none;       /* remove floating look */
 }
 
-
-/* left marker gradient */
-.tab-marker.left {
-    left: 6px;
-}
-
-/* right marker gradient */
-.tab-marker.right {
-    right: 6px;
-}
+/* flush to edges */
+.tab-marker.left  { left: 0; }
+.tab-marker.right { right: 0; }
 
 
 /* special first tab: add new */
@@ -91,13 +66,6 @@
   border-bottom: none;
 }
 
-/* container for fixed (nonscrolable) tabs */
-.tab-fixed {
-  display: inline-flex;
-  background: #f8f8f8;
-  border-right: 1px solid #ccc;
-  z-index: 5;
-}
 
 .content-area {
     padding: 20px;
@@ -111,3 +79,110 @@
 
 .tools { padding: 12px 20px; background: #fff; }
 .tools button { margin-right: 8px; }
+
+
+
+.tab-wrapper {
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    background: #f8f8f8;
+    border-bottom: 1px solid #ccc;
+    overflow: hidden;
+}
+
+/* fixed (left) */
+.tab-fixed {
+    display: flex;
+    flex: 0 0 auto;
+    border-right: 1px solid #ccc;
+    z-index: 5;
+}
+
+/* scrollable middle */
+.tab-scroll-wrapper {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+}
+
+.tab-container {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    height: 100%;
+}
+
+.tab-dropdown {
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-left: 1px solid #ccc;
+    background: #f0f0f0;
+    user-select: none;
+}
+.tab-dropdown:hover {
+    background: #e0e0e0;
+}
+
+.tab-dropdown-menu {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 1000;
+    width: 240px;
+
+    display: flex;
+    flex-direction: column;
+
+    max-height: 320px;   /* total height limit */
+    overflow: hidden;    /* IMPORTANT: prevents spilling */
+}
+
+.tab-dropdown-search {
+    padding: 6px 8px;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    outline: none;
+    font-size: 14px;
+
+    flex: 0 0 auto;   
+}
+
+.tab-dropdown-list {
+    flex: 1 1 auto;     /* take remaining space */
+    overflow-y: auto;   /* enable scroll */
+    min-height: 0;      
+}
+
+.tab-dropdown-list div {
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+
+.tab-dropdown-list > div {
+    background: white;
+}
+.tab-dropdown-list > div:hover {
+    background: #eee;
+}
+
+.tab-dropdown-menu {
+    background: white;   /* same as items */
+    padding: 0;          /* 🔴 important */
+}
+
+.tab-dropdown-menu div {
+    xpadding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tab-dropdown-menu div:hover {
+    background: #eee;
+}

@@ -154,6 +154,11 @@ async function getSideBarItemsHTML(topItems) {
 const displayedPages  = new Set();
 
 function showSectionSideNavbar(sectionId) {
+  if (sectionId==="algatorshell") {
+    openShellInWindow();
+    return;
+  }
+
   sections.forEach(function(id) {
     if (document.getElementById(id))
       document.getElementById(id).style.display = 'none';
@@ -479,6 +484,13 @@ async function showPlayground() {
     fillPlaygroundDiv();  
     fillAndWireQuery(getPresenterDefaultJSON(), playgroundID, queryChanged);
   }
+}
+
+let ashellTab = null;
+function openShellInWindow() {
+  if (!ashellTab)
+    ashellTab = window.open('/ashell/', '_ashell');
+  ashellTab.focus();
 }
 
 let algatorShellLoaded = false;

@@ -41,11 +41,11 @@ class GeneralData {
   }
 }
 class Parameter {
-  constructor(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType) {
-    this.setProps(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType);
+  constructor(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType, decimals=2) {
+    this.setProps(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType, decimals);
   }
-  setProps(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType) {
-    this.name        = parameterName; 
+  setProps(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType, decimals) {
+    this.name                                 = parameterName; 
     if (defined(isInput)   ) this.isInput     = isInput;
     if (defined(desc)      ) this.desc        = desc;
     if (defined(defValue)  ) this.defValue    = defValue;
@@ -54,6 +54,7 @@ class Parameter {
     if (defined(metaStep)  ) this.metaStep    = metaStep;
     if (defined(metaValues)) this.metaValues  = metaValues;
     if (defined(vType)     ) this.vType       = vType;
+    if (defined(decimals)  ) this.decimals    = decimals;
   }
 }
 class Generator {
@@ -100,14 +101,15 @@ class Timer {
   }
 }
 class Indicator {
-  constructor(indicatorName, desc, type, code) {
-    this.setProps(indicatorName, desc, type, code);
+  constructor(indicatorName, desc, type, code, decimals=2) {
+    this.setProps(indicatorName, desc, type, code, decimals);
   }
-  setProps(indicatorName, desc, type, code) {
-    this.name = indicatorName; 
-    if (defined(desc)) this.desc = desc;
-    if (defined(type)) this.type = type;
-    if (defined(code)) this.code = code;
+  setProps(indicatorName, desc, type, code, decimals=2) {
+    this.name                            = indicatorName; 
+    if (defined(desc))     this.desc     = desc;
+    if (defined(type))     this.type     = type;
+    if (defined(code))     this.code     = code;
+    if (defined(decimals)) this.decimals = decimals;
   }
 }
 class Counter {
@@ -284,7 +286,7 @@ class PageProject extends PageData {
       let meta = getValue(par, "Meta", {});
       this.addParameter(k, getValue(par, "IsInputParameter", false), getValue(par, "Description", ""), getValue(meta, "Default",""),
           getValue(meta, "Min", 0), getValue(meta, "Max", 0), getValue(meta, "Step", 0), 
-          JSON.stringify(getValue(meta, "Values", [])), getValue(par, "Type", "int")
+          JSON.stringify(getValue(meta, "Values", [])), getValue(par, "Type", "int"), getValue(meta, "Decimals", 2)
       );
     });
 
@@ -306,8 +308,9 @@ class PageProject extends PageData {
           let meta = getValue(ind, "Meta", {});
           this.addTimer(k, getValue(ind, "Description", ""), getValue(meta, "ID", 0), getValue(meta, "STAT", "MIN"));
         } else {
-            let source = value.Sources.Indicators[k];
-           this.addIndicator(k, getValue(ind, "Description", ""), typ, source);
+           let source = value.Sources.Indicators[k];
+           let meta = getValue(ind, "Meta", {});
+           this.addIndicator(k, getValue(ind, "Description", ""), typ, source, getValue(meta, "Decimals", 2));
         }
       } catch(e){}
     });
@@ -378,8 +381,8 @@ class PageProject extends PageData {
   removeElt(key, eltMap, linkID) {
     eltMap.delete(key);
   }
-  addParameter(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType) {
-    var parameter = new Parameter(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType);
+  addParameter(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType, decimals) {
+    var parameter = new Parameter(parameterName, isInput, desc, defValue, metaMin, metaMax, metaStep, metaValues, vType, decimals);
     this.addElt(parameterName, parameter, this.parameters);
     
     // add parameter to newGenParam multiselect
@@ -413,8 +416,8 @@ class PageProject extends PageData {
   removeTimer(key) {
     this.removeElt(key, this.timers, "timerlink");
   }
-  addIndicator(key, desc, type, code) {
-    var indicator = new Indicator(key, desc, type, code);
+  addIndicator(key, desc, type, code, decimals) {
+    var indicator = new Indicator(key, desc, type, code, decimals);
     this.addElt(key, indicator, this.indicators);
   }
   removeIndicator(key) {
@@ -581,6 +584,9 @@ function initCodeMirrorEditor(cmDiv, hiddenDiv, content, entity=null, key, theme
     var typeSelect     = document.getElementById("typep-"+key);
     var idmetaControls = document.getElementById("idmeta-controls-p-"+ key);
     var emetaControls  = document.getElementById("emeta-controls-p-" + key);
+
+    var decimalPlaces   = document.getElementById("pdecspS-" + key);
+    decimalPlaces.style.display = (typeSelect.value === "double") ? "" : "none";
 
     // Reset the additional controls
     idmetaControls.style.display = "none";
@@ -939,7 +945,7 @@ function showMEntities(sectId) {
 
     wireTabs(sectId);
     enableEditMode(isEditMode);
-    updateMarkers(sectId);
+    //updateMarkers(sectId);
 
     mEntityShown.add(sectId);
   }
@@ -1028,7 +1034,7 @@ function removeMEntityPhase2(projectName, meName, response, sectId) {
 
 // ************************************* PARAMETERS ***************************************** //
 
-function getParameterHTML(projectName, key, valueDescription, minv, maxv, stepv, defv, evalue, isInput) {
+function getParameterHTML(projectName, key, valueDescription, minv, maxv, stepv, defv, evalue, isInput, decimals) {
   var paramHTML = `
     <div id="parameterdiv-__key__">
     <span id="parameterElt-__key__"></span>
@@ -1048,8 +1054,13 @@ function getParameterHTML(projectName, key, valueDescription, minv, maxv, stepv,
     <hr>
     <tr><td class="gentd"><label for="typep-__key__">Parameter type:</label></td>
       <td><select id="typep-__key__" class="pEditE" disabled name="typep-__key__" onchange="showAdditionalParametersControls('__key__'); contentChanged(changes.parameters, '__key__')" style="margin-top:12px; width:110px">
-        <option id="opstr-__key__" value="string">string</option><option id="opint-__key__" value="int">int</option><option id="opdbl-__key__" value="double">double</option><option id="openu-__key__" value="enum">enum</option>
-      </select><br>
+          <option id="opstr-__key__" value="string">string</option><option id="opint-__key__" value="int">int</option><option id="opdbl-__key__" value="double">double</option><option id="openu-__key__" value="enum">enum</option>
+          </select>
+          <span id="pdecspS-__key__" style="style="display:none;">
+            with
+            <input class="pEditE" disabled style="width: 30px;" type="number" id="pdecsp-__key__"  name="pdecsp-__key__"  value="${decimals}"  min="0" max="8" step="1" onchange="contentChanged(changes.parameters, '__key__')">
+            decimal places
+          </span>
     </td></tr>
     <tr id="idmeta-controls-p-__key__" class="hidden-controls" style="display: contents;"><td class="gentd"></td>
       <td><table>
@@ -1090,7 +1101,7 @@ function recolorParameterTabs() {
 }
 
 function meParameterContent(pID, parDiv, mentity) {
-  parDiv.innerHTML = getParameterHTML(projectName, pID, mentity.desc, mentity.metaMin, mentity.metaMax, mentity.metaStep, mentity.defValue, mentity.metaValues, mentity.isInput);
+  parDiv.innerHTML = getParameterHTML(projectName, pID, mentity.desc, mentity.metaMin, mentity.metaMax, mentity.metaStep, mentity.defValue, mentity.metaValues, mentity.isInput, mentity.decimals);
 
   selectOptionByValue("typep-"+pID, mentity.vType);
   showAdditionalParametersControls(pID);
@@ -1120,6 +1131,7 @@ function saveParameters(projectName) {
     var metaStep   = document.getElementById("stepp-"+parameter).value;
     var metaValues = getValueOfMultiselectAsJSON("valuesms-"+parameter);
     var isInputPar = document.getElementById("iinputp-"+parameter).checked;
+    var decimals   = document.getElementById("pdecsp-"+parameter).value;
     var parameterJSON  = {
       "Name"           : parameter,
       "Description"    : desc,
@@ -1137,6 +1149,7 @@ function saveParameters(projectName) {
         'Max':     metaMax,
         'Step':    metaStep, 
         'Default': defValue,
+        'Decimals':Number(decimals),
       }
     } else {
       parameterJSON["Meta"] = {
@@ -1147,7 +1160,7 @@ function saveParameters(projectName) {
 
     var par = pageProject.parameters.get(parameter);
     if (typeof metaValues == 'object') metaValues = JSON.stringify(metaValues); // to store metaValues of parameter, i need string (and not, for example, array)
-    if (par) par.setProps(parameter, isInputPar, parameterJSON.Description, defValue, metaMin, metaMax, metaStep, metaValues, parameterJSON.Type);
+    if (par) par.setProps(parameter, isInputPar, parameterJSON.Description, defValue, metaMin, metaMax, metaStep, metaValues, parameterJSON.Type, decimals);
 
     askServer(saveParametersPhase2, projectName, parameter, 
        `alter {'Action':'SaveParameter', 'ProjectName':'${projectName}', 'ParameterName':'${parameter}', 'Parameter':${paramJSONS}}` );
@@ -1377,7 +1390,7 @@ function saveTimerPhase2(projectName, timer, response) {
 
 
 // ************************************* INDICATOR ***************************************** //
-function getIndicatorHTML(projectName, key, desc) {
+function getIndicatorHTML(projectName, key, desc, decimals=2) {
   var timHTML = `
      <span id="indicatorElt-__key__"></span>
      <div id="indicatordiv-__key__">
@@ -1390,11 +1403,17 @@ function getIndicatorHTML(projectName, key, desc) {
          <td><textarea class="descTA almostW pEditE" disabled type="text" id="desci-__key__" onchange="contentChanged(changes.indicators, '__key__')">${desc ? desc : ""}</textarea>
      </td></tr>
      <tr><td class="gentd"><label for="itype-__key__">Type:</label></td>
-       <td><select class="pEditE" disabled id="itype-__key__" name="itype-__key__" onchange="contentChanged(changes.indicators, '__key__')">
+       <td><select class="pEditE" disabled id="itype-__key__" name="itype-__key__" onchange="handleITypeChange('__key__'); contentChanged(changes.indicators, '__key__')">
          <option id="typeint-__key__" value="int">int</option>
          <option id="typedouble-__key__" value="double">double</option>
          <option id="typestring-__key__" value="string">string</option>
-       </select><br>
+       </select>
+       <span id="idecspS-__key__" style="style="display:none;">
+          with
+           <input class="pEditE" disabled style="width: 30px;" type="number" id="idecsp-__key__"  name="idecsp-__key__"  value="${decimals}"  min="0" max="8" step="1" onchange="contentChanged(changes.indicators, '__key__')">
+          decimal places
+       </span>
+
      </td></tr>
      <tr><td class="gentd" style="vertical-align: top;"><label for="indcode-__key__">Code:</label></td>
          <td><textarea id="indhcode-__key__" style="display: none;" onchange="contentChanged(changes.indicators, '__key__')"></textarea>
@@ -1407,8 +1426,14 @@ function getIndicatorHTML(projectName, key, desc) {
   return timHTML.replace(/__key__/g, key); 
 }
 
+function handleITypeChange(key) {
+  var iType     = document.getElementById(`itype-${key}`).value;
+  var iTypeDecs = document.getElementById(`idecspS-${key}`);
+  iTypeDecs.style.display = (iType === "double") ? "" : "none";
+}
+
 function meIndicatorContent(indicatorName, parDiv, ind) {
-  parDiv.innerHTML = getIndicatorHTML(projectName, indicatorName, ind.desc);
+  parDiv.innerHTML = getIndicatorHTML(projectName, indicatorName, ind.desc, ind.decimals);
 
   var cmDiv = `indcode-${indicatorName}`;
   initCodeMirrorEditor(cmDiv, `indhcode-${indicatorName}`, ind.code, changes.indicators, indicatorName, undefined, undefined, undefined, true);
@@ -1416,6 +1441,7 @@ function meIndicatorContent(indicatorName, parDiv, ind) {
   disabableEditors.set(cmDiv,indEditor);
 
   selectOptionByValue("itype-"+indicatorName, ind.type);
+  handleITypeChange(indicatorName);
 }
 
 function meAddIndicator(indicatorName) {
@@ -1439,13 +1465,23 @@ function meRmIndicator(sectId, indicatorName) {
 
 function saveIndicators(projectName) {
   changes.indicators.forEach(function (indicator) {                
-    var code = editors.get("indcode-"+indicator).getValue();
+    var code     = editors.get("indcode-"+indicator).getValue();
+    var typei    = document.getElementById("itype-"+indicator).value;
+    var decimals = document.getElementById("idecsp-"+indicator).value;
+
     var indJSON =  {
        "Name"        : indicator,
        "Description" : document.getElementById("desci-"+indicator).value,
-       "Type"        : document.getElementById("itype-"+indicator).value,
+       "Type"        : typei,
        "Code"        : Base64.encode(code)
     };
+
+    if (typei == "double") {
+      indJSON["Meta"] = {
+        'Decimals':Number(decimals),
+      }      
+    }
+
     var indJSONS = JSON.stringify(indJSON);
     var ind = pageProject.indicators.get(indicator);
     if (ind) ind.setProps(indicator, indJSON.Description, indJSON.Type, code);
@@ -1566,7 +1602,7 @@ function getTestsetHTML(projectName, key, author, date, eid, desc, shortname, n,
              <td><input class="almostW sEdit" disabled type="number" id="tstimelimit-__key__" value="${timelimit}" own='${key}' oninput="setTestsetChanged(true);">
          </td></tr>
          <tr><td style="vertical-align:top" class="gentd"><label for="tsfilecont-__key__">Tests</labekeyl>${infoButton('tests')}</td>
-             <td><textarea style="display:none;" class="almostW" id="tsfilecontTA-__key__" onchange="setTestsetChanged(true);"></textarea>
+             <td><textarea style="display:none;" class="almostW" id="tsfilecontTA-__key__" onchange="setTestsetChanged(true);countTestsetInstances('${key}')"></textarea>
              <div class="CodeMirror almostW" id="tsfilecontCM-__key__"></div>
          </td></tr>
          
@@ -1591,6 +1627,12 @@ function getTestsetHTML(projectName, key, author, date, eid, desc, shortname, n,
      </div>
   `;
   return testsetHTML.replace(/__key__/g, key); 
+}
+
+function countTestsetInstances(key) {
+  const tsEditor = document.getElementById("tsfilecontTA-" + key);
+  const lCount = countLines(tsEditor.value);
+  document.getElementById("tsnum-" + key).value = lCount;
 }
 
 function getTestsetFilesListItemHTML(testsetName, filename, size, disabledRemoving=true) {
@@ -1715,8 +1757,8 @@ function showEntitiesTabMenu(entityName, entitiesList) {
   if (entityName=="testset") addTab(entityName+"s", "e_000000_tsf", "Testsets common files", showEntity);
 
   enableEditMode(isEditMode);
-  wireTabs(entityName);
-  updateMarkers(entityName+"s");
+  wireTabs(entityName+"s");
+  //updateMarkers(entityName+"s");
 }
 
 // show a page with "tab panel" for all entities (testsets or algorithms) + information about the selected entity
@@ -2865,4 +2907,41 @@ function changeLockState(event, key, ename, callback) {
     });
   } 
   event.stopPropagation();
+}
+
+
+/******************* tools **********************************/
+
+// pošteje vrstice v opisu testne množice; pri tem upošteva $for{} zanke (tudi gnezdene)
+function countLines(lines) {
+    const rows = lines.split(/\r?\n/);
+    let total = 0;
+
+    for (let row of rows) {
+        let repeat = 1;
+
+        const regex = /^\s*(\$for\{[^}]+\}:)+/;
+        const match = row.match(regex);
+
+        if (match) {
+            const fors = match[0].match(/\$for\{([^}]+)\}/g);
+
+            for (let f of fors) {
+                const inside = f.slice(5, -1); // remove $for{ }
+                const [v, start, stop, step] = inside.split(',').map(s => s.trim());
+
+                const s = Number(start);
+                const e = Number(stop);
+                const st = Number(step);
+
+                if (st !== 0 && s <= e) {
+                    repeat *= Math.floor((e - s) / st) + 1;
+                }
+            }
+        }
+
+        total += repeat;
+    }
+
+    return total;
 }

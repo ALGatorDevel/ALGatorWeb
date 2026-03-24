@@ -88,12 +88,8 @@ function XgenerateXColumns(data, x, yAxes) {
     var newData = transpose(resData);
 
     // vse celice, ki vsebujejo podatke, ločene z vejico pretvorim v tabelo ("1,2,3" -> [1,2,3])
-    for (var i = 0; i < newData.length; i++) {
-        for(var j=0; j < newData[i].length; j++) {
-          if (newData[i][j].includes(","))
-              newData[i][j] = newData[i][j].split(",");
-        }
-    }
+    valuesToArray(newData);
+
     return newData; 
   } catch (err) {
       return data;
@@ -134,12 +130,7 @@ function XfilterColumns(data, columns) {
     
     
     // vse celice, ki vsebujejo podatke, ločene z vejico pretvorim v tabelo ("1,2,3" -> [1,2,3])
-    for (var i = 0; i < newData.length; i++) {
-        for(var j=0; j < newData[i].length; j++) {
-          if (newData[i][j].includes(","))
-              newData[i][j] = newData[i][j].split(",");
-        }
-    }
+    valuesToArray(newData);
   
     return newData; 
   } catch (err) {
@@ -175,12 +166,7 @@ function XprocessData(data){
     var newData = transpose(resData);
 
     // vse celice, ki vsebujejo podatke, ločene z vejico pretvorim v tabelo ("1,2,3" -> [1,2,3])
-    for (var i = 0; i < newData.length; i++) {
-        for(var j=0; j < newData[i].length; j++) {
-          if (newData[i][j].includes(","))
-              newData[i][j] = newData[i][j].split(",");
-        }
-    }
+    valuesToArray(newData);
   
     return newData; 
   } catch (err) {
@@ -233,9 +219,10 @@ function XstrEndsWith(str, suffix) {
 
 function copyArray (array) {
   if (typeof array !== 'undefined') {
-    var newArray = array.map(function (arr) {
-      return arr.slice();
-    });
+    const newArray = array.slice();
+//    var newArray = array.map(function (arr) {
+//      return arr.slice();
+//    });
     return newArray;
   } else 
     return null;

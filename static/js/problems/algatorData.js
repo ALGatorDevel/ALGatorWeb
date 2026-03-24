@@ -1,6 +1,6 @@
 async function getData(url, projectName, presenterJSON) {
   const controller = new AbortController();
-  setTimeout(() => controller.abort(), 5000);
+  setTimeout(() => controller.abort(), 60000); // TODO - popravi na normalno vrednost!
 
   const param = new URLSearchParams({
     csrfmiddlewaretoken: window.CSRF_TOKEN,
@@ -81,9 +81,10 @@ function strEndsWith(str, suffix) {
 }
 function copyArray (array) {
   if (typeof array !== 'undefined') {
-    var newArray = array.map(function (arr) {
-      return arr.slice();
-    });
+    const newArray = array.slice();;
+//    var newArray = array.map(function (arr) {
+//      return arr.slice();
+//    });
     return newArray;
   } else 
     return null;
@@ -214,12 +215,8 @@ function wireControl(view, selector, property, action) {
       var newData = transpose(resData);
   
       // vse celice, ki vsebujejo podatke, ločene z vejico pretvorim v tabelo ("1,2,3" -> [1,2,3])
-      for (var i = 0; i < newData.length; i++) {
-          for(var j=0; j < newData[i].length; j++) {
-            if (newData[i][j].includes(","))
-                newData[i][j] = newData[i][j].split(",");
-          }
-      }
+      valuesToArray(newData);
+  
       return newData; 
     } catch (err) {
         return data;
@@ -269,8 +266,6 @@ function stripSuffix(data, xAxisIDX) {
   );
 }
 
-
-
 function drawChart(data, settings, divId) {   
   if (!settings.xAxis === '') xAxis = "ID";
   
@@ -301,7 +296,10 @@ function drawChart(data, settings, divId) {
   } 
 
 
+  // ce zelimo filtrirati po vseh stolpcih (tudi tistih, ki jih graf ne prikazuje eksplicitno),
+  // moramo fltriranje opraviti prej (preden se tisti stolpci izločijo iz data)
   // if filterX is given, filter out all rows that do not satisfy filterX condition
+  /*
   if (settings.filterX && xAxisIDX !== -1) {
     let filter = settings.filterX;
     let xAxisName = xAxis.trim();
@@ -313,6 +311,7 @@ function drawChart(data, settings, divId) {
         } catch (e) {}
     }
   }
+  */
 
   if (!settings.labelsXTrfs) settings.labelsXTrfs="";
   if ((settings.labelsXTrfs.startsWith("=") || settings.categoryLabels) && (xAxisIDX >= 0)) {
@@ -390,6 +389,14 @@ function drawChart(data, settings, divId) {
      },
 
      bindto: '#'+divId,
+
+     /* // this adds padding so that x-axis title is printed in preview
+        // but: it ads additional padding on normal graphs, which is not OK
+     padding: {
+        bottom: 20 
+     },
+     */
+
      zoom: {
          enabled: settings.zoom, 
          rescale: true  // Optional: rescale after zooming
@@ -497,12 +504,7 @@ function filterColumns(data, columns) {
     
     
     // vse celice, ki vsebujejo podatke, ločene z vejico pretvorim v tabelo ("1,2,3" -> [1,2,3])
-    for (var i = 0; i < newData.length; i++) {
-        for(var j=0; j < newData[i].length; j++) {
-          if (newData[i][j].includes(","))
-              newData[i][j] = newData[i][j].split(",");
-        }
-    }
+    valuesToArray(newData);
   
     return newData; 
   } catch (err) {

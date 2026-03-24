@@ -87,13 +87,52 @@ Supported operators and functions:
            =log2(y)       ... transform label to log(label)
            =round(y/1000, 2) ... change from milli seconds to seconds; use two decimal places
 `,
+
+'fxilterX':`<pre>
+  This field defines, how data obtained from query should be filtered and groupd. Field can 
+  contain several  entries of type "filter:" and "groupby:".  
+
+  Example: filter:(N>10000) && (N<15000) ... retains only rows in which N is between (10000,15000)
+           filter:Testset='TestSet0'     ... retains only rows of TestSet1
+           groupby:N                     ... all lines with same N groups into single line; dafault 
+                                             value calculation for grouped fields: FIRST
+           groupby:N;Tmin:AVG            ... group by N; for fileds *.Tmin calculate average of all 
+                                             rows with same N; for other filed take FIRST value
+           groupby:N;Tmin:MIN;*:AVG      ... group by N; for fileds *.Tmin take the minimal value of 
+                                             rows with same N; for other filed calculate average value
+
+</pre>
+`, 
+
 'filterX':`<pre>
-  Filter defines values of X to be included in graph. 
+  This field defines how the data returned by the query is filtered and grouped for use 
+  in this graph. It can contain multiple entries of type 'filter:'' and 'groupby:'.
 
-  Example: N > 10000        ... show rows with N > 10000
-           ID>=4 and ID<10  ... show rows with ID>=4 and ID<10
+  Examples:
+
+    filter:(N > 10000) && (N < 15000)
+      → keeps only rows where N is between 10,000 and 15,000
+    
+    filter:Testset == 'TestSet0'
+      → keeps only rows where Testset equals 'TestSet0'
+    
+    groupby:N
+      → groups all rows with the same N into one row
+      → default aggregation for other fields: FIRST (take the first value)
+    
+    groupby:N; Tmin:AVG
+      → group by N
+      → for Tmin, compute the average (AVG)
+      → for other fields, use FIRST
+    
+    groupby:N; Tmin:MIN; *:AVG
+      → group by N
+      → for Tmin, take the minimum (MIN) value
+      → for all other fields (*), compute the average (AVG)
+
+    Valid aggregation functions: MIN, MAX, AVG, SUM, FIRST or LAST
+</pre>
 `
-
 
 }
 

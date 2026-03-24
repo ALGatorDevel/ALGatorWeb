@@ -213,5 +213,6 @@ async function removeUserFromGroup(group, user) {
 
 
 function openAShellInWindow() {
-  window.location.href = "/ashell/";
+  window.open('/ashell/', '_blank');
+  //window.location.href = "/ashell/";
 }

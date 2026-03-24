@@ -65,10 +65,13 @@ async function showPresenter(paneID, tabID) {
   selectTab(paneID, tabID);
 
   await pp.waitForDataToLoad(["get_presenter"], true, {'ProjectName': projectName, 'PresenterName': tabID, 'Deep':1});
+  if (!pp.presenterJSONs.has(tabID)) return;
+
   let presentersDiv = document.getElementById("presenters");
 
   const pName     = tabID;
   const presenter = pp.presenterJSONs.get(pName);
+
   presentersDiv.innerHTML = getPresenterDivHtml(pName, presenter.Title, true, false);
   await addLockersToPresenter(pName);
 
@@ -541,7 +544,7 @@ async function newPresenterDone() {
 
     var param = {
         csrfmiddlewaretoken: window.CSRF_TOKEN, 
-        q: `alter {"Action":"SavePresenter", "ProjectName":"${projectName}", "PresenterName":"${newPresenterName}",  "PresenterData":${JSON.stringify(presenterJSON)}}`
+        q: `alter {"Action":"SavePresenter", "ProjectName":"${projectName}", "PresenterName":"${newPresenterName}",  "PresenterData":${presenterToCleanString(presenterJSON)}}`
     };
   
     $.post(url, param, function(response) {
@@ -615,7 +618,7 @@ function editPresenterDone() {
 
     var param = {
         csrfmiddlewaretoken: window.CSRF_TOKEN, 
-        q: `alter {"Action":"SavePresenter", "ProjectName":"${projectName}", "PresenterName":"${presenterName}",  "PresenterData":${JSON.stringify(presenterJSON)}}`
+        q: `alter {"Action":"SavePresenter", "ProjectName":"${projectName}", "PresenterName":"${presenterName}",  "PresenterData":${presenterToCleanString(presenterJSON)}}`
     };
   
     $.post(url, param, function(response) {
