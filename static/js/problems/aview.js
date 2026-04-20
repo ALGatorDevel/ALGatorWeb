@@ -192,6 +192,7 @@ class GraphView extends AView {
       "xAxis": "",
       "yAxes": [],
       "filterX": "",
+      "countTable":"",
       "graphTypes": "",
       "xAxisTitle": "",
       "yAxisTitle": "",
@@ -226,7 +227,12 @@ class GraphView extends AView {
         const ops = viewJSON["filterX"];
         grafData = groupbyFilterData(grafData, ops);
       }
+      if (viewJSON["countTable"]) {
+        const ctParts = viewJSON["countTable"].split("@");
+        grafData = createCountTable(grafData, ctParts[0], ctParts[1]);
+      }
       this.graphData = grafData; 
+      this.fillControlsAfterDataChange();
 
       grafData = generateXColumns(grafData, xAxis, yAxes);
 
@@ -236,7 +242,7 @@ class GraphView extends AView {
   }
 
   fillControlsAfterDataChange() {
-    let data = presenterData.get(this.presenterName);
+    let data = this.graphData ? this.graphData : presenterData.get(this.presenterName);
 
     let xAxis = this.viewJSON["xAxis"];
     fillSelector(data[0], xAxis, 'selected_x_'+this.viewID, "");  
@@ -265,6 +271,8 @@ class GraphView extends AView {
 
     fillSelector(["groupby: ", "filter: "], filterX, 'filter_x_'+this.viewID, "Enter filter and/or groupby");
     wireControl(this, "filter_x", "filterX", "change");
+
+    wireControl (this, "count_table"      ,    "countTable", "change");
 
     wireCheckbox(this, "zoom"             ,    "zoom");
     wireCheckbox(this, "showSubchart"     ,    "subchart");
@@ -305,19 +313,23 @@ class GraphView extends AView {
     
     <div style="display: table; width: 100%;">
       <div style="display: table-row;">
-
         <div style="display: table-cell; white-space:nowrap; padding-right:10px;">
-            Filter and group data ${infoButton('filterX')}
+            Filter and group ${infoButton('filterX')}
+        </div>
+        <div style="display: table-cell; width:50%;">
+            <select id="filter_x_${id}" multiple="multiple" style="width:100%;"></select>            
         </div>
 
-        <div style="display: table-cell; width:100%;">
-            <select id="filter_x_${id}" multiple="multiple" style="width:100%;"></select>
+        <div style="display: table-cell; white-space:nowrap; padding-right:10px; padding-left:10px">
+            Count ${infoButton('countTable')}
+        </div>
+        <div style="display: table-cell; width:30%;">
+            <input id="count_table_${id}" style="width:100%;"></select>            
         </div>
 
         <div style="display: table-cell; width:1%; white-space:nowrap;">
             <i class="far fa-list-alt icon" style="padding:6px 5px; cursor:pointer;" onclick="showGraphData('${id}')"></i>
         </div>
-
       </div>
     </div>
 

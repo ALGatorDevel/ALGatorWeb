@@ -124,28 +124,18 @@ function groupbyFilterData(data, ops) {
 
       // parse rules
       const rules = parts.slice(1).map(r => {
-        const [pattern, opRaw] = r.split(":");
-      
-        let op = opRaw.trim();
-        let cond = null;
-      
-        const m = op.match(/^(\w+)(@\((.*)\))?$/);
-        if (m) {
-          op = m[1].toUpperCase();
-          if (m[3]) cond = buildCondFn(m[3], header);
-        }
-      
-        return { pattern: pattern.trim(), op, cond };
+        const [pattern, op] = r.split(":");
+        return { pattern: pattern.trim(), op: op.trim().toUpperCase() };
       });
-      
+
       // map columns to rules
-      const colRules = header.map((h,i) => {
-     	  //if (!isNumeric(rows[0][i])) return { op: "FIRST", cond: null }; // for strings
+      const colOps = header.map((h,i) => {
+     	  if (!isNumeric(rows[0][i])) return "FIRST"; // for strings
 
         for (let r of rules) {
-          if (matchPattern(h, r.pattern)) return r;
+          if (matchPattern(h, r.pattern)) return r.op;
         }
-        return { op: "FIRST", cond: null }; // default
+        return "FIRST"; // default
       });
 
       const groups = new Map();
@@ -155,57 +145,29 @@ function groupbyFilterData(data, ops) {
 
         if (!groups.has(key)) {
           const g = {
-            values: row.map((v,i) => i==groupIdx ? v : null), //isNumeric(v) ? Number(v) : v),
-            sum: Array(row.length).fill(0),
-            countArr: Array(row.length).fill(0)
+            count: 1,
+            values: row.map(v => isNumeric(v) ? Number(v) : v),//row.slice(),
+            sum: row.map((v, i) => 
+            	((colOps[i] === "SUM") || (colOps[i] === "AVG") ? (isNumeric(v) ? Number(v) : v) : 0))
           };
-        
-          for (let i = 0; i < row.length; i++) {
-            const { op, cond } = colRules[i];
-            const prefix = getPrefix(header[i]);
-        
-            // allpy condition also for first row
-            if (cond && !cond(row, prefix)) continue;
-  
-            g.values[i] = isNumeric(row[i]) ? Number(row[i]) : row[i];
-
-            if (op == "SUM" || op == "AVG") {
-              if (isNumeric(row[i])) {
-                const value = Number(row[i]);
-                g.sum[i] = value;
-                g.countArr[i] = 1;
-              }
-            }
-          }
-      
           groups.set(key, g);
         } else {
           const g = groups.get(key);
           g.count++;
           for (let i = 0; i < row.length; i++) {
             if (i === groupIdx) continue;
-          
-            const { op, cond } = colRules[i];
-          
-            const colName = header[i];
-            const prefix = getPrefix(colName);
-          
-            // apply condition if exists
-            if (cond && !cond(row, prefix)) continue;
-          
-            let value = Number(row[i]);
+
+            let value = Number(row[i]); 
             value = Number.isFinite(value) ? value : 0;
- 
-            switch (op) {         
-              case "FIRST": if (g.values[i] == null) g.values[i] = row[i];                            break;
-              case "LAST":  g.values[i] = row[i];                                                     break;
-              case "CAT" :  g.values[i] = (g.values[i] ? g.values[i] + " " : "") + row[i];            break;
-              case "MIN":   g.values[i] = g.values[i] == null ? value : Math.min(g.values[i], value); break;
-              case "MAX":   g.values[i] = g.values[i] == null ? value : Math.max(g.values[i], value); break;
-              case "AVG":
-              case "SUM":   g.sum[i] += value;g.countArr[i]++;                                        break;
-            }
-          }          
+
+            const op = colOps[i];
+            if      (op === "FIRST") continue;
+            if      (op === "LAST")  g.values[i] = value;
+            else if (op === "MIN")   g.values[i] = Math.min(g.values[i], value);
+            else if (op === "MAX")   g.values[i] = Math.max(g.values[i], value);
+            else if ((op === "AVG") 
+            	  ||(op === "SUM"))  g.sum[i]   += value;
+          }
         }
       }
 
@@ -214,11 +176,8 @@ function groupbyFilterData(data, ops) {
       for (let g of groups.values()) {
         const row = g.values.slice();
         for (let i = 0; i < row.length; i++) {
-          if (i==groupIdx) continue;
-          if (colRules[i].op === "AVG") 
-            row[i] = g.countArr[i] ? g.sum[i] / g.countArr[i] : null;
-          if (colRules[i].op === "SUM") 
-            row[i] = g.countArr[i] ? g.sum[i] : null;
+          if (colOps[i] === "AVG") row[i] = g.sum[i] / g.count;
+          if (colOps[i] === "SUM") row[i] = g.sum[i];
         }
         newRows.push(row);
       }
@@ -231,38 +190,6 @@ function groupbyFilterData(data, ops) {
 }
 
 
-// =====================
-// 🔹 Helper: Builds function for groupby condition 
-//            Example: expr = "Check == 'OK'"
-// =====================
-function buildCondFn(expr, header) {
-  return function(row, prefix) {
-    let jsExpr = expr;
-
-    header.forEach((h, i) => {
-      const suffixIdx = h.lastIndexOf(".");
-      if (suffixIdx === -1) return;
-
-      const suffix = h.slice(suffixIdx + 1);
-
-      // replace suffix with prefixed column
-      const fullName = prefix ? `${prefix}.${suffix}` : h;
-
-      const colIdx = header.indexOf(fullName);
-      if (colIdx !== -1) {
-        const regex = new RegExp(`\\b${suffix}\\b`, "g");
-        jsExpr = jsExpr.replace(regex, `row[${colIdx}]`);
-      }
-    });
-
-    return new Function("row", `return ${jsExpr}`)(row);
-  };
-}
-
-function getPrefix(colName) {
-  const idx = colName.lastIndexOf(".");
-  return idx === -1 ? "" : colName.slice(0, idx);
-}
 
 
 // =====================

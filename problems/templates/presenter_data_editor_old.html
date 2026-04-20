@@ -1,0 +1,38 @@
+    <div>
+        <div class="panel-toolbar">
+            <button onclick="app.addFirstClassBox()"><i class="fas fa-plus"></i> Add Query (Q)</button>
+            <button onclick="app.clearState()">Clear Board</button>
+            <button onclick="app.exportState()">Export State (Console)</button>
+        </div>
+        <div id="diagram_canvas">
+            <svg class="svg-layer" id="svg_connections">
+                <defs>
+                    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" 
+                            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#444" />
+                    </marker>
+                </defs>
+            </svg>
+        </div>
+    </div>
+
+    <div id="type_modal" class="modal">
+        <div class="modal-content">
+            <h3>Select Box Type</h3>
+            <div id="modal_type_buttons"></div>
+            <div class="modal-footer">
+                <button onclick="document.getElementById('type_modal').style.display='none'" style="background: #eee; border: 1px solid #ccc;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm_modal" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <h3>Confirm Removal</h3>
+            <p id="confirm_message">Are you sure? This will remove this box and all its descendants.</p>
+            <div class="confirm-modal-footer">
+                <button onclick="app.confirmRemove(false)" style="background: #eee; border: 1px solid #ccc;">Cancel</button>
+                <button onclick="app.confirmRemove(true)" style="background: #e74c3c; color: white; border: 1px solid #c0392b;">Remove</button>
+            </div>
+        </div>
+    </div>

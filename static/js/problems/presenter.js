@@ -57,11 +57,12 @@ async function showPresenters() {
   }
   
   let hasPresenters = pp.projectPresenters.length > 0;
-  showCorPresenterDiv(hasPresenters); 
+  showCorPresenterDiv(hasPresenters, false); 
   if (hasPresenters) showPresenter("presenters", pp.projectPresenters[0]);
 }
 
 async function showPresenter(paneID, tabID) {
+  showCorPresenterDiv(true, false);
   selectTab(paneID, tabID);
 
   await pp.waitForDataToLoad(["get_presenter"], true, {'ProjectName': projectName, 'PresenterName': tabID, 'Deep':1});
@@ -442,7 +443,7 @@ function fillPresenterDiv(presenterID, divID, okAction, cancelAction, refreshAct
 
 function closeNewPresenterView() {
   $('#newPresenter').hide();
-  $('#presenters').show();
+  $(curVisPresDiv).show();
   repaintViews();
 }
 
@@ -455,6 +456,8 @@ function cancelNewPresenter() {
 }
 
 async function createNewPresenter() {
+    curVisPresDiv = $('#presenters').is(':visible') ? "#presenters" : "#presenters_data_panel";
+
     var pJSON = getPresenterDefaultJSON(newPresenterID);
     pp.presenterJSONs.set(newPresenterID, pJSON);
 
@@ -464,7 +467,7 @@ async function createNewPresenter() {
 
     document.getElementById("OKCancelButtons_" + newPresenterID).style.display = "flex";
     $('#newPresenter').show();
-    $('#presenters').hide();
+    $(curVisPresDiv).hide();
 
     // hide tabs
     const tabPane = document.getElementById("tabwrapper_presenters");
@@ -560,7 +563,7 @@ async function newPresenterDone() {
 
             addTab("presenters",newPresenterName, presenterJSON.ShortTitle, showPresenter);
             showPresenter("presenters", newPresenterName);
-            showCorPresenterDiv(true); 
+            showCorPresenterDiv(true, false); 
 
 
             var nopresentersDiv = document.getElementById("nopresenters");
@@ -763,16 +766,40 @@ function deletePresenterPhase2(answer, presenterName){
       if (pp.projectPresenters.length > 0)
         showPresenter("presenters", nextTabID);
       else
-        showCorPresenterDiv(false);
+        showCorPresenterDiv(false, false);
     }
 
 
   })
 }
 
-function showCorPresenterDiv(hasEntities) {
-  document.getElementById("loading_presenters_div").style.display  =  "none";
-  document.getElementById(`no_presenters_div`)     .style.display  =  hasEntities ? "none" : "";
-  document.getElementById(`presenters`)            .style.display  =  hasEntities ? ""     : "none";
+function showCorPresenterDiv(hasEntities, showingData) {
+  if (!showingData) {
+    document.getElementById("loading_presenters_div").style.display  =  "none";
+    document.getElementById(`no_presenters_div`)     .style.display  =  hasEntities ? "none" : "";
+    document.getElementById(`presenters`)            .style.display  =  hasEntities ? ""     : "none";
+
+    document.getElementById(`presenters_data_panel`) .style.display  = "none";
+  } else {
+    document.getElementById("loading_presenters_div").style.display  =  "none";
+    document.getElementById(`no_presenters_div`)     .style.display  =  "none";
+    document.getElementById(`presenters`)            .style.display  =  "none";
+
+    document.getElementById(`presenters_data_panel`) .style.display  = "";    
+  }
 }
 
+
+function showPresentersData() {
+  showCorPresenterDiv(false,true);
+  selectTab("presenters", "presData");
+  setPresentersDataHeight();
+  pde.init();
+}
+
+
+function setPresentersDataHeight() {
+  var presDataDiv = document.getElementById("presenters_data_panel");
+  var contentDiv = document.getElementById('presentersContent');
+  presDataDiv.style.height = (window.innerHeight - contentDiv.offsetTop - 22) + 'px';
+}

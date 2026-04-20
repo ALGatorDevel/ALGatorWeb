@@ -88,22 +88,6 @@ Supported operators and functions:
            =round(y/1000, 2) ... change from milli seconds to seconds; use two decimal places
 `,
 
-'fxilterX':`<pre>
-  This field defines, how data obtained from query should be filtered and groupd. Field can 
-  contain several  entries of type "filter:" and "groupby:".  
-
-  Example: filter:(N>10000) && (N<15000) ... retains only rows in which N is between (10000,15000)
-           filter:Testset='TestSet0'     ... retains only rows of TestSet1
-           groupby:N                     ... all lines with same N groups into single line; dafault 
-                                             value calculation for grouped fields: FIRST
-           groupby:N;Tmin:AVG            ... group by N; for fileds *.Tmin calculate average of all 
-                                             rows with same N; for other filed take FIRST value
-           groupby:N;Tmin:MIN;*:AVG      ... group by N; for fileds *.Tmin take the minimal value of 
-                                             rows with same N; for other filed calculate average value
-
-</pre>
-`, 
-
 'filterX':`<pre>
   This field defines how the data returned by the query is filtered and grouped for use 
   in this graph. It can contain multiple entries of type 'filter:'' and 'groupby:'.
@@ -118,7 +102,7 @@ Supported operators and functions:
     
     groupby:N
       → groups all rows with the same N into one row
-      → default aggregation for other fields: FIRST (take the first value)
+      → default aggregation function: FIRST 
     
     groupby:N; Tmin:AVG
       → group by N
@@ -130,9 +114,45 @@ Supported operators and functions:
       → for Tmin, take the minimum (MIN) value
       → for all other fields (*), compute the average (AVG)
 
-    Valid aggregation functions: MIN, MAX, AVG, SUM, FIRST or LAST
-</pre>
-`
+    groupby:N; Tmin:AVG@(Check=='OK')
+      → group by N
+      → in AVG for Tmin field take only values where Check=='OK'
+
+    groupby:N; Tmin:AVG@(Status=='DONE'); TID:CAT@(Status=='DONE'); *:MIN;
+      → group by N
+      → for values of Tmin in each group, calculate AVG of Tmins, but take
+        only those lines for which Status=='DONE'
+      → in TID field collects names of all tests for which Status=='DONE'
+
+      
+
+    Valid aggregation functions: MIN, MAX, AVG, SUM, FIRST, LAST, CAT
+</pre>`,
+
+'countTable':`<pre>
+  This field transforms the processed data (i.e., the data returned by the query 
+  and modified by the filter and groupby options) into an array of counts.
+
+  Examples:
+
+  Check == 'OK'
+    → For each algorithm, counts the number of rows where the Check field equals 'OK'.
+
+  Check != 'OK' @N
+    → For each value of N and for each algorithm, counts the number of rows 
+      where the Check field is not 'OK'.
+
+  Tmin < 1000
+    → For each algorithm, counts the number of rows where Tmin < 1000.
+
+  $for{i,1,10,1}:Tmin < \${i*10000}
+    → For each algorithm, counts the number of rows where 
+      Tmin < 10000, 20000, ..., 100000.
+
+  $for{i,1,10,1}:Tmin < \${i*10000} @N
+    → For each value of N and for each algorithm, counts the number 
+      of rows where Tmin < 10000, 20000, ..., 100000.
+</pre>`
 
 }
 
@@ -143,7 +163,7 @@ function infoButton(infoID, param1="", param2="") {
   `;
 }
 
-function showPopupMsg(infoID, param1="", param2="") {
+function showPopupMsg(infoID, param1="", param2="") { 
   let message = messages[infoID];
   message = message.replace(/__param1__/g, param1).replace(/__param2__/g, param2);
   return showInfoPopup(message);

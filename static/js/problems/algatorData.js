@@ -122,8 +122,17 @@ function removeElementFromArray(arr, value) {
 
 // fills the values in data ([...])  to select control and sets selected value
 function fillSelector(data, selected, selectroId, ePrompt){
+  let wasSelect2 = false; let XSelector;
+
   try {
-    let XSelector = $('#'+selectroId);
+    XSelector = $('#'+selectroId);
+    if (!XSelector || !XSelector.length) return;
+
+    // do this only once (not after each empty()....)
+    if (ePrompt != "" && !XSelector.data('select2')) {
+      applySelect2Options(XSelector, {placeholder: ePrompt,allowClear: true, tags:true});
+    }    
+    
     XSelector.empty();
     
     // if data is a map, use only keys 
@@ -138,12 +147,11 @@ function fillSelector(data, selected, selectroId, ePrompt){
           XSelector.append(new Option(sitem, sitem)); 
     });
   } catch (e) {}
-  $('#'+selectroId).val(selected);
-  if (ePrompt != "") {    
-      // $(`#${selectroId}`).select2({placeholder: ePrompt,allowClear: true, tags:true});
-      applySelect2Options($(`#${selectroId}`), {placeholder: ePrompt,allowClear: true, tags:true});
-  }
+
+  XSelector.val(selected);
+  XSelector.trigger('change.select2');
 }
+
 
 // wire checkbox to view property: set the value of checkbox and
 // react on "checked" change (set the view's property and redraw)
@@ -334,14 +342,20 @@ function drawChart(data, settings, divId) {
 
   let colorPattern = []; // colors for graph series
   let usedAlgs = new Set(); // algorithm, that already appeared in this graph
-  let xes = data[0].map(item => item.split('.')[0].trim()); // seznam algoritmov
+  
+  //let xes = data[0].map(item => item.split('.')[0].trim()); // seznam algoritmov
+  let xes = data[0].map(item => { // to naredim tako, ker je item lahko "F0.C0_Quicksort.Tmin"
+    const lastDot = item.lastIndexOf('.');
+    return lastDot === -1 ? item.trim() : item.substring(0, lastDot).trim();
+  });
   xes.forEach(alg =>{
+    const pureAlgName = pureAlgorithmName(alg); // get rid of optional "[computer_]" part of algorithm name
     // ce algoritem nima določene barve (ali je bila že uporabljena), nastavim -1 (bom zamenjal kasneje)
-    colorPattern.push(usedAlgs.has(alg) ? -1 : getAlgorithmColor(alg));
+    colorPattern.push(usedAlgs.has(pureAlgName) ? -1 : getAlgorithmColor(pureAlgName));
     
     // če sem algoritem Z DOLOČENO barvo že porabil, označim, da ne uporabim še enkrat
     if (!settings.reuseColors)
-      usedAlgs.add(alg);
+      usedAlgs.add(pureAlgName);
   });
 
   // katere barve so še na razpolago 

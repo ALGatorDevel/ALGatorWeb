@@ -63,7 +63,8 @@
 }
 .tab-new.selected {
   background: #eef7e8;
-  border-bottom: none;
+  xborder-bottom: none;
+  border-bottom: 2px solid #7bc240;
 }
 
 

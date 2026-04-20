@@ -74,8 +74,8 @@ function removeTab(paneID, tabID) {
 
 
 function selectTab(paneID, tabID) {
-  const tabs = document.getElementById('tabContainer_' + paneID);
-  tabs.querySelectorAll(`.tab[data-tabid="${paneID}"]`).forEach(t => t.classList.remove('selected'));
+  const tabs = document.getElementById('tabwrapper_' + paneID);
+  tabs.querySelectorAll(`.tab[data-tabid="${paneID}"],.tab-new[data-tabid="${paneID}"]`).forEach(t => t.classList.remove('selected'));
 
   const tabEl = document.getElementById(`tab-${paneID}_${tabID}`);
   if (tabEl) {

@@ -1,0 +1,106 @@
+        :root {
+            --bg-color: #f0f2f5;
+            --type-Q: #3498db; 
+            --type-A: #2ecc71; 
+            --type-F: #f39c12; 
+            --type-P: #9b59b6; 
+            --type-R: #e74c3c;
+        }
+
+
+        #presenters_data_panel {
+            xposition: fixed;  
+            xwidth: 100vw;  
+            xoverflow: auto; 
+            
+            border: none;
+            height: 100vh;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: white; border-radius: 0;
+            background-image: radial-gradient(#ddd 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        #diagram_canvas { position: relative; min-width: 5000px; min-height: 5000px; z-index: 1; }
+        
+        /* FIX: Increased z-index to ensure it is visible above the background */
+        .svg-layer { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            pointer-events: none; 
+            z-index: 5; 
+        }
+
+        .box-card {
+            position: absolute; width: 240px; min-height: 160px; background: white;
+            border: 1px solid #888; border-radius: 6px; box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            z-index: 10; display: flex; flex-direction: column; resize: both; overflow: hidden;
+        }
+
+        .box-header {
+            height: 32px; padding: 0 8px 0 12px; color: white; font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: move; font-size: 14px; user-select: none;
+        }
+
+        .header-actions { display: flex; gap: 4px; align-items: center; }
+
+        .icon-btn {
+            background: rgba(0,0,0,0.15); color: white; border: none; border-radius: 3px;
+            width: 24px; height: 24px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; font-size: 12px;
+        }
+        .icon-btn:hover { background: rgba(0,0,0,0.3); }
+        .btn-remove:hover { background: #c0392b; }
+
+        .box-content { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+
+        .color-Q { background-color: var(--type-Q); }
+        .color-A { background-color: var(--type-A); }
+        .color-F { background-color: var(--type-F); }
+        .color-P { background-color: var(--type-P); }
+        .color-R { background-color: var(--type-R); }
+
+        .creation-string {
+            background: #f4f4f4; padding: 5px; font-family: monospace; font-size: 11px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid #ddd;
+        }
+
+        .is-editing .header-actions { display: none; }
+
+        .edit-panel { display: none; padding: 12px; background: #fff; flex-grow: 1; border-top: 1px solid #ddd; }
+        .edit-panel textarea { width: 100%; height: calc(100% - 45px); box-sizing: border-box; font-family: monospace; }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none; justify-content: center;
+            align-items: center; z-index: 2000;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 10px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-footer { margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+
+        .confirm-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none; justify-content: center;
+            align-items: center; z-index: 3000;
+        }
+        .confirm-modal-content {
+            background: white; padding: 25px; border-radius: 10px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            min-width: 300px;
+        }
+        .confirm-modal-footer { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; gap: 10px; }
+        .confirm-modal-footer button { flex: 1; }
+
+        .panel-toolbar {
+            position: fixed; top: 20px; right: 20px; display: flex; gap: 12px; z-index: 100;
+        }
+        .panel-toolbar button { padding: 8px 16px; cursor: pointer; border-radius: 4px; border: 1px solid #999;
+            background: #fff; font-weight: 600; transition: background 0.2s; }
+        .panel-toolbar button:hover { background: #f0f0f0; }

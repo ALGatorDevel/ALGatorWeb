@@ -2461,8 +2461,16 @@ function getNumberOfNonDefaultsBefore(idx) {
 }
 
 
+// extracts algorithm "true" name from string of type "[computer_]algName"
+function pureAlgorithmName(algName) {
+   const algNameParts = algName.split("_"); // algName =? "F1.C3_algName"
+   if (algNameParts.length > 1) algName = algNameParts[1];
+   return algName;   
+}
+
 // return a color of algorihm (color defined by algorithm or corresponding deafult color if alg.color=-1)
 function getAlgorithmColor(algName) {
+   
    let al = pageProject.algorithms.get(algName);
    let aIdx = getAlgorithmIndex(algName);
    let defaultColor = getDefaultColorByIndex(aIdx - getNumberOfNonDefaultsBefore(aIdx), getUsedColors());
