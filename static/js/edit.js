@@ -884,7 +884,7 @@ function showFileContent(key) {
 }
 
 
-function saveFile(projectName, fileName, content, key) {
+function edit_saveFile(projectName, fileName, content, key) {
   var bContent    = Base64.encode(content);
   var contentLen = bContent.length; 
 
@@ -2234,10 +2234,33 @@ async function showSelectedAlgorithm(algorithmName) {
     await populatePrivatnessSpans("algorithm");
     showHidePrivatenessIcons();
 
+    /*
     var cmDiv = "algsrcCM-"+algorithmName;
     initCodeMirrorEditor(cmDiv, "algsrcTA-"+algorithmName, alg.fileContent, changes.algorithms, algorithmName, undefined, undefined, undefined, true);
     var alEditor = editors.get(cmDiv);
     setTimeout(() => {alEditor.refresh();}, 100); // to render properly
+    */
+
+    
+    var cmDiv = "algsrcCM-" + algorithmName;
+    var alEditor = window.smartCodeEditor.initEmbeddedEditor({
+      divId: cmDiv,
+      hiddenDiv: "algsrcTA-" + algorithmName,
+      projectName: projectName,
+      algorithmName: algorithmName,
+    
+      lspFolder: projectName.startsWith("PROJ-")
+        ? projectName
+        : "PROJ-" + projectName,
+    
+      readOnly: true
+    });
+    editors.set(cmDiv, alEditor);
+    disabableEditors.set(cmDiv, alEditor);
+    await alEditor.whenReady();
+    alEditor.refresh();
+    requestAnimationFrame(() => {alEditor.refresh();});
+    setTimeout(() => {alEditor.refresh();}, 100); 
 
 
     let view = getViewOfType("TextBox", "algorithmDescription", algorithmName);
@@ -2677,9 +2700,9 @@ function contentChanged(entity, key) {
 function saveContent() {
   if (changes.other.has("general"))    saveGeneral(projectName);
 
-  if (changes.other.has("input"))      saveFile(projectName, "proj/src/Input.java", editors.get("input-code-editor").getValue(), "input");
-  if (changes.other.has("output"))     saveFile(projectName, "proj/src/Output.java", editors.get("output-code-editor").getValue(), "output");
-  if (changes.other.has("tools"))      saveFile(projectName, "proj/src/Tools.java", editors.get("tools-code-editor").getValue(), "tools");
+  if (changes.other.has("input"))      edit_saveFile(projectName, "proj/src/Input.java", editors.get("input-code-editor").getValue(), "input");
+  if (changes.other.has("output"))     edit_saveFile(projectName, "proj/src/Output.java", editors.get("output-code-editor").getValue(), "output");
+  if (changes.other.has("tools"))      edit_saveFile(projectName, "proj/src/Tools.java", editors.get("tools-code-editor").getValue(), "tools");
 
   if (changes.parameters.size > 0) saveParameters(projectName);
   if (changes.generators.size > 0) saveGenerators(projectName);

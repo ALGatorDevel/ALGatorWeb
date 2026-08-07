@@ -194,7 +194,7 @@ function isInViewport(element) {
   );
 }
 
-function saveFile(projectName, fileName, content, afterSave=null, onError=null) {
+function shell_saveFile(projectName, fileName, content, afterSave=null, onError=null) {
   var msg = `saveFile {"Project":"${projectName}","File":"${fileName}","Length":${content.length},"Content":"${content}"}`;  
   askASServer(msg, this.blockID, (blockID, response) => {
     var resp = toJSON(response, true, true, true);
@@ -494,7 +494,7 @@ class EditorData extends Data {
         win: 'Ctrl-S',
         mac: 'Command-S'
       }, exec: function(editor) {
-        saveFile(self.projectName, self.fileName, btoa(editor.getValue()));
+        shell_saveFile(self.projectName, self.fileName, btoa(editor.getValue()));
       }
     });   
 
@@ -562,7 +562,7 @@ class FilesData extends Data {
     var pos = this.findFile(fileName);
     if (pos != -1) {
       var content = btoa(this.openedFiles[pos].editor.getValue());
-      saveFile(this.projectName, this.openedFiles[pos].fileName, content, afterSave, (msg)=>{alert(msg)});
+      shell_saveFile(this.projectName, this.openedFiles[pos].fileName, content, afterSave, (msg)=>{alert(msg)});
     }
   }
 

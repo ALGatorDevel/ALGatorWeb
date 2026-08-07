@@ -66,13 +66,21 @@ def get_presenters(request):
     data = QueryDict.dict(request.GET)
     return aproblems.get_presenters(request, data)
 
+def get_pde_state(request):
+    data = QueryDict.dict(request.GET)
+    return aproblems.get_pde_state(request, data)
+
+def save_pde_state(request):
+    data = QueryDict.dict(request.POST)
+    return aproblems.save_pde_state(request, data)
+
 
 def project (request, problemName):
     homepoint = request.POST.get('homepoint', False) # ce je True, potem se s klikom na ALGator ikono vračam na ALGator hp, sicer ne
 
     try:
       uid       = try_get_user(request)
-      project   = read_project(problemName, uid)
+      project   = read_project(problemName, uid) 
 
       if (project.get("name", "") != problemName) or not can(uid, getValue(project, "eid", ""), "can_read"):
         return render(request, 'error.html', {'error': 'No project data available due to one of the following reasons: server is down, project configuration files are invalid or access denied.'})

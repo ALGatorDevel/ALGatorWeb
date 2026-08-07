@@ -17,7 +17,9 @@ urlpatterns = [
     path("get_algorithm",                 views.get_algorithm,                name="get_algorithm"),
     path("get_algorithms",                views.get_algorithms,               name="get_algorithms"),
     path("get_presenter",                 views.get_presenter,                name="get_presenter"),
-    path("get_presenters",                views.get_presenters,               name="get_presenters"),
+    path("get_presenters",               views.get_presenters,                name="get_presenters"),
+    path("get_pde_state",                views.get_pde_state,                 name="get_pde_state"),
+    path("save_pde_state",               views.save_pde_state,                name="save_pde_state"),
 
     path("uploadmulti",                   views.uploadmulti,                  name="uploadmulti"),
 ]

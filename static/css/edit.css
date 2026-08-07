@@ -166,7 +166,6 @@ input[type="password"],
 select, 
 textarea {
  padding: 4px;
- margin-bottom: 15px;
  box-sizing: border-box;
  border: none;
  border-bottom: 1px solid #ccc;

@@ -183,3 +183,22 @@ LOGGING = {
     },
 }
 
+
+# spodnje tri vrstice poskrbijo za vernejše delo s CSRFji, vendar povzročijo
+# nekaj težav; dokler težav ne odpravim, naj bodo vrstice zakomentirane
+# (s tem tvegam, da bom spet dobil obvestilo od network administratorja
+# - glej mail v ALGator mapi z datumom 19.5.2026)
+
+#     Session Cookie Missing 'HttpOnly' Attribute
+#     url: https://kepa.fri.uni-lj.si/
+#     COOKIE NAME: csrftoken
+#     RAW COOKIE: csrftoken=5jIrD96CdDDUnK7WMO0u367DPUz1R4A7GYt43fKY0GJeTMLmroluG8wb3HbxBdks; expires=Fri, 19 Mar 2027 17:00:23 GMT; Max-Age=31449600; Path=/; SameSite=Lax
+#     
+#     Session Cookie Missing 'Secure' Attribute
+#     url: https://kepa.fri.uni-lj.si/
+#     COOKIE NAME: csrftoken
+#     RAW COOKIE: csrftoken=5jIrD96CdDDUnK7WMO0u367DPUz1R4A7GYt43fKY0GJeTMLmroluG8wb3HbxBdks; expires=Fri, 19 Mar 2027 17:00:23 GMT; Max-Age=31449600; Path=/; SameSite=Lax
+
+# CSRF_COOKIE_HTTPONLY = True
+# CSRF_COOKIE_SECURE = True      # HTTPS only
+# CSRF_COOKIE_SAMESITE = 'Lax'   

@@ -63,6 +63,7 @@ flexEditButtons.set("run_generator_tr", "");
 
 
 function enableEditMode(isEditMode, context=document){
+    document.body.classList.toggle('is-edit-mode', isEditMode);
     var editElements = context.querySelectorAll('.editMode');
 
     editElements.forEach(async function(element) {

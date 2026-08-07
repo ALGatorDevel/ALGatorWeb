@@ -152,8 +152,55 @@ Supported operators and functions:
   $for{i,1,10,1}:Tmin < \${i*10000} @N
     → For each value of N and for each algorithm, counts the number 
       of rows where Tmin < 10000, 20000, ..., 100000.
-</pre>`
+</pre>`,
 
+'vBoxHelp' : `<pre>
+Formula syntax for Values box
+────────────────────────────────────────────────────────────────────────────
+Row 0 is always the header row. Both " and ' are accepted as quote characters.
+
+── References ──────────────────────────────────────────────────────────────
+  box                      S box → scalar value
+                           other → row count (number of data rows)
+  box[n]                   row n as array  (n=0 is header; n=1 is first data row)
+  box[n]["col"]            cell at row n, named column
+  box[n][m]                cell at row n, column index m
+  box["col"]               whole column as array (data rows only, header excluded)
+  box["col"][n]            cell in named column at row n
+  box["*.Tmin"]            sub-array: only columns matching the glob pattern
+  box["QuickSort.*"]       sub-array: all QuickSort.* columns
+  box["*.*"]               sub-array: all algo·indicator columns
+  box[#n]                  V-box only: scalar value of entry #n  (not the whole row)
+  box["entryName"]         V-box named-entry lookup: value where name=="entryName"
+
+── Aggregations (SUM / AVG / MIN / MAX / COUNT / FIRST / LAST / MED) ──────────
+Aggregation argument can be any reference that returns an array.
+
+  SUM(box)                 sum all numeric values in the box
+  SUM(box["col"])          sum a specific column
+  SUM(box["*.Tmin"])       sum all *.Tmin columns
+  SUM(box["*.*"])          sum all algo·indicator columns
+  MAX(box[n])              max of all values in row n
+  MAX(box[n]["QuickSort.*"]) max of QuickSort.* values in row n
+  COUNT(box["col"])        number of values in a column
+
+── Within-box references (1-based; only previous entries) ───────────────────
+  #n                       value of entry n in this V box
+
+── Arithmetic ─────────────────────────────────────────────────────────────────
+  +  −  *  /  ( )   on any combination of the above
+
+── Examples ───────────────────────────────────────────────────────────────
+  SUM(data_1["QuickSort.Tmin"])
+  AVG(data_2["*.Tmin"])               average of all .Tmin columns
+  MIN(data_3["QuickSort.*"]) / MAX(data_3["QuickSort.*"])
+  data_4[1]["QuickSort.Tfirst"]       one cell
+  SUM(data_4[1]["QuickSort.*"])       sum QuickSort values in row 1
+  data_5["total"]                     named entry of another V box
+  data_5[#2]                          row of V-box entry #2
+  #1 + #2                             sum of entries 1 and 2 in this box
+</pre>
+`
 }
 
 
@@ -196,6 +243,9 @@ function showInfoPopup(content) {
 
   // Add the content
   popupWindow.innerHTML = content;
+
+  // Mark overlay so other ESC handlers (e.g. PDE edit panel) can detect it
+  popupOverlay.dataset.infoPopup = '1';
 
   // Append elements to the document
   document.body.appendChild(popupOverlay);

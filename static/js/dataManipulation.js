@@ -380,7 +380,7 @@ ID  i   N   A   B   C
 3   10  20  1   3   2
  */
 
-function createCountTable(table, criteria, group = null) {
+function createCountTable(table, criteria, group = null, func = 'COUNT', col = '') {
   if (!table || table.length < 2) return [];
 
   // 1. CONVERT INPUT 2D ARRAY TO OBJECTS FOR PROCESSING
@@ -396,17 +396,35 @@ function createCountTable(table, criteria, group = null) {
   const indicatorMap = new Set();
   headerRow.forEach(header => {
     if (typeof header === 'string' && header.includes('.')) {
-      // const [algo, ind] = header.split('.');
       const lastDot = header.lastIndexOf('.');
       const algo = header.substring(0, lastDot);
       const ind = header.substring(lastDot + 1);
       algoMap.add(algo);
-      indicatorMap.add(ind.toLowerCase());
+      indicatorMap.add(ind);
     }
   });
 
-  const algorithms = Array.from(algoMap);//.sort();
+  const algorithms = Array.from(algoMap);
   const indicators = Array.from(indicatorMap);
+  // Plain columns: no dot in header — same value for every algorithm
+  const plainCols = headerRow.filter(h => typeof h === 'string' && !h.includes('.'));
+
+  // Helper: reduce collected values with the chosen function
+  const applyFunc = (vals) => {
+    if (func === 'COUNT') return vals.length;
+    if (vals.length === 0) return 0;
+    if (func === 'FIRST') return vals[0];
+    if (func === 'LAST')  return vals[vals.length - 1];
+    const nums = vals.map(Number).filter(v => !isNaN(v));
+    if (nums.length === 0) return 0;
+    switch (func) {
+      case 'SUM': return parseFloat(nums.reduce((a, b) => a + b, 0).toFixed(4));
+      case 'MIN': return Math.min(...nums);
+      case 'MAX': return Math.max(...nums);
+      case 'AVG': return parseFloat((nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(4));
+      default:    return null;
+    }
+  };
 
   // 3. DSL LOOP PARSING ($for)
   let iterations = [{ i: null, varName: 'i', rawCriteria: criteria }];
@@ -419,67 +437,110 @@ function createCountTable(table, criteria, group = null) {
     }
   }
 
+  // Detect simple condition field (field op value) for threshold column
+  const rawCondTemplate = iterations[0]?.rawCriteria ?? '';
+  const condFieldMatch = rawCondTemplate.match(/^\s*(\w+)\s*(==|!=|<=|>=|<|>)\s*/);
+  const condFieldForHdr = (condFieldMatch && condFieldMatch[1] !== (group || ''))
+    ? condFieldMatch[1] : null;
+
   const resultRows = [];
   let rowId = 1;
 
   // 4. AGGREGATION LOGIC
   iterations.forEach(iter => {
+    // Resolve ${i} once per iteration (before per-row algo substitution)
+    let resolvedCriteria = iter.rawCriteria;
+    if (iter.i !== null) {
+      resolvedCriteria = resolvedCriteria.replace(/\$\{(.*?)\}/g, (_, expr) => {
+        try { return new Function(iter.varName, `return ${expr}`)(iter.i); }
+        catch { return 0; }
+      });
+    }
+
+    // Extract threshold value from resolved simple condition
+    let condThreshold = null;
+    if (condFieldForHdr) {
+      const thMatch = resolvedCriteria.match(/^\s*\w+\s*(?:==|!=|<=|>=|<|>)\s*(.+?)\s*$/);
+      if (thMatch) {
+        const v = thMatch[1].trim();
+        condThreshold = isNaN(Number(v)) ? v : Number(v);
+      }
+    }
+
     const uniqueGroups = group ? [...new Set(normalizedTable.map(r => r[group]))].sort((a,b) => a-b) : [null];
 
     uniqueGroups.forEach(groupVal => {
       const rowResult = { ID: rowId++ };
       if (iter.i !== null) rowResult[iter.varName] = iter.i;
       if (group) rowResult[group] = groupVal;
+      if (condFieldForHdr) rowResult['cond'] = condThreshold;
 
       const subset = group ? normalizedTable.filter(r => r[group] === groupVal) : normalizedTable;
 
+      // Step 1: compute aggregated values per algo (matchedRows is algo-specific)
+      const algoAgg = {}; // algo -> { ind/col -> value }
       algorithms.forEach(algo => {
-        rowResult[algo] = subset.reduce((acc, row) => {
-          let evalStr = iter.rawCriteria;
-
+        const matchedRows = subset.filter(row => {
+          let evalStr = resolvedCriteria; // ${i} already resolved
+          // Substitute plain (algorithm-independent) column values first
+          plainCols.forEach(col => {
+            const value = row[col];
+            const formattedValue = typeof value === 'string' ? `'${value}'` : value;
+            evalStr = evalStr.replace(new RegExp(`\\b${col}\\b`, 'g'), formattedValue);
+          });
+          // Then substitute algo-specific indicator values
           indicators.forEach(ind => {
             const actualKey = Object.keys(row).find(k => k.toLowerCase() === `${algo}.${ind}`.toLowerCase());
             const value = row[actualKey];
             const formattedValue = typeof value === 'string' ? `'${value}'` : value;
             evalStr = evalStr.replace(new RegExp(`\\b${ind}\\b`, 'gi'), formattedValue);
           });
+          try { return !evalStr.trim() || new Function(`return ${evalStr}`)(); }
+          catch { return false; }
+        });
 
-          if (iter.i !== null) {
-            evalStr = evalStr.replace(/\$\{(.*?)\}/g, (_, expr) => {
-              const scopeFunc = new Function(iter.varName, `return ${expr}`);
-              return scopeFunc(iter.i);
+        algoAgg[algo] = {};
+        if (func === 'COUNT') {
+          algoAgg[algo]['count'] = matchedRows.length;
+        } else if (col) {
+          const vals = matchedRows.map(row => {
+            const colKey = Object.keys(row).find(k => k.toLowerCase() === `${algo}.${col}`.toLowerCase());
+            return colKey !== undefined ? row[colKey] : null;
+          });
+          algoAgg[algo][col] = applyFunc(vals);
+        } else {
+          indicators.forEach(ind => {
+            const vals = matchedRows.map(row => {
+              const indKey = Object.keys(row).find(k => k.toLowerCase() === `${algo}.${ind}`.toLowerCase());
+              return indKey !== undefined ? row[indKey] : null;
             });
-          }
-
-          // this is not safe and it is slow:
-          // try { return acc + (eval(evalStr) ? 1 : 0); } catch (e) { return acc; }
-          try {
-            // Create a function that returns the result of the logic string
-            const checker = new Function(`return ${evalStr}`);
-            return acc + (checker() ? 1 : 0);
-          } catch (e) {
-            return acc;
-          }
-        }, 0);
+            algoAgg[algo][ind] = applyFunc(vals);
+          });
+        }
       });
+
+      // Step 2: write into rowResult in indicator-first order (matches input column order)
+      if (func === 'COUNT') {
+        algorithms.forEach(algo => { rowResult[`${algo}.count`] = algoAgg[algo]['count']; });
+      } else if (col) {
+        algorithms.forEach(algo => { rowResult[`${algo}.${col}.${func.toLowerCase()}`] = algoAgg[algo][col]; });
+      } else {
+        indicators.forEach(ind => {
+          algorithms.forEach(algo => {
+            rowResult[`${algo}.${ind}.${func.toLowerCase()}`] = algoAgg[algo][ind];
+          });
+        });
+      }
       resultRows.push(rowResult);
     });
   });
 
   // 5. CONVERT RESULT OBJECTS BACK TO 2D ARRAY
   if (resultRows.length === 0) return [];
-  
-  //const finalHeaders = Object.keys(resultRows[0]);
-  const finalHeaders = Object.keys(resultRows[0]).map(h => 
-    algorithms.includes(h) ? `${h}.count` : h
-  );  
 
-  const finalTable = [finalHeaders]; // First row is headers
-  
-  resultRows.forEach(obj => {
-    finalTable.push(Object.values(obj));
-    //finalTable.push(finalHeaders.map(h => obj[h]));
-  });
+  const finalHeaders = Object.keys(resultRows[0]);
+  const finalTable = [finalHeaders];
+  resultRows.forEach(obj => finalTable.push(finalHeaders.map(h => obj[h])));
 
   return finalTable;
 }

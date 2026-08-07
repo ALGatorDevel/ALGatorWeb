@@ -131,24 +131,25 @@ function openDialog(question, checker, inputElement=undefined, guiFormating=null
         // Append the modal to the body
         document.body.appendChild(modal);
 
+        const closeModal = () => {
+            modal.remove();
+            window.onclick = null;
+            window.removeEventListener('keydown', escHandler);
+        };
+
         // Close the modal when the close button is clicked
         const closeButton = modal.querySelector("#close-btn");
-        closeButton.onclick = function() {
-            modal.remove(); // Remove the modal from the DOM
-        }
+        closeButton.onclick = closeModal;
 
         // Close the modal if the user clicks outside of the modal content
         window.onclick = function(event) {
-            if (event.target === modal) {
-                modal.remove(); // Remove the modal from the DOM
-            }
-        }
+            if (event.target === modal) closeModal();
+        };
 
-        window.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') { // If the ESC key is pressed
-                modal.remove(); // Remove the modal from the DOM
-            }
-        });
+        const escHandler = function(event) {
+            if (event.key === 'Escape') closeModal();
+        };
+        window.addEventListener('keydown', escHandler);
 
         return modalBody;
     }

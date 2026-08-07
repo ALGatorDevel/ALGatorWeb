@@ -29,16 +29,16 @@
 </script>
 
 
-<div class="innerContent" style="overflow:hidden;" id="presentersContent"> 
+<div class="innerContent" style="" id="presentersContent"> 
   <div class='w3-container' id='newPresenter' style='display: none;'></div>
-  <div id="loading_presenters_div" style="padding: 15px;">... loading presenters</div>
+  <div id="loading_presenters_div" style="padding: 15px;">... loading presenter data <span id="loading_progress_msg">...</span></div>
   <div id="no_presenters_div"      style="padding: 15px; display: none">No presenters defined.</div>
   <div class="w3-container" id='presenters'></div>
   
-  <div id="presenters_data_panel" 
-       style="display:none; padding:10px;margin:10px; border: 1px solid rgb(204, 204, 204);  overflow: auto;">
+  <div id="presenters_data_panel"
+       style="display:none; margin:10px; border: 1px solid rgb(204, 204, 204); position: relative; overflow: hidden;">
 
-      {% include "presenter_data_editor.html" %}   
+      {% include "presenter_data_editor.html" with name="presdata" %}
 
   </div>
 

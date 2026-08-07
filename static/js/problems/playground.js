@@ -1,42 +1,45 @@
 let playgroundID = "playground";
 let numberOfViews = 1;
 let playgroundViews = new Map();
+let playgroundPde = null;
 
-let playgroundTimer = 0;
+async function fillPlaygroundDiv() {
+  playgroundPde = createPde('playground_pde');
+  await playgroundPde.init();  // always fresh — no saved state
 
-function playgroundClockOnOff(onOff) {
-  let nonactiveClock = document.getElementById('clockOf-playground');
-  let activeClock    = document.getElementById('clockOn-playground');
-  
-  nonactiveClock.style.display = onOff==0 ? ''     : 'none';
-  activeClock   .style.display = onOff==0 ? 'none' : '';
+  // prevent playground from ever overwriting the project's PDE state on the server
+  clearInterval(playgroundPde._autosaveInterval);
+  playgroundPde._autosaveInterval = null;
+  playgroundPde.savePdeState = () => {};
 
-  if (onOff==0) { // stop timer
-    clearInterval(playgroundTimer);
-    playgroundTimer = 0;
-  } else { // start timer
-    playgroundTimer = setInterval(queryChanged, 5000);
-  }
+  // refresh all views after any PDE structural or data change
+  ['saveEdit', 'confirmRemove'].forEach(method => {
+    const orig = playgroundPde[method].bind(playgroundPde);
+    playgroundPde[method] = async function(...args) {
+      await orig(...args);
+      refreshPlaygroundViews();
+    };
+  });
+  const origRenderBox = playgroundPde.renderBox.bind(playgroundPde);
+  playgroundPde.renderBox = function(...args) {
+    origRenderBox(...args);
+    refreshPlaygroundViews();
+  };
+
+  // add default Q box (safe now — autosave is disabled above)
+  await playgroundPde.addFirstClassBox(false);
+
+  document.getElementById("playgroundViewsDropdown").innerHTML += getQueryViewsDropItems();
+  setTimeout(() => { addNewPlaygroundView("Table"); }, 1000);
 }
 
-function fillPlaygroundDiv() {
-  let qElt = document.getElementById('queryEditorDiv');
-  if (qElt != null) {
-    qElt.innerHTML = '<div style="height:20px;"></div>'
-    qElt.innerHTML += getQueryHTML(playgroundID, true);
-    
-    let playgroundJSON  = getPresenterDefaultJSON();
-    pp.presenterJSONs.set(playgroundID, playgroundJSON);
-
-    fillAndWireQuery(playgroundJSON, playgroundID, queryChanged);
-    queryChanged();
-
-    document.getElementById("playgroundViewsDropdown").innerHTML += getQueryViewsDropItems();
-    $('#querySubNavBar').append(getNavBarElement("queryTitle_" + playgroundID, "Select"));
-    //$('#querySubNavBar').append(getNavBarElement("dataTitle_"  + playgroundID, "Data"));
-    
-    setTimeout(() => {addNewPlaygroundView("Table")}, 1000);
+function refreshPlaygroundViews() {
+  for (const [, view] of playgroundViews) {
+    fillDataSourceSelector('data_source_' + view.viewID, view.viewJSON["data_source"], playgroundPde);
+    view.fillControlsAfterDataChange();
+    view.draw();
   }
+  playgroundPde.updateUsageBadges();
 }
 
 function getQueryViewsDropItems(pName) {
@@ -47,17 +50,6 @@ function getQueryViewsDropItems(pName) {
   return result;
 }
 
-async function queryChanged() {
-  let playgroundJSON = pp.presenterJSONs.get(playgroundID);
-  let queryPresenterData = await getData(url, projectName, playgroundJSON);
-  presenterData.set(playgroundID, queryPresenterData);
-  drawTable(queryPresenterData, `presenterTable_${playgroundID}`, "350px", false);
-
-  for (let [viewName, view] of playgroundViews) {
-    view.fillControlsAfterDataChange();
-    view.draw();
-  };
-}
 
 function addNewPlaygroundView(viewType) {
   let viewName = viewType + "_" + (numberOfViews++);
@@ -99,10 +91,11 @@ function deletePlaygroundView(viewName) {
 }
 function deletePlaygroundViewPhase2(answer, viewName) {
   if (answer != 0) return;
-  
+
   $(`#playgroundViewTitle_${viewName}`).remove();
   $(`#qeElt_playgroundViewTitle_${viewName}`).remove();
   playgroundViews.delete(viewName);
+  playgroundPde.updateUsageBadges();
 }
 
 

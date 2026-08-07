@@ -53,6 +53,21 @@ def setPresenterData(problemName, presenterDICT, uid="__internal__"):
     requestString = f'alter {{"Action":"SavePresenter", "ProjectName":"{problemName}", "PresenterName": {json.dumps(presenterDICT["Name"])}, "PresenterData": {json.dumps(presenterDICT)}}}'
     presenterJSON = connector.talkToServer(requestString, uid)
 
+def getPdeState(projectName, uid="__internal__"):
+    try:
+        resp = json.loads(connector.talkToServer(
+            f'getData {{"Type":"PdeState", "ProjectName":"{projectName}"}}', uid))
+        if resp.get("Status") == 0:
+            return resp.get("Answer")
+    except Exception:
+        pass
+    return None
+
+def setPdeState(projectName, pdeState, uid="__internal__"):
+    connector.talkToServer(
+        f'alter {{"Action":"SavePdeState", "ProjectName":"{projectName}", "PdeState":{pdeState}}}', uid)
+
+
 def replaceStaticLinks(html_string, problemName):
     for sLink in re.findall(r'%static{([^}]+)}', html_string):
         newName = f"/media/ProjectDocs/{problemName}/{sLink}"

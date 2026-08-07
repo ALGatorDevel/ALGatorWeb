@@ -1,10 +1,10 @@
         :root {
             --bg-color: #f0f2f5;
-            --type-Q: #3498db; 
-            --type-A: #2ecc71; 
-            --type-F: #f39c12; 
-            --type-P: #9b59b6; 
-            --type-R: #e74c3c;
+            --type-Q: #3d7daa;
+            --type-A: #3a8a5c;
+            --type-F: #a07820;
+            --type-P: #715a8e;
+            --type-R: #a84540;
         }
 
 
@@ -21,7 +21,7 @@
             background-size: 20px 20px;
         }
 
-        #diagram_canvas { position: relative; min-width: 5000px; min-height: 5000px; z-index: 1; }
+        .diagram_canvas { position: relative; min-width: 5000px; min-height: 5000px; z-index: 1; }
         
         /* FIX: Increased z-index to ensure it is visible above the background */
         .svg-layer { 
@@ -51,6 +51,10 @@
             display: flex; align-items: center; gap: 6px; flex: 1;
         }
 
+        .pde_box-type-icon {
+            font-size: 13px; opacity: 0.80; flex-shrink: 0;
+        }
+
         .pde_header-actions { display: flex; gap: 4px; align-items: center; }
 
         .pde_icon-btn {
@@ -72,11 +76,13 @@
         }
 
         .pde_edit-icon-btn {
-            background: rgba(0,0,0,0.15); color: white; border: none; border-radius: 3px;
-            width: 24px; height: 24px; cursor: pointer; display: flex;
+            background: #f4f4f4; color: #444; border: 1px solid #bbb; border-radius: 4px;
+            width: 26px; height: 26px; cursor: pointer; display: flex;
             align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+            transition: background 0.15s, box-shadow 0.15s, transform 0.12s;
         }
-        .pde_edit-icon-btn:hover { background: rgba(0,0,0,0.3); }
+        .pde_edit-icon-btn:hover { background: #bfdbfe; color: #1e40af; border-color: #60a5fa; box-shadow: 0 3px 8px rgba(29,78,216,0.25); transform: translateY(-1px); }
 
         .pde_data-area {
             padding: 8px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 3px;
@@ -123,11 +129,13 @@
         }
 
         .pde_data-icon-btn {
-            background: rgba(0,0,0,0.15); color: white; border: none; border-radius: 3px;
-            width: 20px; height: 20px; cursor: pointer; display: flex;
+            background: #f4f4f4; color: #444; border: 1px solid #bbb; border-radius: 4px;
+            width: 22px; height: 22px; cursor: pointer; display: flex;
             align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+            transition: background 0.15s, box-shadow 0.15s, transform 0.12s;
         }
-        .pde_data-icon-btn:hover { background: rgba(0,0,0,0.3); }
+        .pde_data-icon-btn:hover { background: #bbf7d0; color: #166534; border-color: #4ade80; box-shadow: 0 3px 8px rgba(21,128,61,0.25); transform: translateY(-1px); }
 
         .pde_color-Q { background-color: var(--type-Q); }
         .pde_color-A { background-color: var(--type-A); }
@@ -137,15 +145,17 @@
 
         .pde_creation-string {
             background: #f0f4f8; padding: 5px; font-family: monospace; font-size: 11px;
-            white-space: normal; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis;
+            white-space: normal; word-wrap: break-word; overflow: auto; text-overflow: ellipsis;
             border: 1px solid #d0d8e0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
             min-height: 30px; border-radius: 3px;
         }
 
         .pde_is-editing .pde_header-actions { display: none; }
+        .pde_has-editing .pde_icon-btn, .pde_has-editing .pde_edit-icon-btn { display: none; }
 
-        .pde_edit-panel { display: none; padding: 12px; background: #fff; flex-grow: 1; border-top: 1px solid #ddd; }
-        .pde_edit-panel textarea { width: 100%; height: calc(100% - 45px); box-sizing: border-box; font-family: monospace; }
+        .pde_edit-panel { display: none; flex-direction: column; min-height: 0; padding: 12px; background: #fff; flex-grow: 1; border-top: 1px solid #ddd; }
+        .pde_edit-panel_center { width: 100%; flex: 1; min-height: 0; overflow: auto; box-sizing: border-box; }
+
 
         .pde_modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -157,11 +167,42 @@
             text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             min-width: 300px;
         }
+        .pde_modal-derive {
+            max-width: 680px; width: 90vw; text-align: left;
+        }
         .pde_modal-footer { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
         .pde_modal-footer button { flex: 1; min-width: 80px; }
 
-        #modal_type_buttons {
-            display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 15px 0;
+        /* ── Derive-type card grid ───────────────────────────────── */
+        .pde_type-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            margin: 16px 0 4px;
+        }
+        .pde_type-card {
+            border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;
+            cursor: pointer; background: #fff;
+            transition: box-shadow 0.15s, transform 0.12s;
+        }
+        .pde_type-card:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15); transform: translateY(-2px);
+        }
+        .pde_type-card-top {
+            display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+        }
+        .pde_type-icon {
+            font-size: 15px; color: rgba(255,255,255,0.9); flex-shrink: 0; width: 18px; text-align: center;
+        }
+        .pde_type-name {
+            font-weight: 700; font-size: 14px; color: white; flex: 1;
+        }
+        .pde_type-key {
+            font-size: 11px; font-weight: 800; font-family: monospace;
+            background: rgba(0,0,0,0.18); color: white;
+            border-radius: 4px; padding: 1px 6px; letter-spacing: 0.5px;
+        }
+        .pde_type-desc {
+            padding: 10px 14px 12px; font-size: 12px; color: #444;
+            margin: 0; line-height: 1.5;
         }
 
         .pde_confirm-modal {
@@ -177,9 +218,294 @@
         .pde_confirm-modal-footer { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; gap: 10px; }
         .pde_confirm-modal-footer button { flex: 1; }
 
-        .pde_panel-toolbar {
-            position: fixed; top: 20px; right: 20px; display: flex; gap: 12px; z-index: 100;
+        .pde_edit-form {
+            display: flex; flex-direction: column; gap: 10px; padding: 6px 8px; height: 100%; box-sizing: border-box;
         }
-        .pde_panel-toolbar button { padding: 8px 16px; cursor: pointer; border-radius: 4px; border: 1px solid #999;
-            background: #fff; font-weight: 600; transition: background 0.2s; }
-        .pde_panel-toolbar button:hover { background: #f0f0f0; }
+        .pde_form-row {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .pde_form-label {
+            color: #777; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+            font-weight: 700; white-space: nowrap; flex-shrink: 0; align-self: center;
+        }
+        .pde_func-btn {
+            flex: 1; padding: 5px 4px; cursor: pointer; border: 1px solid #ccc;
+            border-radius: 3px; background: #f5f5f5; font-size: 11px; font-weight: 700;
+            transition: background 0.15s, color 0.15s;
+        }
+        .pde_func-btn:hover  { background: #e0e0e0; }
+        .pde_func-btn.active { background: #3498db; color: white; border-color: #2980b9; }
+        .pde_result-display {
+            padding: 10px 8px; background: #f0f4f8; border: 1px solid #d0d8e4;
+            border-radius: 4px; text-align: center; font-size: 1.25em; color: #222;
+        }
+        .pde_table-area {
+            flex: 1; min-height: 0; overflow: hidden;
+        }
+
+        .pde_panel-toolbar {
+            position: absolute; top: 10px; right: 20px; display: flex; gap: 6px;
+            z-index: 2; align-items: center;
+        }
+        .pde_tb-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 11px; cursor: pointer;
+            border-radius: 20px; border: 1px solid #c8c8c8;
+            background: #fff; color: #333;
+            font-size: 12px; font-weight: 600; line-height: 1;
+            box-shadow: 0 1px 3px rgba(0,0,0,.12);
+            transition: background .15s, box-shadow .15s;
+            white-space: nowrap; user-select: none;
+        }
+        .pde_tb-btn:hover {
+            background: #f0f4ff; border-color: #a0a8c0;
+            box-shadow: 0 2px 5px rgba(0,0,0,.16);
+        }
+        .pde_tb-btn:active { background: #e2e8f8; }
+        .pde_tb-btn i { font-size: 11px; color: #555; }
+
+        .pde_zoom-control { position: relative; }
+
+        .pde_zoom-menu {
+            position: absolute; top: calc(100% + 4px); right: 0;
+            background: #fff; border: 1px solid #ccc; border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0,0,0,.15);
+            padding: 4px 0; min-width: 80px; z-index: 9999;
+        }
+        .pde_zoom-menu button {
+            display: block; width: 100%; padding: 5px 16px;
+            text-align: center; font-size: 12px; font-weight: 600;
+            background: none; border: none; cursor: pointer; color: #333;
+            transition: background .1s;
+        }
+        .pde_zoom-menu button:hover { background: #f0f4ff; }
+        .pde_zoom-menu button.pde_zoom-active {
+            color: #2563eb; background: #eff4ff;
+        }
+
+        /* ── T box: column-list editor ─────────────────────────── */
+        .pde_t-col-header {
+            display: flex; align-items: center; gap: 4px; padding: 4px 6px;
+            background: #f5f5f5; border-bottom: 1px solid #ddd; flex-shrink: 0;
+            font-size: 10px; font-weight: 700; color: #555;
+            text-transform: uppercase; letter-spacing: 0.4px; user-select: none;
+        }
+
+        .pde_t-col-row {
+            display: flex; align-items: center; gap: 4px; padding: 3px 6px;
+            border-bottom: 1px solid #f0f0f0; min-height: 30px;
+        }
+        .pde_t-col-row:hover { background: #fafcff; }
+
+        .pde_t-updn-wrap { display: flex; flex-direction: column; gap: 1px; width: 18px; flex-shrink: 0; }
+
+        .pde_t-updn-btn {
+            width: 18px; height: 13px; padding: 0; font-size: 8px;
+            border: 1px solid #ccc; background: #f5f5f5; cursor: pointer;
+            border-radius: 2px; display: flex; align-items: center; justify-content: center;
+            line-height: 1;
+        }
+        .pde_t-updn-btn:hover:not(:disabled) { background: #e0e0e0; }
+        .pde_t-updn-btn:disabled { opacity: 0.3; cursor: default; }
+
+        .pde_t-name-inp {
+            width: 110px; flex-shrink: 0; font-size: 11px; padding: 2px 4px;
+            border: 1px solid #ccc; border-radius: 3px; font-family: monospace;
+        }
+
+        .pde_t-src-sel {
+            flex: 0 0 110px; font-size: 11px; padding: 2px; border: 1px solid #ccc; border-radius: 3px;
+        }
+
+        .pde_t-col-sel {
+            flex: 1; font-size: 11px; padding: 2px; border: 1px solid #ccc; border-radius: 3px;
+        }
+
+        .pde_t-formula-inp {
+            flex: 1; font-family: monospace; font-size: 11px; padding: 2px 5px;
+            border: 1px solid #c5b4e0; border-radius: 3px; background: #fdf8ff;
+        }
+        .pde_t-formula-inp:focus { outline: 2px solid #9b59b6; border-color: #9b59b6; }
+
+        .pde_t-del-btn {
+            flex-shrink: 0; width: 22px; height: 22px; padding: 0; border: none;
+            background: none; cursor: pointer; border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+            color: #e74c3c; font-size: 11px;
+        }
+        .pde_t-del-btn:hover { background: #fde8e8; }
+
+        /* ── Variable chips ─────────────────────────────────────── */
+        .pde_var-chip {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            background: #ede7f6; color: #6a1b9a; font-size: 10px; font-family: monospace;
+            cursor: pointer; border: 1px solid #ce93d8; white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .pde_var-chip:hover { background: #d1c4e9; }
+
+        /* hide filter input when variables section is collapsed */
+        details:not([open]) .pde_t-vars-filter { display: none; }
+
+        /* ── C box ──────────────────────────────────────────────── */
+        .pde_var-chip-loop {
+            background: #fce4ec; color: #c62828; border-color: #ef9a9a;
+        }
+        .pde_var-chip-loop:hover { background: #f8bbd0; }
+
+        .pde_c-full-str {
+            flex: 1; font-family: monospace; font-size: 11px; padding: 4px 6px;
+            background: #f0f4f8; border: 1px solid #d0d8e0; border-radius: 3px;
+            color: #555; word-break: break-all; min-height: 22px;
+        }
+
+        /* ── GF box editor ──────────────────────────────────────── */
+        .gf-op-card {
+            border: 1px solid #e0e0e0; border-radius: 6px; background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+        }
+        .gf-op-filter  { border-left: 4px solid #c07820; }
+        .gf-op-groupby { border-left: 4px solid #6a4e9e; }
+
+        .gf-op-header {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 8px; background: #f8f8f8; border-bottom: 1px solid #ebebeb;
+            user-select: none;
+        }
+        .gf-op-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.5px; padding: 2px 7px; border-radius: 10px; flex-shrink: 0;
+        }
+        .gf-badge-filter  { background: #fff3e0; color: #a05810; border: 1px solid #f0b060; }
+        .gf-badge-groupby { background: #ede7f6; color: #5e3a8c; border: 1px solid #c9afe8; }
+
+        .gf-updn-btn {
+            width: 18px; height: 18px; padding: 0; border: 1px solid #ccc;
+            background: #f5f5f5; border-radius: 3px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 9px;
+        }
+        .gf-updn-btn:hover:not(:disabled) { background: #e0e0e0; }
+        .gf-updn-btn:disabled { opacity: 0.3; cursor: default; }
+
+        .gf-del-op-btn {
+            margin-left: auto; width: 22px; height: 22px; padding: 0; border: none;
+            background: none; cursor: pointer; border-radius: 3px; color: #c0392b;
+            display: flex; align-items: center; justify-content: center; font-size: 13px;
+        }
+        .gf-del-op-btn:hover { background: #fde8e8; }
+
+        .gf-clauses {
+            display: flex; flex-direction: column; gap: 4px; padding: 6px 8px 4px;
+        }
+        .gf-clause-row {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .gf-bool-btn {
+            font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px;
+            border: 1px solid #bbb; background: #f0f0f0; cursor: pointer; min-width: 28px;
+            text-align: center; transition: background 0.15s, color 0.15s;
+        }
+        .gf-bool-btn:hover { background: #e0e0e0; }
+        .gf-bool-btn.and { background: #e8f4fd; color: #1a6a9a; border-color: #90c8ee; }
+        .gf-bool-btn.or  { background: #fef3e2; color: #9a5a00; border-color: #f0b860; }
+
+        .gf-add-clause-row {
+            padding: 2px 8px 6px; display: flex;
+        }
+        .gf-add-clause-btn {
+            font-size: 11px; font-weight: 600; padding: 3px 10px; cursor: pointer;
+            border: 1px dashed #aaa; background: #fafafa; border-radius: 4px; color: #666;
+        }
+        .gf-add-clause-btn:hover { background: #f0f0f0; border-color: #888; color: #333; }
+
+        .gf-col-sel, .gf-op-sel, .gf-cond-col-sel, .gf-cond-op-sel {
+            font-size: 11px; padding: 2px 3px; border: 1px solid #ccc; border-radius: 3px;
+        }
+        .gf-col-sel, .gf-cond-col-sel { flex: 0 0 110px; min-width: 0; }
+        .gf-op-sel, .gf-cond-op-sel   { flex: 0 0 52px; }
+
+        .gf-val-inp, .gf-cond-val-inp {
+            flex: 1; min-width: 0; font-family: monospace; font-size: 11px;
+            padding: 2px 4px; border: 1px solid #ccc; border-radius: 3px;
+        }
+
+        .gf-del-clause-btn {
+            flex-shrink: 0; width: 20px; height: 20px; padding: 0; border: none;
+            background: none; cursor: pointer; border-radius: 3px; color: #e74c3c;
+            display: flex; align-items: center; justify-content: center; font-size: 11px;
+        }
+        .gf-del-clause-btn:hover { background: #fde8e8; }
+
+        /* ── GroupBy card body ──────────────────────────────────── */
+        .gf-addons {
+            display: flex; flex-direction: column; gap: 4px; padding: 6px 8px 4px;
+        }
+        .gf-addon-row {
+            display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+        }
+        .gf-colon {
+            font-size: 12px; font-weight: 700; color: #888; flex-shrink: 0;
+        }
+
+        .gf-field-sel, .gf-pat-sel, .gf-func-sel {
+            font-size: 11px; padding: 2px 3px; border: 1px solid #ccc; border-radius: 3px;
+        }
+        .gf-field-sel { min-width: 80px; }
+        .gf-pat-sel   { flex: 0 0 80px; }
+        .gf-func-sel  { flex: 0 0 72px; }
+
+        .gf-cond-btn {
+            font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px;
+            border: 1px solid #bbb; background: #f5f5f5; cursor: pointer; flex-shrink: 0;
+            transition: background 0.15s, color 0.15s; color: #666;
+        }
+        .gf-cond-btn:hover  { background: #e8e8e8; }
+        .gf-cond-btn.active { background: #e8f4fd; color: #1a6a9a; border-color: #90c8ee; }
+
+        .gf-full-str {
+            font-family: monospace; font-size: 11px; padding: 5px 7px;
+            background: #f0f4f8; border: 1px solid #d0d8e0; border-radius: 4px;
+            color: #446; min-height: 24px; word-break: break-all; white-space: pre-wrap;
+            flex-shrink: 0;
+        }
+
+        /* ── Usages button & popup ──────────────────────────────────── */
+        .pde_usages-btn { position: relative; }
+
+        .pde_usages-badge {
+            display: none;
+            position: absolute; top: -4px; right: -4px;
+            background: #e74c3c; color: white;
+            font-size: 9px; font-weight: 700; line-height: 1;
+            min-width: 14px; height: 14px; border-radius: 7px;
+            align-items: center; justify-content: center;
+            padding: 0 2px; pointer-events: none;
+        }
+
+        .pde_usages-popup {
+            position: fixed; z-index: 9000;
+            background: white; border: 1px solid #ccc; border-radius: 6px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            min-width: 180px; max-width: 300px;
+            font-size: 12px; overflow: hidden;
+        }
+        .pde_usages-header {
+            padding: 6px 10px; background: #f0f4f8;
+            border-bottom: 1px solid #dde; font-weight: 700; color: #444;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .pde_usages-item {
+            display: flex; align-items: center; gap: 7px;
+            padding: 5px 10px; border-bottom: 1px solid #f0f0f0;
+            color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .pde_usages-item:last-child { border-bottom: none; }
+        .pde_usages-presenter {
+            margin-left: auto; font-size: 10px; color: #999;
+            background: #f5f5f5; border-radius: 3px; padding: 1px 5px;
+            white-space: nowrap;
+        }
+        .pde_usages-empty {
+            padding: 10px; color: #888; font-style: italic; text-align: center;
+        }

@@ -1,48 +1,77 @@
-    <div>
+    <div style="position: relative; width: 100%; height: 100%;">
         <div class="pde_panel-toolbar">
-            <button onclick="pde.addFirstClassBox()"><i class="fas fa-plus"></i> Add Query</button>
-            <button onclick="pde.centerFirstBox()"><i class="fas fa-crosshairs"></i></button>
+            <button class="pde_tb-btn" onclick="pde_{{ name }}.addFirstClassBox()" title="Add Query">
+                <i class="fas fa-plus"></i><span>Add Query</span>
+            </button>
+            <button class="pde_tb-btn" onclick="pde_{{ name }}.centerActiveBox()" title="Center active box">
+                <i class="fas fa-crosshairs"></i><span>Center</span>
+            </button>
+            <div class="pde_zoom-control" style="position:relative;">
+                <button class="pde_tb-btn pde_zoom-toggle" id="{{ name }}_zoom_label"
+                        onclick="pde_{{ name }}.toggleZoomMenu(this)" title="Set zoom level">
+                    <i class="fas fa-search"></i><span>100%</span><i class="fas fa-caret-down" style="margin-left:3px;font-size:9px;opacity:.7;"></i>
+                </button>
+                <div id="{{ name }}_zoom_menu" class="pde_zoom-menu" style="display:none;"></div>
+            </div>
+            <button class="pde_tb-btn" onclick="pde_{{ name }}.autoLayout()" title="Auto-arrange boxes left to right">
+                <i class="fas fa-sitemap"></i><span>Arrange</span>
+            </button>
         </div>
-        <div id="diagram_canvas">
-            <svg class="svg-layer" id="svg_connections">
-                <defs>
-                    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" 
-                            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#444" />
-                    </marker>
-                </defs>
-            </svg>
-        </div>
-    </div>
-
-    <div id="type_modal" class="pde_modal">
-        <div class="pde_modal-content">
-            <h3>Select Box Type</h3>
-            <div id="modal_type_buttons"></div>
-            <div class="pde_modal-footer">
-                <button onclick="document.getElementById('type_modal').style.display='none'" style="background: #eee; border: 1px solid #ccc;">Cancel</button>
+        <div id="{{ name }}_scroll" style="overflow: auto; width: 100%; height: 100%;">
+            <div id="{{ name }}_diagram_canvas" class="diagram_canvas">
+                <svg class="svg-layer" id="{{ name }}_svg_connections">
+                    <defs>
+                        <marker id="{{ name }}_arrowhead" viewBox="0 0 10 10" refX="9" refY="5"
+                                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#444" />
+                        </marker>
+                    </defs>
+                </svg>
             </div>
         </div>
     </div>
 
-    <div id="confirm_modal" class="pde_confirm-modal">
+    <div id="{{ name }}_type_modal" class="pde_modal">
+        <div class="pde_modal-content pde_modal-derive">
+            <h3 style="margin:0 0 4px; font-size:17px; color:#222;">Add a derived box</h3>
+            <p style="margin:0 0 2px; font-size:12px; color:#888;">Select the type of box to derive from this source.</p>
+            <div id="{{ name }}_modal_type_buttons" class="pde_type-grid"></div>
+            <div class="pde_modal-footer">
+                <button onclick="pde_{{ name }}.closeDeriveModal()" style="background:#eee; border:1px solid #ccc;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="{{ name }}_confirm_modal" class="pde_confirm-modal">
         <div class="pde_confirm-modal-content">
             <h3>Confirm Removal</h3>
-            <p id="confirm_message">Are you sure? This will remove this box and all its descendants.</p>
+            <p id="{{ name }}_confirm_message">Are you sure? This will remove this box and all its descendants.</p>
             <div class="pde_confirm-modal-footer">
-                <button onclick="pde.confirmRemove(false)" style="background: #eee; border: 1px solid #ccc;">Cancel</button>
-                <button onclick="pde.confirmRemove(true)" style="background: #e74c3c; color: white; border: 1px solid #c0392b;">Remove</button>
+                <button onclick="pde_{{ name }}.confirmRemove(false)" style="background: #eee; border: 1px solid #ccc;">Cancel</button>
+                <button onclick="pde_{{ name }}.confirmRemove(true)" style="background: #e74c3c; color: white; border: 1px solid #c0392b;">Remove</button>
             </div>
         </div>
     </div>
 
-    <div id="rename_modal" class="pde_confirm-modal">
+    <div id="{{ name }}_alert_modal" class="pde_confirm-modal" style="z-index: 4000;">
+        <div class="pde_confirm-modal-content">
+            <p id="{{ name }}_alert_message" style="margin: 0 0 4px 0;"></p>
+            <div class="pde_confirm-modal-footer" style="justify-content: center;">
+                <button onclick="document.getElementById('{{ name }}_alert_modal').style.display='none'"
+                        style="background: #3498db; color: white; border: 1px solid #2980b9;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="{{ name }}_rename_modal" class="pde_confirm-modal">
         <div class="pde_confirm-modal-content">
             <h3>Rename Box</h3>
-            <input type="text" id="rename_input" placeholder="Enter new box name" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; margin: 15px 0;" onkeydown="if(event.key==='Enter') pde.confirmRename(); if(event.key==='Escape') pde.cancelRename();">
+            <input type="text" id="{{ name }}_rename_input" placeholder="Enter new box name"
+                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; margin: 15px 0;"
+                   onkeydown="if(event.key==='Enter') pde_{{ name }}.confirmRename(); if(event.key==='Escape') pde_{{ name }}.cancelRename();">
             <div class="pde_confirm-modal-footer">
-                <button onclick="pde.cancelRename()" style="background: #eee; border: 1px solid #ccc;">Cancel</button>
-                <button onclick="pde.confirmRename()" style="background: #3498db; color: white; border: 1px solid #2980b9;">Rename</button>
+                <button onclick="pde_{{ name }}.cancelRename()" style="background: #eee; border: 1px solid #ccc;">Cancel</button>
+                <button onclick="pde_{{ name }}.confirmRename()" style="background: #3498db; color: white; border: 1px solid #2980b9;">Rename</button>
             </div>
         </div>
     </div>

@@ -9,7 +9,7 @@ from Classes.NEntities import getValue, read_entities, read_project, read_testse
     read_testsets_common_files, read_entity
 from ausers.ausers import try_get_user
 from ausers.autools import is_valid_request_and_data, au_response
-from problems.utils import replaceStaticLinks, updateResourcesIfNeeded, getPresentersData, getPresenter
+from problems.utils import replaceStaticLinks, updateResourcesIfNeeded, getPresentersData, getPresenter, getPdeState, setPdeState
 
 def get_computer_familes(request: HttpResponse) -> HttpResponse:
     try:
@@ -218,6 +218,24 @@ def get_presenter(request: HttpResponse, data: dict) -> HttpResponse:
 
   return au_response([presenterName, presenter])
 
+
+def get_pde_state(request: HttpResponse, data: dict) -> HttpResponse:
+  fields = ['ProjectName']
+  if not is_valid_request_and_data(request, data, fields):
+    return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
+
+  uid = try_get_user(request)
+  state = getPdeState(data['ProjectName'], uid)
+  return au_response(state)
+
+def save_pde_state(request: HttpResponse, data: dict) -> HttpResponse:
+  fields = ['ProjectName', 'pde_state']
+  if not is_valid_request_and_data(request, data, fields):
+    return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
+
+  uid = try_get_user(request)
+  setPdeState(data['ProjectName'], data['pde_state'], uid)
+  return au_response('ok')
 
 def get_presenters(request: HttpResponse, data: dict) -> HttpResponse:
   fields = ['ProjectName']

@@ -5,7 +5,7 @@
 
 <div style="height:50px;"></div>
   
-<div id="querySubNavBar" class="subNavBar">
+<div id="querySubNavBar" class="subNavBar" style="position: relative; z-index: 10;">  
       <div class="myPlusDropdown" id="queryDropdown" style="float:right; margin-top:-3px;">
           <i class="far fa-plus-square icon" id="queryDropdownIcon"></i>&nbsp;&nbsp;
           <div class="myPlusDropdown-content" id="playgroundViewsDropdown" style="left: 10px; border:1px solid black">
@@ -14,10 +14,14 @@
       </div>
 </div>      
 
-<div id="playgroundInnerContent" class="innerContent" style="width:100%">
-  <div class="w3-container">
-    <div id="queryEditorDiv" class="w3-row" ></div>
-    <div id="queryViewsDiv"  class="w3-container"></div>
+<div id="playgroundInnerContent" style="width:100%; overflow-y: auto; height: calc(100vh - 81px);">
+  <div class="xw3-container">
+    
+    <div class="box" style="height: calc(75vh - 110px); overflow:hidden; position:relative; background-image: radial-gradient(#ddd 1px, transparent 1px); background-size: 20px 20px;">
+      {% include "presenter_data_editor.html" with name="playground_pde" %}
+    </div>
+    
+    <div id="queryViewsDiv"  class="xw3-container"></div>
   </div>
 </div>
 

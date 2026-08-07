@@ -120,16 +120,23 @@ a{
 /* projectDescription */
 
 .presenterBox {
-    padding: 20px;
-    height: 450px;
-    margin: 10px;
-    border: solid;
+    padding: 5px;
+    margin: 5px;
+    xborder: solid;
     border-width: 1px;
     border-color: lightgrey;
     border-radius: 5px;
     display: flex;
     flex-direction: column;
+    min-height: 20px;
   }
+
+.viewContainer {
+  border: none;
+}
+body.is-edit-mode .viewContainer {
+  border: 1px solid #E9E9E9;
+}
   
 .ptitle {
     border-style: outset; 
@@ -143,9 +150,19 @@ a{
 
   
   .icons-container {
-    margin-bottom: 20px;
-    text-align: right;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
+
+  .aview-expand-btn {
+    opacity: 0.45;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    font-size: 13px;
+  }
+  .aview-expand-btn:hover { opacity: 1; }
   
 .icon { 
     vertical-align: middle;
@@ -220,7 +237,7 @@ a{
         padding: 0px;
         box-sizing: border-box;
         overflow: hidden; /* Hide overflow content */
-        z-index: 1;
+        z-index: 100;
     }
 
     /* Content style */

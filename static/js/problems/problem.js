@@ -1,4 +1,3 @@
-presenterData    = new Map();
 descriptionViews = new Map();
 var isSidebarOpen = true;
 
@@ -153,10 +152,29 @@ async function getSideBarItemsHTML(topItems) {
 // pages that have already been displayed
 const displayedPages  = new Set();
 
-function showSectionSideNavbar(sectionId) {
-  if (sectionId==="algatorshell") {
+async function showSectionSideNavbar(sectionId) {
+  if (sectionId === "algatorshell") {
     openShellInWindow();
     return;
+  }
+
+  // Guard: if a presenter view or PDE box is being edited, ask before navigating away.
+  if (typeof anyEditActive === 'function' && anyEditActive()) {
+    // Bring the editing presenter into view so the user sees what the question is about.
+    if (typeof presenterEditActive === 'function' && presenterEditActive()) {
+      const editingName = typeof getActivePresenterName === 'function' ? getActivePresenterName() : null;
+      if (editingName) {
+        if (typeof showCorPresenterDiv === 'function') showCorPresenterDiv(true, false);
+        if (typeof selectTab === 'function') selectTab('presenters', editingName);
+        if (typeof scrollToPresenter === 'function') scrollToPresenter(editingName);
+        await new Promise(r => setTimeout(r, 80));
+      }
+    }
+    const save = typeof showEditGuardModal === 'function'
+      ? await showEditGuardModal('The current view has unsaved changes.<br>Save and leave this page?')
+      : false;
+    if (save === false) return;   // Cancel / ESC — stay
+    if (typeof saveActiveEdit === 'function') await saveActiveEdit();
   }
 
   sections.forEach(function(id) {
@@ -353,6 +371,7 @@ async function showProblemDescription() {
   pageProject.waitForDataToLoad(["get_computer_familes", "get_project_general_data", "get_project_properties"], 
       false, {'ProjectName': projectName});
   pp.waitForDataToLoad(["get_presenters"], false, {'ProjectName': projectName});
+  preloadAllPresenters();
   
   formatMath(descCont);
 }
@@ -482,7 +501,7 @@ async function showPlayground() {
     await pageProject.waitForDataToLoad(["get_project_properties"], false, {'ProjectName':projectName});
     playgroungFilled = true;
     fillPlaygroundDiv();  
-    fillAndWireQuery(getPresenterDefaultJSON(), playgroundID, queryChanged);
+    //fillAndWireQuery(getPresenterDefaultJSON(), playgroundID, queryChanged);
   }
 }
 
@@ -501,3 +520,11 @@ function showAlgatorShell() {
     $("#algatorshell_container").load("/ashell/", {'project' : projectName,       csrfmiddlewaretoken : window.CSRF_TOKEN});
   }
 }
+
+// Warn the user if they try to close/reload the browser tab while an edit is active.
+window.addEventListener('beforeunload', function(e) {
+  if (typeof anyEditActive === 'function' && anyEditActive()) {
+    e.preventDefault();
+    e.returnValue = ''; // required for Chrome to show the native "Leave site?" dialog
+  }
+});

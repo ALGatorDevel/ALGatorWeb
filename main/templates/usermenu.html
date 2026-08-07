@@ -2,7 +2,7 @@
   <span class="w3-bar-item navBarEl">          
     <i class="fa fa-user"></i>{% if request.user.is_authenticated %}<span>&nbsp;User: {{ request.user.username }}&nbsp;</span>{% endif %} <i class="fa et-down"></i>
   </span>
-  <div class="w3-dropdown-content w3-bar-block w3-border" style="right:0; margin-right:22px">
+  <div id="userMenuDiv" class="w3-dropdown-content w3-bar-block w3-border" style="right:0; margin-right:22px">
     {% if request.user.is_authenticated %}
       <span onclick="redirectToUrlWithPathAndParams('/ausers/settings', {'homepoint': true })" class="w3-bar-item w3-button">
           <i class="fas fa-user"></i> Settings

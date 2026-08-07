@@ -20,21 +20,26 @@ function makeDraggable() {
     if(isEditMode){
         $('.draggable').draggable({
             revert: "invalid",
+            refreshPositions: true,
             start: function(event, ui) {
-                var draggedElement = $(this); 
+                var draggedElement = $(this);
                 draggedElement.css('opacity', 0.5);
-        
+                // Hide the resize handle while dragging — it would otherwise
+                // collapse to the top-left when .draggable leaves the flex flow
+                draggedElement.closest('.presenterBox').find('.view-resize-handle').hide();
+
                 var draggedRow = draggedElement.closest('.w3-row');
                 var presenter = draggedElement.data('presenter-name');
-        
+                var draggedHeight = draggedElement.closest('.presenterBox').outerHeight() || 200;
+
                 var container = $('.' + draggedElement.data('presenter-name'));
                 var rows = container.find('.w3-row');
                 var lastRow = rows.last();
                 rows.each(function(index) {
-                    var currentRow = $(this); 
+                    var currentRow = $(this);
                     // v vrstico iz katere smo vzeli stolpec ne dodamo nov stolpec
                     if (!currentRow.is(draggedRow)) {
-                        addDropableCol(currentRow, presenter); 
+                        addDropableCol(currentRow, presenter);
                         updateColClassesAndIds(currentRow, presenter);
                     }
                 });
@@ -45,12 +50,30 @@ function makeDraggable() {
                 else{
                     addNewRow(presenter);
                 }
-    
-        
+
+                var firstRow = rows.first();
+                if (draggedRow.is(firstRow)) {
+                    if (draggedRow.find('.w3-col').length != 1)
+                        addFirstRow(presenter);
+                } else {
+                    addFirstRow(presenter);
+                }
+
+                // Insert 20px interstitial placeholders between every adjacent pair
+                // of original rows (first/last gaps are already covered above).
+                rows.each(function(index) {
+                    if (index < rows.length - 1) {
+                        addRowAfter($(this), presenter);
+                    }
+                });
+
+
             },
             stop: function(event, ui) {
-                $(this).css('opacity', 1); 
-                var closestPresenter = $(this).closest("[data-presenter-name]"); 
+                $(this).css('opacity', 1);
+                // Restore any resize handles that were hidden on drag start
+                $('.view-resize-handle').show();
+                var closestPresenter = $(this).closest("[data-presenter-name]");
                 removeColsWithoutIconsContainer(closestPresenter.data('presenter-name'))
             },
             zIndex: 10000
@@ -106,7 +129,40 @@ function getNewLayout(presenter){
     return newLayout;
 }
 
-function addNewRow(presenter) {
+function makePlaceholderDropTarget(presenter, height) {
+    height = height || 80;
+    var dropTarget = $('<div>').addClass('drop-target presenterBox')
+                               .attr('data-presenter-name', presenter)
+                               .css({ margin: '10px', height: height + 'px' });
+    var draggable  = $('<div>').addClass('draggable').attr('data-presenter-name', presenter);
+    dropTarget.append(draggable);
+    return dropTarget;
+}
+
+function addFirstRow(presenter, height) {
+    var container = $('.' + presenter);
+    var firstRow  = container.find('.w3-row').first();
+    if (!firstRow.length) return;
+
+    var newRow = $('<div>').addClass('w3-row');
+    var newCol = $('<div>').addClass('w3-col s12');
+    newCol.append(makePlaceholderDropTarget(presenter, height));
+    newRow.append(newCol);
+
+    firstRow.before(newRow);
+    initializeDroppables(newRow.find('.drop-target'));
+}
+
+function addRowAfter(row, presenter) {
+    var newRow = $('<div>').addClass('w3-row');
+    var newCol = $('<div>').addClass('w3-col s12');
+    newCol.append(makePlaceholderDropTarget(presenter, 20));
+    newRow.append(newCol);
+    row.after(newRow);
+    initializeDroppables(newRow.find('.drop-target'));
+}
+
+function addNewRow(presenter, height) {
     var container = $('.' + presenter);
     var lastRow = container.find('.w3-row').last();
     var lastCol = lastRow.find('.w3-col');
@@ -117,34 +173,22 @@ function addNewRow(presenter) {
     if (shouldAddRow) {
         var newRow = $('<div>').addClass('w3-row');
         var newCol = $('<div>').addClass('w3-col s12');
-        var dropTarget = $('<div>').addClass('drop-target presenterBox').attr('data-presenter-name', presenter).css('margin', '10px');
-        var draggable = $('<div>').addClass('draggable').attr('data-presenter-name', presenter);
-        var presenterBox = $('<div>').addClass('');
-
-        draggable.append(presenterBox);
-        dropTarget.append(draggable);
-        newCol.append(dropTarget);
+        newCol.append(makePlaceholderDropTarget(presenter, height));
         newRow.append(newCol);
-
         container.append(newRow);
         initializeDroppables(container.find('.w3-row').last().find('.drop-target'));
     }
 }
 
 // Dodamo stolpec v katerega lahko spustimo layout cell
-function addDropableCol(row, presenter){
-
+function addDropableCol(row, presenter) {
+    // Match height of the rightmost existing box in this row
+    var existingBoxes = row.find('.presenterBox');
+    var height = existingBoxes.length > 0 ? existingBoxes.last().outerHeight() : 200;
     var newCol = $('<div>').addClass('w3-col');
-    var dropTarget = $('<div>').addClass('drop-target presenterBox').attr('data-presenter-name', presenter).css('margin', '10px');
-    var draggable = $('<div>').addClass('draggable').attr('data-presenter-name', presenter);
-    var presenterBox = $('<div>').addClass('');
-
-    draggable.append(presenterBox);
-    dropTarget.append(draggable);
-    newCol.append(dropTarget);
+    newCol.append(makePlaceholderDropTarget(presenter, height));
     row.append(newCol);
     initializeDroppables(row.find('.drop-target').last());
-    
 }
 
 // popravimo sirino stolpcev in njihove id-je
@@ -164,6 +208,7 @@ function updateColClassesAndIds(row, presenter) {
 function initializeDroppables(selector) {
     $(selector).droppable({
         accept: ".draggable",
+        tolerance: "pointer",
         over: function(event, ui) {
             var target = $(this);
             var draggable = ui.draggable;
@@ -182,9 +227,25 @@ function initializeDroppables(selector) {
             
             if (originalDropTarget.hasClass('drop-target') && droppedItem.data('presenter-name') === target.data('presenter-name')) {
                 target.removeClass('dropHover');
+
+                // Detach both resize handles before moving draggables, then
+                // re-attach each handle to whichever box its draggable ends up in.
+                var movedHandle   = originalDropTarget.children('.view-resize-handle').detach();
+                var swappedHandle = target.children('.view-resize-handle').detach();
+
                 target.append(droppedItem);
                 originalDropTarget.append(target.children('.draggable').first());
-                
+
+                // Re-attach handles to follow their content
+                target.append(movedHandle);
+                originalDropTarget.append(swappedHandle);
+
+                // Remove any inline height the placeholder stamped on the presenterBox.
+                // Without this the box stays at 80px, flex-shrinks the viewContainer,
+                // and the chart draws at the wrong (small) size.
+                target.css('height', '');
+                originalDropTarget.css('height', '');
+
                 var presenter = droppedItem.data('presenter-name');
                 removeColsWithoutIconsContainer(presenter)
                 var newLayout = getNewLayout(presenter);
@@ -220,8 +281,7 @@ async function updatePresenterLayout(presenterDataJSON, presenter){
             var answer = response.answer; //!response->answer
     
             if(answer.includes('"Status":0')) {
-                let data = presenterData.get(presenter);
-                populatePresenterDiv(data, presenterDataJSON);
+                populatePresenterDiv(presenterDataJSON);
                 repaintViews();
             } else
                 console.log("Napaka pri alter storitvi!")
