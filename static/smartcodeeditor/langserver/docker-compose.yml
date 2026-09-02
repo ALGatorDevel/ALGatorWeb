@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  smartcode-lsync:
+    build:
+      context: docker-lsync
+    image: smartcode-lsync
+    container_name: smartcode-lsync
+    restart: unless-stopped
+    environment:
+      LSYNC_SOURCE: /algator_root/data_root/projects
+      LSYNC_TARGET: /algator_lsync_root
+      LSYNC_POLL_INTERVAL: "1"
+      LSYNC_VERBOSE: "1"
+    volumes:
+      - type: bind
+        source: ${ALGATOR_ROOT}
+        target: /algator_root
+        read_only: true
+      - type: bind
+        source: ${ALGATOR_LSYNC}
+        target: /algator_lsync_root
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /algator_lsync_root/.smartcode-lsync-ready"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 2s
+
+  smartcode-lsp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: smartcode-lsp
+    container_name: smartcode-lsp
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      LSYNC_ROOT: /algator_lsync_root
+      PROJECT_FOLDER: ""
+      JDTLS_DATA_DIR: /tmp/jdtls-data
+      ALGATOR_RUNTIME_ROOT: /algator_runtime
+      JAVA_CLASSPATH_REFRESH_MS: "3000"
+    volumes:
+      - type: bind
+        source: ${ALGATOR_LSYNC}
+        target: /algator_lsync_root
+      - type: bind
+        source: ${ALGATOR_RUNTIME}
+        target: /algator_runtime
+        read_only: true
+    depends_on:
+      smartcode-lsync:
+        condition: service_healthy

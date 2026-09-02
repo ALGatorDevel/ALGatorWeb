@@ -19,6 +19,11 @@ let suppressInputRead = false;
 let completionReqSeq = 0;
 let clangdInitialized = false;
 let javaInitialized = false;
+let javaInitializeStarted = false;
+let javaServiceReady = false;
+let javaLspHandlersInstalled = false;
+let javaProjectFolder = "";
+let javaProjectWorkspaceUri = "";
 let didChangeWatchedTimer = null;
 const openedDocs = new Set();
 
@@ -89,28 +94,89 @@ function severityToLabel(severity) {
   return "Hint";
 }
 
+function severityToSymbol(severity) {
+  if (severity === 1) return "×";
+  if (severity === 2) return "⚠";
+  if (severity === 3) return "i";
+  return "•";
+}
+
+function diagnosticCodeText(code) {
+  if (code === undefined || code === null) return "";
+  if (typeof code === "object") return String(code.value ?? "");
+  return String(code);
+}
+
+function diagnosticMeta(diag, locationCount = 1) {
+  const line = diag.range?.start?.line ?? 0;
+  const ch = diag.range?.start?.character ?? 0;
+  const source = String(diag.source || "").trim();
+  const code = diagnosticCodeText(diag.code).trim();
+  const origin = source
+    ? `${escapeHtml(source)}${code ? `(${escapeHtml(code)})` : ""}`
+    : code ? escapeHtml(code) : "";
+  const occurrences = locationCount > 1
+    ? `<span class="diagnostic-occurrences">${locationCount} locations</span>`
+    : "";
+
+  return {
+    origin,
+    occurrences,
+    location: `[Ln ${line + 1}, Col ${ch + 1}]`
+  };
+}
+
+function diagnosticsSummary(errors, warnings) {
+  return `
+    <span class="diagnostics-summary is-error" title="${errors} errors">
+      <span class="diagnostics-summary-icon">×</span>${errors}
+    </span>
+    <span class="diagnostics-summary is-warning" title="${warnings} warnings">
+      <span class="diagnostics-summary-icon">⚠</span>${warnings}
+    </span>`;
+}
+
+function focusDiagnostic(cm, diag) {
+  if (!cm || !diag) return;
+
+  const start = diag.range?.start || { line: 0, character: 0 };
+  const end = diag.range?.end || start;
+  const from = { line: start.line ?? 0, ch: start.character ?? 0 };
+  let to = { line: end.line ?? from.line, ch: end.character ?? from.ch };
+
+  if (to.line < from.line || (to.line === from.line && to.ch <= from.ch)) {
+    to = { line: from.line, ch: from.ch + 1 };
+  }
+
+  cm.focus();
+  cm.setSelection(from, to);
+  cm.scrollIntoView({ from, to }, 100);
+}
+
 function compactDiagnosticMessage(message) {
-  const text = String(message || "").trim();
+  return String(message || "").trim();
+}
 
-  if (/^The import .+ cannot be resolved$/i.test(text)) {
-    return "The import cannot be resolved";
-  }
+function isDependencyNoiseDiagnostic(diag) {
+  const message = String(diag?.message || "").trim();
 
-  if (/^.+ cannot be resolved to a type$/i.test(text)) {
-    return "A type cannot be resolved";
-  }
-
-  if (/^The method .+ must override or implement a supertype method$/i.test(text)) {
-    return "A method cannot override or implement a supertype method";
-  }
-
-  return text;
+  return [
+    /^The import .+ cannot be resolved$/i,
+    /^.+ cannot be resolved to a type$/i,
+    /^The type .+ cannot be resolved$/i,
+    /^The hierarchy of the type .+ is inconsistent$/i,
+    /^The method .+ must override or implement a supertype method$/i,
+    /^A method cannot override or implement a supertype method$/i,
+    /^The method .+ is undefined for the type .+$/i,
+    /^The constructor .+ is undefined$/i,
+    /^.+ cannot be resolved$/i
+  ].some(pattern => pattern.test(message));
 }
 
 function compactDiagnostics(diagnostics) {
   const seen = new Set();
 
-  return (diagnostics || [])
+  const unique = (diagnostics || [])
     .filter(diag => diag && (diag.severity === 1 || diag.severity === 2))
     .filter(diag => {
       const start = diag.range?.start || {};
@@ -128,6 +194,33 @@ function compactDiagnostics(diagnostics) {
       seen.add(key);
       return true;
     });
+
+  const hasDependencyProblem = unique.some(diag => {
+    const message = String(diag?.message || "").trim();
+
+    return [
+      /^The import .+ cannot be resolved$/i,
+      /^.+ cannot be resolved to a type$/i,
+      /^The type .+ cannot be resolved$/i,
+      /^The hierarchy of the type .+ is inconsistent$/i
+    ].some(pattern => pattern.test(message));
+  });
+
+  if (!hasDependencyProblem) {
+    return unique;
+  }
+
+  return unique.filter(diag => {
+    const message = String(diag?.message || "").trim();
+    const isRootCause = [
+      /^The import .+ cannot be resolved$/i,
+      /^.+ cannot be resolved to a type$/i,
+      /^The type .+ cannot be resolved$/i,
+      /^The hierarchy of the type .+ is inconsistent$/i
+    ].some(pattern => pattern.test(message));
+
+    return isRootCause || !isDependencyNoiseDiagnostic(diag);
+  });
 }
 
 function groupDiagnosticsForPanel(diagnostics) {
@@ -513,6 +606,12 @@ async function setServerProjectFolder(projectFolder) {
       body: JSON.stringify({ projectFolder: folder })
     });
     if (res.ok) {
+      const data = await res.json();
+      javaProjectFolder = normalizePath(data.projectFolder || folder).replace(/\/+$/, "");
+      javaProjectWorkspaceUri = String(data.workspaceUri || "").replace(/\/+$/, "");
+      if (typeof setJavaLspWorkspace === "function") {
+        setJavaLspWorkspace(javaProjectWorkspaceUri, javaProjectFolder);
+      }
       console.log("[editor] project-folder nastavljen:", folder || "(cel lsync-root)");
     }
     return res.ok;
@@ -522,14 +621,68 @@ async function setServerProjectFolder(projectFolder) {
   }
 }
 
+function javaLspWebSocketUrl() {
+  const folder = javaProjectFolder || normalizePath(
+    window.smartCodeInitialOptions?.projectFolder || ""
+  ).replace(/\/+$/, "");
+  const separator = CFG.server.wsJava.includes("?") ? "&" : "?";
+  return `${CFG.server.wsJava}${separator}projectFolder=${encodeURIComponent(folder)}`;
+}
+
+function javaLspRootUri() {
+  if (javaProjectWorkspaceUri) return javaProjectWorkspaceUri;
+  const folder = javaProjectFolder || normalizePath(
+    window.smartCodeInitialOptions?.projectFolder || ""
+  ).replace(/\/+$/, "");
+  return folder
+    ? `${String(CFG.workspace.rootUri).replace(/\/+$/, "")}/${folder}`
+    : CFG.workspace.rootUri;
+}
+
+async function setServerJavaContext(projectFolder, filename) {
+  if (!hasServerSupport()) return { ok: false, classpathChanged: false };
+  const folder = normalizePath(projectFolder || "").replace(/\/+$/, "");
+  const file = normalizePath(filename || "");
+  if (!folder || !file) return { ok: false, classpathChanged: false };
+
+  try {
+    const res = await fetch(`${CFG.server.httpUrl}/java-context`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectFolder: folder, file })
+    });
+    if (!res.ok) return { ok: false, classpathChanged: false };
+    const data = await res.json();
+    return {
+      ok: true,
+      classpathChanged: data.classpathChanged === true
+    };
+  } catch {
+    return { ok: false, classpathChanged: false };
+  }
+}
+
 let embeddedServerProjectFolder = null;
+let embeddedServerProjectFolderRequest = Promise.resolve(true);
 
 async function ensureEmbeddedServerProjectFolder(projectFolder) {
   const folder = normalizePath(projectFolder || "").replace(/\/+$/, "");
   if (!folder || embeddedServerProjectFolder === folder) return true;
-  const ok = await setServerProjectFolder(folder);
-  if (ok) embeddedServerProjectFolder = folder;
-  return ok;
+
+  const request = embeddedServerProjectFolderRequest.then(async () => {
+    if (embeddedServerProjectFolder === folder) return true;
+
+    const ok = await setServerProjectFolder(folder);
+    if (ok) {
+      _embeddedJavaDocs.clear();
+      embeddedServerProjectFolder = folder;
+      initJavaLsp();
+    }
+    return ok;
+  });
+
+  embeddedServerProjectFolderRequest = request.catch(() => false);
+  return request;
 }
 
 // LSP routing
@@ -685,49 +838,174 @@ function getCompletionEditRange(item, fallbackFrom, fallbackTo) {
 
 const JAVA_LOCAL_SNIPPETS = [
   {
-    label: "cast",
-    detail: "Casts the expression to a new type",
-    insertText: "(${1:Type}) ${2:expression}"
-  },
-  {
     label: "for",
     detail: "Creates a for statement",
     insertText: "for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++) {\n\t$0\n}"
   },
   {
-    label: "foreach",
-    detail: "Creates an enhanced for statement",
-    insertText: "for (${1:Type} ${2:item} : ${3:collection}) {\n\t$0\n}"
+    label: "fori",
+    detail: "Creates an indexed for loop",
+    insertText: "for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++) {\n\t$0\n}"
   },
   {
-    label: "forr",
-    detail: "Creates a reverse for statement",
-    insertText: "for (int ${1:i} = ${2:length} - 1; ${1:i} >= 0; ${1:i}--) {\n\t$0\n}"
+    label: "itar",
+    detail: "Iterates over an array using an indexed for loop",
+    insertText: "for (int ${1:i} = 0; ${1:i} < ${2:array}.length; ${1:i}++) {\n\t${3:Type} ${4:item} = ${2:array}[${1:i}];\n\t$0\n}"
   },
   {
-    label: "nnull",
-    detail: "Creates an if statement and checks for not null",
-    insertText: "if (${1:expression} != null) {\n\t$0\n}"
+    label: "ritar",
+    detail: "Iterates over an array in reverse order",
+    insertText: "for (int ${1:i} = ${2:array}.length - 1; ${1:i} >= 0; ${1:i}--) {\n\t${3:Type} ${4:item} = ${2:array}[${1:i}];\n\t$0\n}"
+  },
+  {
+    label: "iter",
+    detail: "Iterates over an iterable",
+    insertText: "for (${1:Type} ${2:item} : ${3:iterable}) {\n\t$0\n}"
+  },
+  {
+    label: "if",
+    detail: "Creates an if statement",
+    insertText: "if (${1:condition}) {\n\t$0\n}"
+  },
+  {
+    label: "ifn",
+    detail: "Creates an if statement checking for null",
+    insertText: "if (${1:variable} == null) {\n\t$0\n}"
+  },
+  {
+    label: "inn",
+    detail: "Creates an if statement checking for non-null",
+    insertText: "if (${1:variable} != null) {\n\t$0\n}"
+  },
+  {
+    label: "iff",
+    detail: "Creates an if statement checking for false",
+    insertText: "if (!${1:condition}) {\n\t$0\n}"
+  },
+  {
+    label: "else",
+    detail: "Creates an else statement",
+    insertText: "else {\n\t$0\n}"
+  },
+  {
+    label: "elseif",
+    detail: "Creates an else-if statement",
+    insertText: "else if (${1:condition}) {\n\t$0\n}"
+  },
+  {
+    label: "while",
+    detail: "Creates a while statement",
+    insertText: "while (${1:condition}) {\n\t$0\n}"
+  },
+  {
+    label: "do",
+    detail: "Creates a do-while statement",
+    insertText: "do {\n\t$0\n} while (${1:condition});"
+  },
+  {
+    label: "switch",
+    detail: "Creates a switch statement",
+    insertText: "switch (${1:expression}) {\n\tcase ${2:value}:\n\t\t$0\n\t\tbreak;\n\tdefault:\n\t\tbreak;\n}"
+  },
+  {
+    label: "try",
+    detail: "Creates a try-catch statement",
+    insertText: "try {\n\t$0\n} catch (${1:Exception} ${2:e}) {\n\t\n}"
+  },
+  {
+    label: "tryc",
+    detail: "Creates a try-catch statement",
+    insertText: "try {\n\t$0\n} catch (${1:Exception} ${2:e}) {\n\t\n}"
+  },
+  {
+    label: "thr",
+    detail: "Creates a throw statement",
+    insertText: "throw new ${1:Exception}(${2:message});"
+  },
+  {
+    label: "assert",
+    detail: "Creates an assert statement",
+    insertText: "assert ${1:condition} : ${2:\"message\"};"
+  },
+  {
+    label: "sout",
+    detail: "Prints a line to standard output",
+    insertText: "System.out.println(${1});"
+  },
+  {
+    label: "soutv",
+    detail: "Prints a variable to standard output",
+    insertText: "System.out.println(\"${1:variable} = \" + ${1:variable});"
+  },
+  {
+    label: "soutp",
+    detail: "Prints a method parameter to standard output",
+    insertText: "System.out.println(\"${1:parameter} = \" + ${1:parameter});"
+  },
+  {
+    label: "soutm",
+    detail: "Prints the current method name",
+    insertText: "System.out.println(\"${1:methodName}\");"
+  },
+  {
+    label: "souf",
+    detail: "Prints formatted output",
+    insertText: "System.out.printf(\"${1:format}\", ${2:arguments});"
+  },
+  {
+    label: "psvm",
+    detail: "Creates a public static main method",
+    insertText: "public static void main(String[] args) {\n\t$0\n}"
+  },
+  {
+    label: "main",
+    detail: "Creates a main method",
+    insertText: "public static void main(String[] args) {\n\t$0\n}"
+  },
+  {
+    label: "psvma",
+    detail: "Creates a public static main method with arguments",
+    insertText: "public static void main(String[] ${1:args}) {\n\t$0\n}"
+  },
+  {
+    label: "maina",
+    detail: "Creates a main method with arguments",
+    insertText: "public static void main(String[] ${1:args}) {\n\t$0\n}"
+  },
+  {
+    label: "psf",
+    detail: "Creates a public static final declaration",
+    insertText: "public static final ${1:Type} ${2:NAME} = ${3:value};"
+  },
+  {
+    label: "psfi",
+    detail: "Creates a public static final int declaration",
+    insertText: "public static final int ${1:NAME} = ${2:value};"
+  },
+  {
+    label: "psfs",
+    detail: "Creates a public static final String declaration",
+    insertText: "public static final String ${1:NAME} = ${2:\"value\"};"
+  },
+  {
+    label: "prsf",
+    detail: "Creates a private static final declaration",
+    insertText: "private static final ${1:Type} ${2:NAME} = ${3:value};"
+  },
+  {
+    label: "psf",
+    detail: "Creates a public static final declaration",
+    insertText: "public static final ${1:Type} ${2:NAME} = ${3:value};"
+  },
+  {
+    label: "nn",
+    detail: "Creates a not-null check",
+    insertText: "if (${1:variable} != null) {\n\t$0\n}"
   },
   {
     label: "null",
-    detail: "Creates an if statement and checks for null",
-    insertText: "if (${1:expression} == null) {\n\t$0\n}"
-  },
-  {
-    label: "opt",
-    detail: "Creates an Optional.ofNullable(...) call",
-    insertText: "Optional.ofNullable(${1:value})"
-  },
-  {
-    label: "syserr",
-    detail: "Sends the affected object to System.err",
-    insertText: "System.err.println(${1});"
-  },
-  {
-    label: "sysout",
-    detail: "Sends the affected object to System.out",
-    insertText: "System.out.println(${1});"
+    detail: "Creates a null check",
+    insertText: "if (${1:variable} == null) {\n\t$0\n}"
   }
 ];
 
@@ -1007,7 +1285,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (hasServerSupport()) {
     const opts = window.smartCodeInitialOptions || {};
     if (opts.projectFolder) {
-      setServerProjectFolder(opts.projectFolder);
+      await setServerProjectFolder(opts.projectFolder);
     } else {
       const hasExplicitSyncRoot = Object.prototype.hasOwnProperty.call(opts, "syncRoot");
       const syncRoot = hasExplicitSyncRoot ? (opts.syncRoot || "") : (opts.folder || "");
@@ -1917,73 +2195,108 @@ function initClangdLsp() {
 
 // LSP — jdtls
 
+function resetJavaLspState() {
+  javaInitialized = false;
+  javaInitializeStarted = false;
+  javaServiceReady = false;
+  openedDocs.clear();
+  if (typeof _embeddedJavaDocs !== "undefined") _embeddedJavaDocs.clear();
+}
+
+async function finishJavaLspInitialization() {
+  if (!javaInitializeStarted || !javaServiceReady || javaInitialized) return;
+
+  javaInitialized = true;
+  if (isJava()) setServerInfo("LSP: jdtls ✓");
+
+  await openAllJavaFilesInLsp();
+
+  if (activeFile) {
+    sendDidOpenForFile(activeFile);
+  }
+}
+
 function initJavaLsp() {
   if (typeof connectJavaLsp !== "function") return;
 
-  connectJavaLsp(CFG.server.wsJava);
+  if (!javaLspHandlersInstalled) {
+    javaLspHandlersInstalled = true;
 
-  onJavaLspOpen(async () => {
-  if (javaInitialized) return;
-  if (isJava()) setServerInfo("LSP: jdtls connecting…");
+    onJavaLspOpen(async () => {
+      if (javaInitialized || javaInitializeStarted) return;
 
-  await new Promise(r => setTimeout(r, CFG.editor.javaInitDelay));
+      javaInitializeStarted = true;
+      javaServiceReady = false;
+      if (isJava()) setServerInfo("LSP: jdtls connecting…");
 
-    try {
-      await sendJavaRequest("initialize", {
-        processId: null,
-        rootUri: CFG.workspace.rootUri,
-        workspaceFolders: [{ uri: CFG.workspace.rootUri, name: "workspace" }],
-        capabilities: lspCapabilities()
-      });
+      await new Promise(r => setTimeout(r, CFG.editor.javaInitDelay));
 
-      sendJavaNotification("initialized", {});
-      javaInitialized = true;
+      const rootUri = javaLspRootUri();
+      if (typeof setJavaLspWorkspace === "function") {
+        setJavaLspWorkspace(rootUri, javaProjectFolder || "workspace");
+      }
 
-      sendJavaNotification("workspace/didChangeConfiguration", {
-        settings: {
-          java: {
-            completion: { enabled: true, guessMethodArguments: true },
-            signatureHelp: { enabled: true }
+      try {
+        await sendJavaRequest("initialize", {
+          processId: null,
+          rootUri,
+          workspaceFolders: [{ uri: rootUri, name: javaProjectFolder || "workspace" }],
+          capabilities: lspCapabilities()
+        });
+
+        sendJavaNotification("initialized", {});
+        sendJavaNotification("workspace/didChangeConfiguration", {
+          settings: {
+            java: {
+              completion: { enabled: true, guessMethodArguments: true },
+              signatureHelp: { enabled: true }
+            }
           }
-        }
-      });
+        });
 
-      if (isJava()) setServerInfo("LSP: jdtls ✓");
-
-      await openAllJavaFilesInLsp();
-
-            if (activeFile) {
-        sendDidOpenForFile(activeFile);
+        if (isJava()) setServerInfo("LSP: jdtls indexing…");
+      } catch (e) {
+        console.error("jdtls init failed:", e);
+        resetJavaLspState();
+        if (isJava()) setServerInfo("LSP: jdtls retrying…");
+        setTimeout(() => initJavaLsp(), CFG.editor.javaRetryDelay);
       }
-    } catch (e) {
-      console.error("jdtls init failed:", e);
-      javaInitialized = false;
-      if (isJava()) setServerInfo("LSP: jdtls retrying…");
-      setTimeout(() => {
-        if (typeof connectJavaLsp === "function") connectJavaLsp(CFG.server.wsJava);
-      }, CFG.editor.javaRetryDelay);
-    }
-  });
+    });
 
-  onJavaLspClose(() => {
-    javaInitialized = false;
-    openedDocs.clear();
-    if (isJava()) setServerInfo("LSP: jdtls disconnected");
-
-    setTimeout(() => {
-      if (!javaInitialized && typeof connectJavaLsp === "function") {
-        connectJavaLsp(CFG.server.wsJava);
+    onJavaLspNotification(message => {
+      if (
+        message?.method === "language/status" &&
+        message?.params?.type === "ServiceReady"
+      ) {
+        javaServiceReady = true;
+        finishJavaLspInitialization().catch(error => {
+          console.error("jdtls ready handling failed:", error);
+        });
       }
-    }, CFG.editor.javaRetryDelay);
-  });
+    });
 
-  onJavaLspError(() => {
-    if (isJava()) setServerInfo("LSP: jdtls error");
-  });
+    onJavaLspClose(() => {
+      resetJavaLspState();
+      if (isJava()) setServerInfo("LSP: jdtls disconnected");
+      setTimeout(() => initJavaLsp(), CFG.editor.javaRetryDelay);
+    });
 
-  onJavaLspDiagnostics(params => {
-    if (params) renderDiagnostics(params.diagnostics || [], params.uri);
-  });
+    onJavaLspError(() => {
+      if (isJava()) setServerInfo("LSP: jdtls error");
+    });
+
+    onJavaLspDiagnostics(params => {
+      if (params) renderDiagnostics(params.diagnostics || [], params.uri);
+    });
+  }
+
+  const rootUri = javaLspRootUri();
+  if (typeof setJavaLspWorkspace === "function") {
+    setJavaLspWorkspace(rootUri, javaProjectFolder || "workspace");
+  }
+
+  const connectionChanged = connectJavaLsp(javaLspWebSocketUrl());
+  if (connectionChanged) resetJavaLspState();
 }
 
 async function openAllJavaFilesInLsp() {
@@ -2401,7 +2714,7 @@ function renderDiagnostics(diagnostics, uri) {
 
   if (uri && uri !== activeUri) return;
 
-  const list = diagnostics || [];
+  const list = compactDiagnostics(diagnostics);
   clearDiagnostics();
 
   const byLine = new Map();
@@ -2441,16 +2754,10 @@ function renderDiagnostics(diagnostics, uri) {
     const gutterMarker = document.createElement("div");
     gutterMarker.className = `cm-diagnostic-gutter-marker is-${severityClass}`;
     gutterMarker.title = info.diagnostics.map(d => `${severityToLabel(d.severity)}: ${d.message}`).join("\n");
-    gutterMarker.textContent = info.severity === 1 ? "●" : info.severity === 2 ? "▲" : "◆";
+    gutterMarker.textContent = severityToSymbol(info.severity);
 
     editor.setGutterMarker(line, "lsp-diagnostics-gutter", gutterMarker);
     diagnosticMarks.push({ clear: () => editor.setGutterMarker(line, "lsp-diagnostics-gutter", null) });
-
-    editor.addLineClass(line, "background", `cm-diagnostic-line-${severityClass}`);
-    diagnosticMarks.push({ clear: () => editor.removeLineClass(line, "background", `cm-diagnostic-line-${severityClass}`) });
-
-    editor.addLineClass(line, "wrap", `cm-diagnostic-linewrap-${severityClass}`);
-    diagnosticMarks.push({ clear: () => editor.removeLineClass(line, "wrap", `cm-diagnostic-linewrap-${severityClass}`) });
   }
 
   renderDiagnosticsPanel(activeUri, list);
@@ -2463,10 +2770,11 @@ function renderDiagnosticsPanel(uri, diagnostics) {
 
   if (!panel || !listEl || !countEl) return;
 
-  const items = diagnostics || [];
+  const items = compactDiagnostics(diagnostics);
+  const groups = groupDiagnosticsForPanel(items);
   const errors = items.filter(d => d.severity === 1).length;
   const warnings = items.filter(d => d.severity === 2).length;
-  countEl.textContent = `${errors} errors, ${warnings} warnings`;
+  countEl.innerHTML = diagnosticsSummary(errors, warnings);
 
   listEl.innerHTML = "";
 
@@ -2480,28 +2788,25 @@ function renderDiagnosticsPanel(uri, diagnostics) {
   panel.style.display = "";
   panel.classList.add("has-problems");
 
-  items.forEach(diag => {
+  groups.forEach(group => {
+    const diag = group.first;
     const row = document.createElement("button");
     row.type = "button";
-    row.className = `diagnostic-item is-${severityToClass(diag.severity)}`;
+    row.className = `diagnostic-item is-${severityToClass(group.severity)}`;
+    row.title = diag.message;
 
-    const line = diag.range?.start?.line ?? 0;
-    const ch = diag.range?.start?.character ?? 0;
-    const source = diag.source ? ` • ${diag.source}` : "";
+    const meta = diagnosticMeta(diag, group.count);
 
     row.innerHTML = `
-      <span class="diagnostic-severity ${severityToClass(diag.severity)}"></span>
+      <span class="diagnostic-severity ${severityToClass(group.severity)}" aria-hidden="true">${severityToSymbol(group.severity)}</span>
       <span class="diagnostic-main">
-        <span class="diagnostic-message">${escapeHtml(diag.message)}</span>
-        <span class="diagnostic-meta">${severityToLabel(diag.severity)} • line ${line + 1}, col ${ch + 1}${escapeHtml(source)}</span>
+        <span class="diagnostic-message">${escapeHtml(group.message)}</span>
+        <span class="diagnostic-meta">${meta.origin}${meta.occurrences}</span>
       </span>
+      <span class="diagnostic-location">${meta.location}</span>
     `;
 
-    row.addEventListener("click", () => {
-      editor.focus();
-      editor.setCursor({ line, ch });
-      editor.scrollIntoView({ line, ch }, 120);
-    });
+    row.addEventListener("click", () => focusDiagnostic(editor, diag));
 
     listEl.appendChild(row);
   });
@@ -2555,6 +2860,11 @@ function setAutosaveInfo(t, c) {
 */
 
 let _algatorIdCounter = 0;
+const _embeddedJavaDocs = new Map();
+
+onJavaLspClose(() => {
+  _embeddedJavaDocs.clear();
+});
 
 function _waitLspInit(isJava) {
   return new Promise(resolve => {
@@ -2582,10 +2892,22 @@ class AlgatorInstance {
     this._version = 1;
     this._ready   = false;
     this._readyCbs = [];
+    this._destroyed = false;
+    this._lspUnsubscribers = [];
+    this._activationPromise = null;
     this._compSeq  = 0;
     this._compTimer = null;
     this._saveTimer = null;
     this._suppressCompletion = false;
+    this._javaDocumentReady = this.language !== "java";
+    this._javaCompletionPrimed = this.language !== "java";
+    this._javaCompletionWarmupUntil = this.language === "java"
+      ? Date.now() + 30000
+      : 0;
+    this._javaDiskContext =
+      this.language === "java" &&
+      !!this.savePath &&
+      String(opts.content ?? "") === "";
 
     this._updateVirtualFile();
 
@@ -2616,6 +2938,110 @@ this._connectLsp();
     }
 
     this.uri = uriForFile(this.virtualFile);
+  }
+
+  _javaPublicTypeName(code) {
+    if (!this._isJava()) return "";
+    const match = String(code ?? "").match(
+      /\bpublic\s+(?:abstract\s+|final\s+|sealed\s+|non-sealed\s+)?(?:class|interface|enum|record)\s+([A-Za-z_$][\w$]*)\b/
+    );
+    return match ? match[1] : "";
+  }
+
+  _javaPathForContent(code) {
+    const typeName = this._javaPublicTypeName(code);
+    if (!typeName) return "";
+
+    const folder = normalizePath(
+      this.projectFolder || this.folder || this.syncRoot || ""
+    ).replace(/\/+$/, "");
+    if (!folder) return "";
+
+    const current = normalizePath(this.virtualFile || "");
+    const prefix = `${folder}/`;
+    const relativePath = current.startsWith(prefix)
+      ? current.slice(prefix.length)
+      : current;
+    const lower = relativePath.toLowerCase();
+
+    if (typeName === "Input" || typeName === "Output") {
+      return `${folder}/proj/src/${typeName}.java`;
+    }
+
+    if (typeName === "Algorithm") {
+      if (lower.startsWith("algs/") && lower.endsWith("/src/algorithm.java")) {
+        return current;
+      }
+      return `${folder}/algs/__smartcode_active__/src/Algorithm.java`;
+    }
+
+    if (typeName.startsWith("TestCaseGenerator_")) {
+      return `${folder}/proj/src/${typeName}.java`;
+    }
+
+    const projectTypes = new Set([
+      "ProjectAbstractAlgorithm",
+      "TestCase",
+      "IndicatorTest_Check",
+      "Tools"
+    ]);
+    if (projectTypes.has(typeName)) {
+      return `${folder}/proj/src/${typeName}.java`;
+    }
+
+    const currentName = baseName(relativePath);
+    if (/^(Main|embedded_\d+)\.java$/i.test(currentName)) {
+      return `${folder}/${typeName}.java`;
+    }
+
+    return "";
+  }
+
+  _retargetJavaDocument(code) {
+    if (!this._isJava()) return false;
+
+    const desired = this._javaPathForContent(code);
+    if (!desired || normalizePath(desired) === normalizePath(this.virtualFile)) return false;
+
+    const oldUri = this.uri;
+    const oldDocument = _embeddedJavaDocs.get(oldUri);
+
+    if (oldDocument) {
+      oldDocument.owners.delete(this.id);
+      if (!oldDocument.context && oldDocument.owners.size === 0) {
+        if (this._lspReady()) {
+          this._lspNotify("textDocument/didClose", {
+            textDocument: { uri: oldUri }
+          });
+        }
+        _embeddedJavaDocs.delete(oldUri);
+      }
+    }
+
+    const folder = normalizePath(
+      this.projectFolder || this.folder || this.syncRoot || ""
+    ).replace(/\/+$/, "");
+    this.savePath = folder && desired.startsWith(folder + "/")
+      ? desired.slice(folder.length + 1)
+      : desired;
+    this._updateVirtualFile();
+    this._version = 1;
+    this._javaDocumentReady = false;
+    this._javaCompletionPrimed = false;
+    this._javaCompletionWarmupUntil = Date.now() + 30000;
+    return true;
+  }
+
+  async _refreshJavaContextForCurrentFile() {
+    if (!this._isJava() || !hasServerSupport() || this._destroyed) return false;
+
+    const folder = normalizePath(
+      this.lspFolder || this.projectFolder || this.folder || this.syncRoot || ""
+    ).replace(/\/+$/, "");
+    if (!folder || !this.virtualFile) return false;
+
+    const context = await setServerJavaContext(folder, this.virtualFile);
+    return context.ok === true;
   }
 
   //DOM
@@ -2854,23 +3280,115 @@ this._connectLsp();
   }
 
   _openInLsp() {
+    if (this._destroyed) return;
     if (!this._lspReady()) return;
+    if (this._isJava() && this._javaDiskContext) return;
+
+    const text = this.cm.getValue();
+
+    if (this._isJava()) {
+      const current = _embeddedJavaDocs.get(this.uri);
+
+      if (!current) {
+        const version = Math.max(1, this._version);
+
+        _embeddedJavaDocs.set(this.uri, {
+          version,
+          text,
+          owners: new Set([this.id]),
+          context: false,
+          ready: false,
+          primed: false
+        });
+
+        this._version = version;
+        this._javaDocumentReady = false;
+        this._javaCompletionWarmupUntil = Date.now() + 30000;
+
+        this._lspNotify("textDocument/didOpen", {
+          textDocument: {
+            uri: this.uri,
+            languageId: this._langId(),
+            version,
+            text
+          }
+        });
+
+        return;
+      }
+
+      current.owners.add(this.id);
+      this._version = Math.max(this._version, current.version);
+      this._javaDocumentReady = current.ready === true;
+      this._javaCompletionPrimed = current.primed === true;
+
+      if (current.text !== text) {
+        current.version++;
+        current.text = text;
+        this._version = current.version;
+
+        this._lspNotify("textDocument/didChange", {
+          textDocument: {
+            uri: this.uri,
+            version: current.version
+          },
+          contentChanges: [{ text }]
+        });
+      }
+
+      return;
+    }
+
     this._lspNotify("textDocument/didOpen", {
       textDocument: {
-        uri:        this.uri,
+        uri: this.uri,
         languageId: this._langId(),
-        version:    this._version,
-        text:       this.cm.getValue()
+        version: this._version,
+        text
       }
     });
   }
 
   _notifyLspChange() {
     if (!this._lspReady()) return;
+
+    const text = this.cm.getValue();
+
+    if (this._isJava() && this._javaDiskContext) {
+      if (!text) return;
+      this._javaDiskContext = false;
+      this._openInLsp();
+      return;
+    }
+
+    if (this._isJava()) {
+      const current = _embeddedJavaDocs.get(this.uri);
+
+      if (!current) {
+        this._openInLsp();
+        return;
+      }
+
+      current.owners.add(this.id);
+      current.version++;
+      current.text = text;
+      this._version = current.version;
+
+      this._lspNotify("textDocument/didChange", {
+        textDocument: {
+          uri: this.uri,
+          version: current.version
+        },
+        contentChanges: [{ text }]
+      });
+
+      return;
+    }
+
     this._version++;
     this._lspNotify("textDocument/didChange", {
-      textDocument:   { uri: this.uri, version: this._version },
-      contentChanges: [{ text: this.cm.getValue() }]
+      textDocument: { uri: this.uri, version: this._version },
+      contentChanges: [{ text }]
     });
   }
 
@@ -3004,8 +3522,61 @@ this._connectLsp();
     return { from: { line: cur.line, ch: start }, to: cur, prefix: line.slice(start, cur.ch) };
   }
 
-  _requestCompletion(triggerChar) {
-    if (!this._lspReady()) return;
+  _scheduleCompletionRetry(triggerChar, seq, version, cursor, attempt) {
+    if (Date.now() >= this._javaCompletionWarmupUntil) return;
+
+    clearTimeout(this._compTimer);
+    this._compTimer = setTimeout(() => {
+      if (seq !== this._compSeq || version !== this._version) return;
+
+      const current = this.cm.getCursor();
+      if (current.line !== cursor.line || current.ch !== cursor.ch) return;
+
+      this._requestCompletion(triggerChar, attempt + 1);
+    }, Math.min(100 + attempt * 40, 300));
+  }
+
+  _requestCompletion(triggerChar, attempt = 0) {
+    if (!this._lspReady()) {
+      if (
+        this._isJava() &&
+        Date.now() < this._javaCompletionWarmupUntil
+      ) {
+        clearTimeout(this._compTimer);
+        this._compTimer = setTimeout(
+          () => this._requestCompletion(triggerChar, attempt + 1),
+          100
+        );
+      }
+      return;
+    }
+
+    if (!this._ready) {
+      if (
+        this._isJava() &&
+        Date.now() >= this._javaCompletionWarmupUntil
+      ) return;
+
+      clearTimeout(this._compTimer);
+      this._compTimer = setTimeout(
+        () => this._requestCompletion(triggerChar, attempt),
+        100
+      );
+      return;
+    }
+
+    if (
+      this._isJava() &&
+      !this._javaDocumentReady &&
+      Date.now() < this._javaCompletionWarmupUntil
+    ) {
+      clearTimeout(this._compTimer);
+      this._compTimer = setTimeout(
+        () => this._requestCompletion(triggerChar, attempt),
+        80
+      );
+      return;
+    }
 
     const cur        = this.cm.getCursor();
     const { from, to, prefix } = this._typedPrefix();
@@ -3025,6 +3596,17 @@ this._connectLsp();
       if (seq !== this._compSeq) return;
 
       let items = Array.isArray(result) ? result : (result?.items ?? []);
+      const hasJavaLspItems = !this._isJava() || items.length > 0;
+
+      if (!hasJavaLspItems) {
+        this._scheduleCompletionRetry(
+          triggerChar,
+          seq,
+          this._version,
+          cur,
+          attempt
+        );
+      }
 
       if (this._isJava() && !isMember) {
         items = [
@@ -3136,7 +3718,17 @@ this._connectLsp();
         alignWithWord: true,
         closeOnUnfocus: true
       });
-    }).catch(() => {});
+    }).catch(() => {
+      if (this._isJava()) {
+        this._scheduleCompletionRetry(
+          triggerChar,
+          seq,
+          this._version,
+          cur,
+          attempt
+        );
+      }
+    });
   }
 
   //Diagnostics
@@ -3151,11 +3743,11 @@ this._connectLsp();
 
     const items = compactDiagnostics(diagnostics);
     const groups = groupDiagnosticsForPanel(items);
-    const errors = groups.filter(group => group.severity === 1).length;
-    const warns = groups.filter(group => group.severity === 2).length;
+    const errors = items.filter(diag => diag.severity === 1).length;
+    const warns = items.filter(diag => diag.severity === 2).length;
 
     if (this._diagCount) {
-      this._diagCount.textContent = `${errors} errors, ${warns} warnings`;
+      this._diagCount.innerHTML = diagnosticsSummary(errors, warns);
     }
 
     if (!this._showDiagnostics || !items.length) {
@@ -3238,7 +3830,7 @@ this._connectLsp();
       marker.title = info.diagnostics
         .map(diag => `${severityToLabel(diag.severity)}: ${diag.message}`)
         .join("\n");
-      marker.textContent = info.severity === 1 ? "●" : "▲";
+      marker.textContent = severityToSymbol(info.severity);
 
       this.cm.setGutterMarker(
         line,
@@ -3259,30 +3851,25 @@ this._connectLsp();
     if (this._diagList) {
       this._diagList.innerHTML = "";
 
-      groups.slice(0, 10).forEach(group => {
+      groups.forEach(group => {
         const diag = group.first;
         const row = document.createElement("button");
-        const line = diag.range?.start?.line ?? 0;
-        const ch = diag.range?.start?.character ?? 0;
-        const occurrences =
-          group.count > 1 ? ` • ${group.count} locations` : "";
+        const meta = diagnosticMeta(diag, group.count);
 
         row.type = "button";
         row.className =
           `diagnostic-item is-${severityToClass(group.severity)}`;
+        row.title = diag.message;
 
         row.innerHTML = `
-          <span class="diagnostic-severity ${severityToClass(group.severity)}"></span>
+          <span class="diagnostic-severity ${severityToClass(group.severity)}" aria-hidden="true">${severityToSymbol(group.severity)}</span>
           <span class="diagnostic-main">
             <span class="diagnostic-message">${escapeHtml(group.message)}</span>
-            <span class="diagnostic-meta">${severityToLabel(group.severity)} • line ${line + 1}, col ${ch + 1}${occurrences}</span>
-          </span>`;
+            <span class="diagnostic-meta">${meta.origin}${meta.occurrences}</span>
+          </span>
+          <span class="diagnostic-location">${meta.location}</span>`;
 
-        row.addEventListener("click", () => {
-          this.cm.focus();
-          this.cm.setCursor({ line, ch });
-          this.cm.scrollIntoView({ line, ch }, 120);
-        });
+        row.addEventListener("click", () => focusDiagnostic(this.cm, diag));
 
         this._diagList.appendChild(row);
       });
@@ -3292,30 +3879,82 @@ this._connectLsp();
   //LSP connect + folder context
   _connectLsp() {
         const onDiag = this._isJava() ? onJavaLspDiagnostics : onLspDiagnostics;
-    onDiag(params => {
-      if (params?.uri === this.uri) this._renderDiagnostics(params.diagnostics || []);
-    });
+    const removeDiagnosticsListener = onDiag(params => {
+      if (this._destroyed) return;
+      if (params?.uri === this.uri) {
+        if (this._isJava()) {
+          this._javaDocumentReady = true;
+          const current = _embeddedJavaDocs.get(this.uri);
 
-    const activate = async () => {
-      const lspFolder = normalizePath(
-        this.lspFolder || this.projectFolder || this.folder || this.syncRoot || ""
-      ).replace(/\/+$/, "");
+          if (current) {
+            current.ready = true;
 
-      if (lspFolder) await ensureEmbeddedServerProjectFolder(lspFolder);
-      await _waitLspInit(this._isJava());
-      this._openInLsp();
-      if (lspFolder) await this._openFolderContext();
-      if (!this._ready) {
-        this._ready = true;
-        this._readyCbs.forEach(fn => fn(this));
-        this._readyCbs = [];
+            if (!current.primed) {
+              current.primed = true;
+              this._javaCompletionPrimed = true;
+              current.version++;
+              current.text = this.cm.getValue();
+              this._version = current.version;
+
+              this._lspNotify("textDocument/didChange", {
+                textDocument: {
+                  uri: this.uri,
+                  version: current.version
+                },
+                contentChanges: [{ text: current.text }]
+              });
+            } else {
+              this._javaCompletionPrimed = true;
+            }
+          }
+        }
+        this._renderDiagnostics(params.diagnostics || []);
       }
+    });
+    if (typeof removeDiagnosticsListener === "function") {
+      this._lspUnsubscribers.push(removeDiagnosticsListener);
+    }
+
+    const activate = () => {
+      if (this._destroyed) return Promise.resolve();
+      if (this._activationPromise) return this._activationPromise;
+
+      this._activationPromise = (async () => {
+        const lspFolder = normalizePath(
+          this.lspFolder || this.projectFolder || this.folder || this.syncRoot || ""
+        ).replace(/\/+$/, "");
+
+        if (lspFolder) {
+          const projectReady = await ensureEmbeddedServerProjectFolder(lspFolder);
+          if (!projectReady || this._destroyed) return;
+        }
+        if (this._isJava() && lspFolder) {
+          const context = await setServerJavaContext(lspFolder, this.virtualFile);
+          if (!context.ok || this._destroyed) return;
+        }
+        await _waitLspInit(this._isJava());
+        if (this._destroyed) return;
+        this._openInLsp();
+        if (lspFolder && !this._isJava()) await this._openFolderContext();
+        if (!this._ready) {
+          this._ready = true;
+          this._readyCbs.forEach(fn => fn(this));
+          this._readyCbs = [];
+        }
+      })().finally(() => {
+        this._activationPromise = null;
+      });
+
+      return this._activationPromise;
     };
 
-        if (this._lspReady()) { activate(); }
+    activate();
 
-        const onOpen = this._isJava() ? onJavaLspOpen : onLspOpen;
-    onOpen(() => activate());
+    const onOpen = this._isJava() ? onJavaLspOpen : onLspOpen;
+    const removeOpenListener = onOpen(() => activate());
+    if (typeof removeOpenListener === "function") {
+      this._lspUnsubscribers.push(removeOpenListener);
+    }
   }
 
   async _openFolderContext() {
@@ -3335,6 +3974,10 @@ this._connectLsp();
       for (const f of files) {
         const lf = f.toLowerCase();
         if (!exts.some(e => lf.endsWith(e))) continue;
+        if (
+          isJavaSelf &&
+          lf.startsWith(`${normalizePath(folder).toLowerCase()}/algs/`)
+        ) continue;
                 if (f === this.virtualFile) continue;
 
         try {
@@ -3343,6 +3986,41 @@ this._connectLsp();
           const text    = await fRes.text();
           const langId  = lf.endsWith(".java") ? "java" : lf.endsWith(".cpp") || lf.endsWith(".cc") || lf.endsWith(".cxx") ? "cpp" : "c";
           const fUri    = uriForFile(f);
+
+          if (isJavaSelf) {
+            const current = _embeddedJavaDocs.get(fUri);
+
+            if (current) {
+              current.context = true;
+
+              if (
+                current.owners.size === 0 &&
+                current.text !== text
+              ) {
+                current.version++;
+                current.text = text;
+
+                this._lspNotify("textDocument/didChange", {
+                  textDocument: {
+                    uri: fUri,
+                    version: current.version
+                  },
+                  contentChanges: [{ text }]
+                });
+              }
+
+              continue;
+            }
+
+            _embeddedJavaDocs.set(fUri, {
+              version: 1,
+              text,
+              owners: new Set(),
+              context: true,
+              ready: true,
+              primed: true
+            });
+          }
 
           this._lspNotify("textDocument/didOpen", {
             textDocument: { uri: fUri, languageId: langId, version: 1, text }
@@ -3364,18 +4042,27 @@ this._connectLsp();
       updateEditorLanguageClass(mode);
     }
 
-    this._version++;
-    this.cm.setValue(code ?? "");
+    const nextCode = code ?? "";
+    const javaRetargeted = this._retargetJavaDocument(nextCode);
 
-    if (this._lspReady()) {
-      this._lspNotify("textDocument/didOpen", {
-        textDocument: {
-          uri:        this.uri,
-          languageId: this._langId(),
-          version:    this._version,
-          text:       code ?? ""
-        }
-      });
+    if (
+      this._javaDiskContext &&
+      String(nextCode) !== ""
+    ) {
+      this._javaDiskContext = false;
+    }
+
+    this._version++;
+    this.cm.setValue(nextCode);
+
+    if (javaRetargeted) {
+      this._refreshJavaContextForCurrentFile()
+        .then(() => {
+          if (!this._destroyed && this._lspReady()) this._openInLsp();
+        })
+        .catch(() => {});
+    } else if (this._lspReady()) {
+      this._openInLsp();
     }
 
     if (this.saveEnabled && hasServerSupport()) {
@@ -3430,8 +4117,30 @@ this._connectLsp();
   }
 
   destroy() {
+    this._destroyed = true;
+    this._lspUnsubscribers.forEach(unsubscribe => {
+      try { unsubscribe(); } catch {}
+    });
+    this._lspUnsubscribers = [];
         if (this._lspReady()) {
-      this._lspNotify("textDocument/didClose", { textDocument: { uri: this.uri } });
+      if (this._isJava()) {
+        const current = _embeddedJavaDocs.get(this.uri);
+
+        if (current) {
+          current.owners.delete(this.id);
+
+          if (!current.context && current.owners.size === 0) {
+            this._lspNotify("textDocument/didClose", {
+              textDocument: { uri: this.uri }
+            });
+            _embeddedJavaDocs.delete(this.uri);
+          }
+        }
+      } else {
+        this._lspNotify("textDocument/didClose", {
+          textDocument: { uri: this.uri }
+        });
+      }
     }
     this._hideSignatureHint();
     this._sigEl?.remove?.();

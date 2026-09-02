@@ -1,5 +1,7 @@
-function createLspClient() {
+function createLspClient(workspaceProvider = null) {
   let socket    = null;
+  let socketUrl = "";
+  let socketGeneration = 0;
   let connected = false;
   let nextId    = 1;
   const pending   = new Map();
@@ -60,13 +62,17 @@ function answerServerRequest(msg) {
     }
 
     case "workspace/workspaceFolders": {
-      const rootUri =
+      const configuredWorkspace = typeof workspaceProvider === "function"
+        ? workspaceProvider()
+        : null;
+      const rootUri = configuredWorkspace?.uri || (
         typeof SmartCodeConfig !== "undefined"
           ? SmartCodeConfig.workspace?.rootUri
-          : null;
+          : null
+      );
 
       result = rootUri
-        ? [{ uri: rootUri, name: "workspace" }]
+        ? [{ uri: rootUri, name: configuredWorkspace?.name || "workspace" }]
         : null;
       break;
     }
@@ -103,25 +109,62 @@ function emit(type, payload) {
    }
 }
 
-function connect(url) {
-  try {
-     socket = new WebSocket(url);
+function connect(url, forceReconnect = false) {
+  const targetUrl = String(url || "");
 
-     socket.onopen = () => {
+  if (
+    !forceReconnect &&
+    socket &&
+    socketUrl === targetUrl &&
+    (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN)
+  ) {
+    return false;
+  }
+
+  try {
+     const previousSocket = socket;
+     const generation = ++socketGeneration;
+     const nextSocket = new WebSocket(targetUrl);
+
+     socket = nextSocket;
+     socketUrl = targetUrl;
+     connected = false;
+
+     for (const [, request] of pending) {
+       request.reject(new Error("LSP context changed"));
+     }
+     pending.clear();
+
+     if (
+       previousSocket &&
+       (previousSocket.readyState === WebSocket.CONNECTING || previousSocket.readyState === WebSocket.OPEN)
+     ) {
+       previousSocket.close(1000, "LSP context changed");
+     }
+
+     nextSocket.onopen = () => {
+        if (generation !== socketGeneration || socket !== nextSocket) {
+          nextSocket.close(1000, "Superseded LSP connection");
+          return;
+        }
         connected = true;
         emit("open");
       };
 
-      socket.onclose = () => {
+      nextSocket.onclose = () => {
+        if (generation !== socketGeneration || socket !== nextSocket) return;
         connected = false;
         for (const [, p] of pending) p.reject(new Error("LSP disconnected"));
         pending.clear();
         emit("close");
       };
 
-      socket.onerror = err => emit("error", err);
+      nextSocket.onerror = err => {
+        if (generation === socketGeneration && socket === nextSocket) emit("error", err);
+      };
 
-      socket.onmessage = event => {
+      nextSocket.onmessage = event => {
+        if (generation !== socketGeneration || socket !== nextSocket) return;
         let msg;
         try { msg = JSON.parse(event.data); }
         catch (e) { console.error("Bad LSP JSON:", e); return; }
@@ -154,8 +197,10 @@ function connect(url) {
 
         emit("notification", msg);
       };
+      return true;
     } catch (e) {
       console.error("LSP connect failed:", e);
+      return false;
     }
   }
 
@@ -176,7 +221,12 @@ function sendRequest(method, params) {
   }
 
   function on(type, cb) {
-    if (listeners[type]) listeners[type].push(cb);
+    if (!listeners[type]) return () => {};
+    listeners[type].push(cb);
+    return () => {
+      const index = listeners[type].indexOf(cb);
+      if (index >= 0) listeners[type].splice(index, 1);
+    };
   }
 
   return { connect, sendRequest, sendNotification, isReady, on };
@@ -189,22 +239,25 @@ function connectLsp(url)                  { clangdClient.connect(url); }
 function sendLspRequest(method, params)   { return clangdClient.sendRequest(method, params); }
 function sendLspNotification(method, p)   { clangdClient.sendNotification(method, p); }
 function isLspReady()                     { return clangdClient.isReady(); }
-function onLspOpen(cb)                    { clangdClient.on("open", cb); }
-function onLspClose(cb)                   { clangdClient.on("close", cb); }
-function onLspError(cb)                   { clangdClient.on("error", cb); }
-function onLspDiagnostics(cb)             { clangdClient.on("diagnostics", cb); }
-function onLspNotification(cb)            { clangdClient.on("notification", cb); }
+function onLspOpen(cb)                    { return clangdClient.on("open", cb); }
+function onLspClose(cb)                   { return clangdClient.on("close", cb); }
+function onLspError(cb)                   { return clangdClient.on("error", cb); }
+function onLspDiagnostics(cb)             { return clangdClient.on("diagnostics", cb); }
+function onLspNotification(cb)            { return clangdClient.on("notification", cb); }
 
 
-const javaClient = createLspClient();
+let javaLspWorkspace = null;
+const javaClient = createLspClient(() => javaLspWorkspace);
 
-function connectJavaLsp(url)              {  if (javaClient && javaClient.isReady()) return; javaClient.connect(url); }
+function connectJavaLsp(url)              { return javaClient.connect(url); }
+function reconnectJavaLsp(url)           { return javaClient.connect(url, true); }
+function setJavaLspWorkspace(uri, name)    { javaLspWorkspace = uri ? { uri, name: name || "workspace" } : null; }
 function sendJavaRequest(method, params)  { return javaClient.sendRequest(method, params); }
 function sendJavaNotification(method, p)  { javaClient.sendNotification(method, p); }
 function isJavaLspReady()                 { return javaClient.isReady(); }
-function onJavaLspOpen(cb)                { javaClient.on("open", cb); }
-function onJavaLspClose(cb)               { javaClient.on("close", cb); }
-function onJavaLspError(cb)               { javaClient.on("error", cb); }
-function onJavaLspDiagnostics(cb)         { javaClient.on("diagnostics", cb); }
-function onJavaLspNotification(cb)        { javaClient.on("notification", cb); }
+function onJavaLspOpen(cb)                { return javaClient.on("open", cb); }
+function onJavaLspClose(cb)               { return javaClient.on("close", cb); }
+function onJavaLspError(cb)               { return javaClient.on("error", cb); }
+function onJavaLspDiagnostics(cb)         { return javaClient.on("diagnostics", cb); }
+function onJavaLspNotification(cb)        { return javaClient.on("notification", cb); }
   

@@ -1,0 +1,11 @@
+ALGatorWeb lahko uporablja navadne CodeMirror ali SmartCodeEditor (s podporo LSP in IntelliSense)
+
+Uporaba CodeMirror urejevalnikov:
+- v edit.js nastavi use_LSP_functionality = false
+
+Uporaba SmartCodeEditor:
+- v edit.js nastavi use_LSP_functionality = false
+- uredi vsebino .env datoteke 
+- poženi docker za lsync in lsp:
+
+  set ALGATOR_ROOT=D:\ALGATOR_ROOT&& docker compose up -d --build --force-recreate

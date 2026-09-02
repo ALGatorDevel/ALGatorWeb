@@ -1,10 +1,10 @@
-* { box-sizing: border-box; }
+x_* { box-sizing: border-box; }
 
-html, body {
+x_html, body {
   height: 100%;
 }
 
-body {
+x_body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
@@ -150,10 +150,10 @@ body {
 }
 
 .editor-wrapper {
-  width: 88%;
+  x_width: 88%;
   flex: 1;
   min-height: 260px;
-  margin: 14px auto 10px auto;
+  x_margin: 14px auto 10px auto;
   background: #fff;
   border-radius: 14px;
   overflow: hidden;
@@ -417,7 +417,7 @@ body {
 }
 
 .diagnostics-panel {
-  width: 88%;
+  width: 100%;
   min-height: 120px;
   max-height: 180px;
   margin: 0 auto 10px auto;

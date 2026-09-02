@@ -1,3 +1,6 @@
+// The use of the LSP (IntelliSense in code editors) functionality on the page
+var use_LSP_functionality = true;
+
 function getValue(dict, key, defValue) {
   try {
     if (dict[key]) return dict[key]; else return defValue;
@@ -565,6 +568,108 @@ function initCodeMirrorEditor(cmDiv, hiddenDiv, content, entity=null, key, theme
   });
   if (height!="") editor.setSize(null, height);
   return editor;
+}
+
+function initLSPEditor(divID, hiddenDiv, content) {
+  const editor = window.smartCodeEditor.initEmbeddedEditor({
+    divId: divID,
+    hiddenDiv: hiddenDiv,
+    projectName: projectName,
+    lspFolder: projectName.startsWith("PROJ-") ? projectName : "PROJ-" + projectName,
+    language: "java",
+    content: content,
+    readOnly: true
+  });
+  editors.set(divID, editor);
+  
+  disabableEditors.set(divID, editor);
+  editor.whenReady().then(() => setLSPEditorVisuallyEnabledByName(divID, false));
+
+  return editor;
+}
+
+function setLSPEditorVisuallyEnabledByName(editorName, enabled) {
+  const editor = editors.get(editorName);
+  setLSPEditorVisuallyEnabled(editor, enabled);
+}
+
+function setLSPEditorVisuallyEnabled(editor, enabled) {
+  if (editor)
+    Array.from(editor.getWrapperElement().getElementsByClassName("CodeMirror")).forEach(
+      e=>e.style.background= (enabled ? /*"#FBFFFB"*/"#FFFFFF" : "#f5f5f5")
+    );
+}
+
+
+function initInputEditor(useLSP) {
+  if (!useLSP) {
+    initCodeMirrorEditor("input-code-editor","input-class","",changes.other,"input",undefined,undefined,undefined,true);
+  } else {
+    initLSPEditor("input-code-editor", "input-class", pageProject.srcFiles.get("input") || "");
+  }
+}
+
+function initOutputEditor(useLSP) {
+  if (!useLSP) {
+    initCodeMirrorEditor("output-code-editor","output-class","",changes.other,"output",undefined,undefined,undefined,true);
+  } else {
+    initLSPEditor("output-code-editor", "output-class", pageProject.srcFiles.get("output") || "");
+  }
+}
+
+function initToolsEditor(useLSP) {
+  if (!useLSP) {
+    initCodeMirrorEditor("tools-code-editor","tools-class","",changes.other,"tools",undefined,undefined,undefined,true);
+  } else {
+    initLSPEditor("tools-code-editor", "tools-class", pageProject.srcFiles.get("tools") || "");
+  }
+}
+
+async function initAlgorithmEditor(alg, useLSP) {
+  const algorithmName = alg.name;
+  if (!useLSP) {
+    var cmDiv = "algsrcCM-"+algorithmName;
+    initCodeMirrorEditor(cmDiv, "algsrcTA-"+algorithmName, alg.fileContent, changes.algorithms, algorithmName, undefined, undefined, undefined, true);
+    var alEditor = editors.get(cmDiv);
+    setTimeout(() => {alEditor.refresh();}, 100); // to render properly
+  } else {
+    const alEditor = initLSPEditor("algsrcCM-" + algorithmName, "algsrcTA-" + algorithmName, alg.fileContent);
+    await alEditor.whenReady();
+    alEditor.refresh();
+    requestAnimationFrame(() => {alEditor.refresh();});
+    setTimeout(() => {alEditor.refresh();}, 100);
+  }
+}
+
+
+async function initGeneratorEditor(generator, useLSP) {
+  const generatorName = generator.name;
+  const cmDiv=`gencode-${generatorName}`;  
+  if (!useLSP) {
+    initCodeMirrorEditor(cmDiv, `genhcode-${generatorName}`, generator.sourcecode, changes.generators, generatorName, undefined,undefined,undefined, false);
+    disabableEditors.set(cmDiv,editors.get(cmDiv));
+    setTimeout(() => editors.get(cmDiv).refresh(), 0);
+  } else {
+    const generatorEditor = initLSPEditor(cmDiv, `genhcode-${generatorName}`, generator.sourcecode);
+    generatorEditor.whenReady().then(() => {
+      generatorEditor.refresh();
+    });
+  }
+}
+
+async function initIndicatorEditor(ind, useLSP) {
+  const indicatorName = ind.name;
+  const cmDiv = `indcode-${indicatorName}`;
+  if (!useLSP) {
+    initCodeMirrorEditor(cmDiv, `indhcode-${indicatorName}`, ind.code, changes.indicators, indicatorName, undefined, undefined, undefined, true);
+    var indEditor = editors.get(cmDiv);
+    disabableEditors.set(cmDiv,indEditor);
+  } else {
+    const indicatorEditor = initLSPEditor(cmDiv, `indhcode-${indicatorName}`, ind.code);
+    indicatorEditor.whenReady().then(() => {
+      indicatorEditor.refresh();
+    });
+  }
 }
 
    // reads the "array" atribute of element with eltID (which is of 
@@ -1252,10 +1357,7 @@ function askForGeneratorParameters(x, callback, sectId) {
 function meGeneratorContent(generatorName, parDiv, generator) {
   parDiv.innerHTML = getGeneratorHTML(projectName, generatorName, generator.description, generator.parameters.replaceAll("\"", "'"));
 
-  var cmDiv=`gencode-${generatorName}`;  
-  initCodeMirrorEditor(cmDiv, `genhcode-${generatorName}`, generator.sourcecode, changes.generators, generatorName, undefined,undefined,undefined, false);
-  disabableEditors.set(cmDiv,editors.get(cmDiv));
-  setTimeout(() => editors.get(cmDiv).refresh(), 0);
+  initGeneratorEditor(generator, use_LSP_functionality);
 
   let doTrigger = false; //?
   setMultiselectValuesFromArrray("genpars-", generatorName);
@@ -1435,10 +1537,7 @@ function handleITypeChange(key) {
 function meIndicatorContent(indicatorName, parDiv, ind) {
   parDiv.innerHTML = getIndicatorHTML(projectName, indicatorName, ind.desc, ind.decimals);
 
-  var cmDiv = `indcode-${indicatorName}`;
-  initCodeMirrorEditor(cmDiv, `indhcode-${indicatorName}`, ind.code, changes.indicators, indicatorName, undefined, undefined, undefined, true);
-  var indEditor = editors.get(cmDiv);
-  disabableEditors.set(cmDiv,indEditor);
+  initIndicatorEditor(ind, use_LSP_functionality);
 
   selectOptionByValue("itype-"+indicatorName, ind.type);
   handleITypeChange(indicatorName);
@@ -2133,7 +2232,11 @@ document.querySelectorAll(`.sEdit[own="${own}"]`).forEach(function(element) {
     var tsEditor = editors.get(editor+own);
     if (tsEditor) {
       tsEditor.setOption("readOnly", !enabled);
-      tsEditor.getWrapperElement().style.backgroundColor = (enabled ? "#FBFFFB" : "#f5f5f5"); 
+
+      if (!use_LSP_functionality)
+        tsEditor.getWrapperElement().style.backgroundColor = (enabled ? "#FBFFFB" : "#f5f5f5"); 
+      else 
+        setLSPEditorVisuallyEnabled(tsEditor, enabled);
     }
   });
   // and show/hide TextBox views and their previews
@@ -2234,34 +2337,7 @@ async function showSelectedAlgorithm(algorithmName) {
     await populatePrivatnessSpans("algorithm");
     showHidePrivatenessIcons();
 
-    /*
-    var cmDiv = "algsrcCM-"+algorithmName;
-    initCodeMirrorEditor(cmDiv, "algsrcTA-"+algorithmName, alg.fileContent, changes.algorithms, algorithmName, undefined, undefined, undefined, true);
-    var alEditor = editors.get(cmDiv);
-    setTimeout(() => {alEditor.refresh();}, 100); // to render properly
-    */
-
-    
-    var cmDiv = "algsrcCM-" + algorithmName;
-    var alEditor = window.smartCodeEditor.initEmbeddedEditor({
-      divId: cmDiv,
-      hiddenDiv: "algsrcTA-" + algorithmName,
-      projectName: projectName,
-      algorithmName: algorithmName,
-    
-      lspFolder: projectName.startsWith("PROJ-")
-        ? projectName
-        : "PROJ-" + projectName,
-    
-      readOnly: true
-    });
-    editors.set(cmDiv, alEditor);
-    disabableEditors.set(cmDiv, alEditor);
-    await alEditor.whenReady();
-    alEditor.refresh();
-    requestAnimationFrame(() => {alEditor.refresh();});
-    setTimeout(() => {alEditor.refresh();}, 100); 
-
+    initAlgorithmEditor(alg, use_LSP_functionality);
 
     let view = getViewOfType("TextBox", "algorithmDescription", algorithmName);
     document.getElementById("alghtml-"+algorithmName).innerHTML = view.getEditorHTML();  
@@ -2581,8 +2657,12 @@ function enableProjectEditMode(enabled, where=document){
 
   disabableEditors.forEach(function(editor){
     editor.setOption("readOnly", !enabled);
-    editor.getWrapperElement().style.backgroundColor = (enabled ? "#FBFFFB" : "#f5f5f5"); 
-  });
+
+    if (!use_LSP_functionality)
+      editor.getWrapperElement().style.backgroundColor = (enabled ? "#FBFFFB" : "#f5f5f5");
+    else
+      setLSPEditorVisuallyEnabled(editor, enabled);
+    });
 }
 
 function updateSelect2Styles(selectElement) {

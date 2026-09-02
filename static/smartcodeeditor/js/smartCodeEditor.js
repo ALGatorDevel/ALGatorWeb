@@ -17,13 +17,6 @@
 //     console.log(ed.getContent());
 //   });
 //
-// EMBEDDED:
-//   var ed = smartCodeEditor.initEmbeddedEditor({
-//     divId: "my-editor",
-//     hiddenDiv: "my-hidden-textarea",
-//     height: "700px" // sprejme tudi številko: 700
-//   });
-//
 
 window.smartCodeEditor = (() => {
 
@@ -38,26 +31,6 @@ window.smartCodeEditor = (() => {
   function resolveMode(m) {
     if (typeof m === "string") return _modeMap[m.toLowerCase()] ?? 1;
     return Number(m) || 1;
-  }
-
-  function normalizeCssSize(value, fallback = null) {
-    if (value === undefined || value === null || value === "") {
-      return fallback;
-    }
-
-    return typeof value === "number"
-      ? `${value}px`
-      : String(value);
-  }
-
-  function applyEmbeddedHeight(root, value, fallback = "650px") {
-    if (!root) return;
-
-    const height = normalizeCssSize(value, fallback);
-    if (!height) return;
-
-    root.style.height = height;
-    root.style.minHeight = height;
   }
 
   const callbacks = { onChange: null, onSave: null, onFileOpen: null };
@@ -157,6 +130,7 @@ window.smartCodeEditor = (() => {
       this.options.syncRoot = this.syncRoot;
       this.options.lsyncEnabled = this.lsyncEnabled;
       this.readyState       = false;
+      this.readyPromise     = null;
       this.embeddedEditorInstance = null;
 
       if (this.mode === 3) {
@@ -200,7 +174,9 @@ window.smartCodeEditor = (() => {
     }
 
     initEmbeddedEditorMode() {
-      const initEmbeddedEditor = () => {
+      let starting = false;
+
+      const initEmbeddedEditor = async () => {
         const factory = window.createEmbeddedEditor || window.createTargetEditor;
 
         if (typeof factory !== "function") {
@@ -208,62 +184,81 @@ window.smartCodeEditor = (() => {
           return;
         }
 
-        const root = this.root();
-        if (!root) return;
+        if (starting || this.embeddedEditorInstance) return;
+        starting = true;
 
-        root.style.display       = "flex";
-        root.style.flexDirection = "column";
-        root.style.overflow      = "hidden";
+        try {
+          const language = this.options.language || embeddedModeToLanguage(this.options.mode, "java");
+          if (!this.options.savePath && language === "java") {
+            this.options = await resolveEmbeddedSource(this.options);
+            this.syncRoot = Object.prototype.hasOwnProperty.call(this.options, "syncRoot")
+              ? (this.options.syncRoot || "")
+              : (this.options.projectFolder || this.options.folder || "");
+            this.lsyncEnabled = this.options.lsyncEnabled === true;
+            window.smartCodeInitialOptions = this.options;
+          }
 
-        applyEmbeddedHeight(
-          root,
-          this.options.height,
-          root.style.height || "100%"
-        );
+          const root = this.root();
+          if (!root) return;
 
-        const initialContent =
-          Object.prototype.hasOwnProperty.call(this.options, "content")
-            ? this.options.content
-            : this.options.initialContent;
+          root.style.display       = "flex";
+          root.style.flexDirection = "column";
+          root.style.overflow      = "hidden";
 
-        this.embeddedEditorInstance = factory(root, {
-          language:        this.options.language || "java",
-          projectFolder:   this.options.projectFolder || this.options.folder || this.options.project || null,
-          lspFolder:       this.options.lspFolder || this.options.projectFolder || this.options.folder || this.options.project || null,
-          folder:          this.options.folder || this.options.projectFolder || this.options.project || null,
-          syncRoot:        this.syncRoot,
-          lsyncEnabled:    this.lsyncEnabled,
-          savePath:        this.options.savePath || null,
-          saveEnabled:     this.options.saveEnabled === true,
-          showDiagnostics: this.showDiagnostics,
-          readOnly:        this.options.readOnly !== false,
-          content:         initialContent,
-          height:          this.options.height
-        });
+          if (!root.style.height) root.style.height = "100%";
 
-        this.readyState = true;
+          const initialContent =
+            Object.prototype.hasOwnProperty.call(this.options, "content")
+              ? this.options.content
+              : this.options.initialContent;
 
-        if (initialContent !== undefined) {
-          this.embeddedEditorInstance.setContent(
-            initialContent ?? "",
-            this.options.language || "java"
-          );
+          this.embeddedEditorInstance = factory(root, {
+            language:        this.options.language || "java",
+            projectFolder:   this.options.projectFolder || this.options.folder || this.options.project || null,
+            lspFolder:       this.options.lspFolder || this.options.projectFolder || this.options.folder || this.options.project || null,
+            folder:          this.options.folder || this.options.projectFolder || this.options.project || null,
+            syncRoot:        this.syncRoot,
+            lsyncEnabled:    this.lsyncEnabled,
+            savePath:        this.options.savePath || null,
+            saveEnabled:     this.options.saveEnabled === true,
+            showDiagnostics: this.showDiagnostics,
+            readOnly:        this.options.readOnly !== false,
+            content:         initialContent
+          });
+
+          const instance = this.embeddedEditorInstance;
+          this.readyPromise = Promise.resolve(
+            typeof instance?.whenReady === "function"
+              ? instance.whenReady()
+              : instance
+          ).then(() => {
+            if (this.embeddedEditorInstance !== instance) return this;
+
+            if (this.pendingContent !== undefined) {
+              instance.setContent(
+                this.pendingContent ?? "",
+                this.pendingLanguage || this.options.language || "java"
+              );
+
+              this.pendingContent  = undefined;
+              this.pendingLanguage = undefined;
+            }
+
+            this.readyState = true;
+            instance.refresh?.();
+
+            setTimeout(() => {
+              if (this.embeddedEditorInstance !== instance) return;
+              instance.refresh?.();
+            }, 100);
+
+            return this;
+          });
+        } catch (error) {
+          console.error("[smartCodeEditor] embedded initialization failed:", error);
+        } finally {
+          starting = false;
         }
-
-        if (this.pendingContent !== undefined) {
-          this.embeddedEditorInstance.setContent(
-            this.pendingContent ?? "",
-            this.pendingLanguage || this.options.language || "java"
-          );
-
-          this.pendingContent  = undefined;
-          this.pendingLanguage = undefined;
-        }
-
-        setTimeout(() => {
-          this.embeddedEditorInstance?.refresh?.();
-          this.embeddedEditorInstance?.focus?.();
-        }, 100);
       };
 
       if (document.readyState === "loading") {
@@ -615,6 +610,19 @@ window.smartCodeEditor = (() => {
     get ready() { return this.readyState; }
 
     whenReady() {
+      if (this.mode === 3) {
+        return new Promise(resolve => {
+          const check = () => {
+            if (this.readyPromise) {
+              this.readyPromise.then(() => resolve(this));
+              return;
+            }
+            setTimeout(check, 25);
+          };
+          check();
+        });
+      }
+
       return new Promise(resolve => {
         const check = () => this.readyState ? resolve(this) : setTimeout(check, 50);
         check();
@@ -649,39 +657,45 @@ window.smartCodeEditor = (() => {
       : "http://localhost:3000";
   }
 
-  function encodeEmbeddedWorkspacePath(path) {
-    return String(path || "")
-      .replace(/\\/g, "/")
-      .split("/")
-      .filter(Boolean)
-      .map(encodeURIComponent)
-      .join("/");
+  function embeddedInitialContent(opts) {
+    if (Object.prototype.hasOwnProperty.call(opts, "content")) return opts.content;
+    if (Object.prototype.hasOwnProperty.call(opts, "initialContent")) return opts.initialContent;
+    return undefined;
   }
 
-  function waitEmbedded(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  function javaPublicTypeName(content) {
+    const match = String(content ?? "").match(
+      /\bpublic\s+(?:abstract\s+|final\s+|sealed\s+|non-sealed\s+)?(?:class|interface|enum|record)\s+([A-Za-z_$][\w$]*)\b/
+    );
+    return match ? match[1] : "";
   }
 
-  function inferJavaFilePath(filePath, content, language, enabled = true) {
-    if (
-      enabled === false ||
-      String(language || "").toLowerCase() !== "java" ||
-      !content
-    ) {
-      return filePath;
+  function embeddedFallbackSavePath(opts, language) {
+    const explicit = opts.filePath || opts.savePath || opts.relativePath;
+    if (explicit) return explicit;
+
+    const ext = { java: ".java", c: ".c", cpp: ".cpp" }[language] || ".java";
+    if (language !== "java") return (opts.key || "Main") + ext;
+
+    const typeName = javaPublicTypeName(embeddedInitialContent(opts));
+
+    if (typeName === "Input" || typeName === "Output") {
+      return `proj/src/${typeName}.java`;
     }
 
-    const match = String(content).match(
-      /\bpublic\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+([A-Za-z_$][\w$]*)/
-    );
+    if (typeName === "Algorithm") {
+      const algorithm = String(
+        opts.algorithmName || opts.algorithm || opts.algorithmKey || ""
+      ).trim();
+      if (algorithm) {
+        const folder = algorithm.startsWith("ALG-") ? algorithm : `ALG-${algorithm}`;
+        return `algs/${folder}/src/Algorithm.java`;
+      }
+      return "algs/__smartcode_new__/src/Algorithm.java";
+    }
 
-    if (!match) return filePath;
-
-    const normalized = String(filePath || "Main.java").replace(/\\/g, "/");
-    const slash = normalized.lastIndexOf("/");
-    const folder = slash >= 0 ? normalized.slice(0, slash + 1) : "";
-
-    return `${folder}${match[1]}.java`;
+    if (typeName) return `${typeName}.java`;
+    return (opts.key || "Main") + ext;
   }
 
   async function resolveEmbeddedSource(opts) {
@@ -691,15 +705,7 @@ window.smartCodeEditor = (() => {
         opts.projectName,
         opts.projectFolder || opts.folder || opts.project
       );
-      let savePath = opts.filePath || opts.savePath || opts.relativePath ||
-        ((opts.key || "Main") + ({ java: ".java", c: ".c", cpp: ".cpp" }[language] || ".java"));
-
-      savePath = inferJavaFilePath(
-        savePath,
-        opts.content,
-        language,
-        opts.inferJavaFileName !== false
-      );
+      const savePath = embeddedFallbackSavePath(opts, language);
 
       return {
         ...opts,
@@ -711,9 +717,7 @@ window.smartCodeEditor = (() => {
           ? opts.syncRoot
           : projectFolder,
         savePath,
-        content: Object.prototype.hasOwnProperty.call(opts, "content")
-          ? (opts.content ?? "")
-          : undefined,
+        content: embeddedInitialContent(opts),
         saveEnabled: opts.saveEnabled === true
       };
     }
@@ -723,56 +727,36 @@ window.smartCodeEditor = (() => {
       algorithm: String(opts.algorithmName)
     });
 
-    const response = await fetch(`${getServerHttpUrl()}/resolve-embedded-file?${query.toString()}`);
-    if (!response.ok) {
-      let message = `Datoteke algoritma '${opts.algorithmName}' ni mogoče najti.`;
-      try {
-        const body = await response.json();
-        if (body?.error) message = body.error;
-      } catch {}
-      throw new Error(message);
+    let response = null;
+    const deadline = Date.now() + 4000;
+    do {
+      response = await fetch(`${getServerHttpUrl()}/resolve-embedded-file?${query.toString()}`);
+      if (response.ok || Date.now() >= deadline) break;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } while (true);
+
+    if (!response?.ok) {
+      const language = opts.language || embeddedModeToLanguage(opts.mode, "java");
+      const projectFolder = normalizeEmbeddedProjectFolder(
+        opts.projectName,
+        opts.projectFolder || opts.folder || opts.project
+      );
+      return {
+        ...opts,
+        language,
+        projectFolder,
+        lspFolder: opts.lspFolder || projectFolder,
+        folder: opts.folder || projectFolder,
+        syncRoot: Object.prototype.hasOwnProperty.call(opts, "syncRoot")
+          ? opts.syncRoot
+          : projectFolder,
+        savePath: embeddedFallbackSavePath(opts, language),
+        content: embeddedInitialContent(opts),
+        saveEnabled: opts.saveEnabled === true
+      };
     }
 
     const source = await response.json();
-
-    let resolvedContent = source.content ?? "";
-
-    /*
-     * Ob prvem prikazu ALGator včasih odpre panel, preden je vsebina
-     * sinhronizirane datoteke že vrnjena v resolverju. Pot je takrat
-     * pravilna (zato LSP že pokaže diagnostiko), CodeMirror pa dobi
-     * prazen niz. V tem primeru datoteko neposredno preberemo iz
-     * /workspace in nekajkrat ponovimo poskus.
-     */
-    if (
-      resolvedContent === "" &&
-      source.projectFolder &&
-      source.relativePath
-    ) {
-      const workspacePath = encodeEmbeddedWorkspacePath(
-        `${source.projectFolder}/${source.relativePath}`
-      );
-
-      for (let attempt = 0; attempt < 10; attempt++) {
-        try {
-          const fileResponse = await fetch(
-            `${getServerHttpUrl()}/workspace/${workspacePath}`,
-            { cache: "no-store" }
-          );
-
-          if (fileResponse.ok) {
-            const fileContent = await fileResponse.text();
-
-            if (fileContent !== "") {
-              resolvedContent = fileContent;
-              break;
-            }
-          }
-        } catch {}
-
-        await waitEmbedded(100);
-      }
-    }
 
     return {
       ...opts,
@@ -782,13 +766,10 @@ window.smartCodeEditor = (() => {
       folder: source.projectFolder,
       syncRoot: source.projectFolder,
       savePath: source.relativePath,
-      content: resolvedContent,
+      content: embeddedInitialContent(opts) ?? "",
       lsyncEnabled: true,
       saveEnabled: false,
-      resolvedSource: {
-        ...source,
-        content: resolvedContent
-      }
+      resolvedSource: source
     };
   }
 
@@ -965,14 +946,8 @@ window.smartCodeEditor = (() => {
         waitUntilVisible();
       },
       setSize(width, height) {
-        if (width !== undefined && width !== null && width !== "") {
-          root.style.width = normalizeCssSize(width);
-        }
-
-        if (height !== undefined && height !== null && height !== "") {
-          applyEmbeddedHeight(root, height);
-        }
-
+        if (width) root.style.width = width;
+        if (height) root.style.height = height;
         refreshEditor();
         waitUntilVisible();
       },
@@ -1083,14 +1058,8 @@ window.smartCodeEditor = (() => {
         activeAdapter?.refresh?.();
       },
       setSize(width, height) {
-        if (width !== undefined && width !== null && width !== "") {
-          root.style.width = normalizeCssSize(width);
-        }
-
-        if (height !== undefined && height !== null && height !== "") {
-          applyEmbeddedHeight(root, height);
-        }
-
+        if (width) root.style.width = width;
+        if (height) root.style.height = height;
         activeAdapter?.setSize?.(width, height);
       },
       setOption(option, value) {
@@ -1172,12 +1141,8 @@ window.smartCodeEditor = (() => {
     root.style.display = "flex";
     root.style.flexDirection = "column";
     root.style.overflow = "hidden";
-
-    applyEmbeddedHeight(
-      root,
-      opts.height,
-      root.style.height || "650px"
-    );
+    root.style.minHeight = opts.height || root.style.minHeight || "500px";
+    root.style.height = opts.height || root.style.height || "650px";
 
     const deferred = createDeferredEmbeddedAdapter(root, hiddenEl, opts);
 
