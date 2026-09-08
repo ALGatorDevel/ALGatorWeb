@@ -136,7 +136,7 @@ class Migration(migrations.Migration):
 
         Entity_permission_group = apps.get_model('ausers', 'EntityPermissionGroup')
         Entity_permission_group(entity=e0_S, group=everyone_g, value=can_read_pt.value | can_edit_users_pt.value).save()
-        Entity_permission_group(entity=e0_P, group=everyone_g, value=can_read_pt.value | can_add_project_pt.value).save()
+        Entity_permission_group(entity=e0_P, group=everyone_g, value=can_read_pt.value | can_add_project_pt.value | can_import_project_pt.value).save()
 
         # Entity permission
         Entity_permission = apps.get_model('ausers', 'Entity_permission')

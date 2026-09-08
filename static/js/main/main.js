@@ -83,10 +83,10 @@ function preventNonNumKeys(event) {
 
 
 function formatMath(container) {
-  if (!container || !window.MathJax) return;
+  if (!container || !window.MathJax) return Promise.resolve();
 
-  MathJax.startup.promise.then(() => {
+  return MathJax.startup.promise.then(() => {
     MathJax.typesetClear([container]);
-    MathJax.typesetPromise([container]);
+    return MathJax.typesetPromise([container]);
   });
 }

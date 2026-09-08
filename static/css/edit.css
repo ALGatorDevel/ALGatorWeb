@@ -2,7 +2,7 @@
       font-family: Arial, sans-serif;
       margin: 15px;
       padding: 10px 10px 0px 10px;
-      border: 1px solid #aaaaaa;
+      x_border: 1px solid #aaaaaa;
       overflow: hidden; /* Hide body overflow to prevent default scrollbars */
   }
   hi {
@@ -145,6 +145,56 @@
 
   .almostHW {
     width: 30%;
+  }
+
+  /* native scrollbar theming (::-webkit-scrollbar-thumb border/background-clip
+     tricks) turned out unreliable for pixel-exact "flush right, padded left"
+     control, so we hide the real scrollbar and draw our own instead. */
+  .hide-native-scrollbar {
+    scrollbar-width: none;      /* Firefox */
+  }
+  .hide-native-scrollbar::-webkit-scrollbar {
+    display: none;              /* Chrome/Edge/Safari */
+  }
+
+  .custom-vscrollbar-track {
+    flex: 0 0 10px;
+    position: relative;
+    cursor: default;
+  }
+  .custom-vscrollbar-thumb {
+    position: absolute;
+    left: 4px;                  /* padding on the left */
+    right: 0;                   /* flush on the right */
+    background-color: #bbbbbb;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .custom-vscrollbar-thumb:hover {
+    background-color: #999999;
+  }
+
+  /* matching disclosure triangles for the "Details" <summary> and the
+     "Source code"/"Code" label - drawn ourselves (rather than relying on
+     the native summary marker) so both look identical and can be driven
+     from the same open/closed state */
+  summary { list-style: none; cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  summary::marker { display: none; }
+
+  .acc-triangle {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 6px solid #333;
+    margin-right: 8px;
+    vertical-align: middle;
+    transition: transform .15s ease;
+  }
+  .acc-triangle.open {
+    transform: rotate(90deg);
   }
 
 

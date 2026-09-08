@@ -64,7 +64,7 @@ def getPdeState(projectName, uid="__internal__"):
     return None
 
 def setPdeState(projectName, pdeState, uid="__internal__"):
-    connector.talkToServer(
+    return connector.talkToServer(
         f'alter {{"Action":"SavePdeState", "ProjectName":"{projectName}", "PdeState":{pdeState}}}', uid)
 
 

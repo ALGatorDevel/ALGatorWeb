@@ -570,7 +570,7 @@ function initCodeMirrorEditor(cmDiv, hiddenDiv, content, entity=null, key, theme
   return editor;
 }
 
-function initLSPEditor(divID, hiddenDiv, content) {
+function initLSPEditor(divID, hiddenDiv, content, height) {
   const editor = window.smartCodeEditor.initEmbeddedEditor({
     divId: divID,
     hiddenDiv: hiddenDiv,
@@ -578,10 +578,26 @@ function initLSPEditor(divID, hiddenDiv, content) {
     lspFolder: projectName.startsWith("PROJ-") ? projectName : "PROJ-" + projectName,
     language: "java",
     content: content,
-    readOnly: true
+    readOnly: true,
+    height: height === "flex" ? undefined : height
   });
+
+  if (height === "flex") {
+    // initEmbeddedEditor() always forces both height and min-height on the
+    // mount div (falling back to fixed px values). We want it to instead
+    // share space with its siblings (label, Compile/Generate button) via
+    // flexbox, so undo that and let flex:1 1 auto / min-height:0 from the
+    // template do the sizing.
+    const root = document.getElementById(divID);
+    if (root) {
+      root.style.height = "auto";
+      root.style.minHeight = "0";
+      root.style.flex = "1 1 auto";
+    }
+  }
+
   editors.set(divID, editor);
-  
+
   disabableEditors.set(divID, editor);
   editor.whenReady().then(() => setLSPEditorVisuallyEnabledByName(divID, false));
 
@@ -603,73 +619,200 @@ function setLSPEditorVisuallyEnabled(editor, enabled) {
 
 function initInputEditor(useLSP) {
   if (!useLSP) {
-    initCodeMirrorEditor("input-code-editor","input-class","",changes.other,"input",undefined,undefined,undefined,true);
+    initCodeMirrorEditor("input-code-editor","input-class","",changes.other,"input",undefined,undefined,"100%",true);
   } else {
-    initLSPEditor("input-code-editor", "input-class", pageProject.srcFiles.get("input") || "");
+    initLSPEditor("input-code-editor", "input-class", pageProject.srcFiles.get("input") || "", "flex");
   }
 }
 
 function initOutputEditor(useLSP) {
   if (!useLSP) {
-    initCodeMirrorEditor("output-code-editor","output-class","",changes.other,"output",undefined,undefined,undefined,true);
+    initCodeMirrorEditor("output-code-editor","output-class","",changes.other,"output",undefined,undefined,"100%",true);
   } else {
-    initLSPEditor("output-code-editor", "output-class", pageProject.srcFiles.get("output") || "");
+    initLSPEditor("output-code-editor", "output-class", pageProject.srcFiles.get("output") || "", "flex");
   }
+}
+
+// draws and drives a custom vertical scrollbar for scrollEl (whose native
+// scrollbar is hidden via the .hide-native-scrollbar class), placed inside
+// trackEl (a ".custom-vscrollbar-track" sibling with one ".custom-vscrollbar-thumb"
+// child) - gives pixel-exact control (flush right, padded left) that proved
+// unreliable to get from ::-webkit-scrollbar-thumb theming alone.
+function wireCustomScrollbar(scrollEl, trackEl) {
+  const thumb = trackEl ? trackEl.querySelector(".custom-vscrollbar-thumb") : null;
+  if (!scrollEl || !trackEl || !thumb) return;
+
+  function metrics() {
+    const trackH   = trackEl.clientHeight;
+    const viewH    = scrollEl.clientHeight;
+    const contentH = scrollEl.scrollHeight;
+    const thumbH   = Math.min(trackH, Math.max(24, trackH * (viewH / contentH)));
+    const maxTop   = trackH - thumbH;
+    return {trackH, viewH, contentH, thumbH, maxTop};
+  }
+
+  function layout() {
+    const m = metrics();
+    if (m.contentH <= m.viewH + 1) {
+      trackEl.style.visibility = "hidden";
+      return;
+    }
+    trackEl.style.visibility = "visible";
+    const ratio = scrollEl.scrollTop / (m.contentH - m.viewH);
+    thumb.style.height = m.thumbH + "px";
+    thumb.style.top    = (m.maxTop * ratio) + "px";
+  }
+
+  scrollEl.addEventListener("scroll", layout);
+  new ResizeObserver(layout).observe(scrollEl);
+  new MutationObserver(layout).observe(scrollEl, {childList: true, subtree: true, attributes: true});
+
+  let dragging = false, dragStartY = 0, dragStartScroll = 0;
+  thumb.addEventListener("mousedown", (e) => {
+    dragging = true;
+    dragStartY = e.clientY;
+    dragStartScroll = scrollEl.scrollTop;
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  });
+  window.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const m = metrics();
+    if (m.maxTop <= 0) return;
+    const deltaScroll = ((e.clientY - dragStartY) / m.maxTop) * (m.contentH - m.viewH);
+    scrollEl.scrollTop = dragStartScroll + deltaScroll;
+  });
+  window.addEventListener("mouseup", () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = "";
+  });
+  trackEl.addEventListener("mousedown", (e) => {
+    if (e.target === thumb) return;
+    const m = metrics();
+    const clickY = e.clientY - trackEl.getBoundingClientRect().top;
+    const ratio  = Math.min(1, Math.max(0, (clickY - m.thumbH / 2) / m.maxTop));
+    scrollEl.scrollTop = ratio * (m.contentH - m.viewH);
+  });
+
+  layout();
 }
 
 function initToolsEditor(useLSP) {
   if (!useLSP) {
-    initCodeMirrorEditor("tools-code-editor","tools-class","",changes.other,"tools",undefined,undefined,undefined,true);
+    initCodeMirrorEditor("tools-code-editor","tools-class","",changes.other,"tools",undefined,undefined,"100%",true);
   } else {
-    initLSPEditor("tools-code-editor", "tools-class", pageProject.srcFiles.get("tools") || "");
+    initLSPEditor("tools-code-editor", "tools-class", pageProject.srcFiles.get("tools") || "", "flex");
   }
+}
+
+// the metadata fields (Name/Description/...) sit in a <details> that starts
+// open; the first time the editor mounted in cmDivId gets focus, we close it
+// so the editor's flex:1 box reclaims that space and "takes charge" of the panel
+function collapseDetailsOnEditorFocus(cmDivId, detailsId) {
+  const cmDiv   = document.getElementById(cmDivId);
+  const details = document.getElementById(detailsId);
+  if (!cmDiv || !details) return;
+  cmDiv.addEventListener("focusin", () => {
+    details.open = false;
+  });
+}
+
+// keeps the "Source code"/"Code" label's triangle as the mirror image of the
+// <details> summary's triangle (Details open -> editor not in charge -> src
+// triangle closed; Details closed -> editor fills the panel -> src triangle
+// open), and makes clicking that label toggle the same <details> element -
+// so the two labels behave like a single two-way switch
+function wireDetailsSourceToggle(detailsId, srcLabelId) {
+  const details  = document.getElementById(detailsId);
+  const srcLabel = document.getElementById(srcLabelId);
+  if (!details || !srcLabel) return;
+
+  const detailsTri = details.querySelector(":scope > summary .acc-triangle");
+  const srcTri      = srcLabel.querySelector(".acc-triangle");
+
+  function sync() {
+    if (detailsTri) detailsTri.classList.toggle("open", details.open);
+    if (srcTri)      srcTri.classList.toggle("open", !details.open);
+  }
+
+  details.addEventListener("toggle", sync);
+  srcLabel.addEventListener("click", (e) => {
+    e.preventDefault();          // it's a <label for="...">; don't focus/click the editor underneath
+    details.open = !details.open;
+  });
+
+  sync();
 }
 
 async function initAlgorithmEditor(alg, useLSP) {
   const algorithmName = alg.name;
+  const cmDiv = "algsrcCM-"+algorithmName;
   if (!useLSP) {
-    var cmDiv = "algsrcCM-"+algorithmName;
-    initCodeMirrorEditor(cmDiv, "algsrcTA-"+algorithmName, alg.fileContent, changes.algorithms, algorithmName, undefined, undefined, undefined, true);
+    initCodeMirrorEditor(cmDiv, "algsrcTA-"+algorithmName, alg.fileContent, changes.algorithms, algorithmName, undefined, undefined, "100%", true);
     var alEditor = editors.get(cmDiv);
     setTimeout(() => {alEditor.refresh();}, 100); // to render properly
   } else {
-    const alEditor = initLSPEditor("algsrcCM-" + algorithmName, "algsrcTA-" + algorithmName, alg.fileContent);
-    await alEditor.whenReady();
+    const alEditor = initLSPEditor(cmDiv, "algsrcTA-" + algorithmName, alg.fileContent, "flex");
+    // whenReady() has no reject/timeout path of its own -- if the LSP
+    // WebSocket connection fails or stalls, it never resolves, which would
+    // otherwise hang this whole function (and everything after it in
+    // showSelectedAlgorithm(), in particular populating the unrelated
+    // Detailed description editor) forever. Give up waiting after 8s and
+    // proceed; the LSP editor keeps trying to connect in the background and
+    // will pick up normally whenever/if it succeeds.
+    await Promise.race([
+      alEditor.whenReady(),
+      new Promise(resolve => setTimeout(resolve, 8000)),
+    ]);
     alEditor.refresh();
     requestAnimationFrame(() => {alEditor.refresh();});
     setTimeout(() => {alEditor.refresh();}, 100);
   }
+  collapseDetailsOnEditorFocus(cmDiv, "algdetails-"+algorithmName);
+  wireDetailsSourceToggle("algdetails-"+algorithmName, "algsrclabel-"+algorithmName);
+
+  // the <details> toggling attributes/children inside it is picked up by the
+  // MutationObserver already set up inside wireCustomScrollbar, so opening/
+  // closing it re-lays-out the thumb (or hides it) automatically
+  const scrollInner = document.getElementById("algorithm_scroll_inner-"+algorithmName);
+  const scrollTrack = document.getElementById("algorithm_container_div")?.querySelector(".custom-vscrollbar-track");
+  wireCustomScrollbar(scrollInner, scrollTrack);
 }
 
 
 async function initGeneratorEditor(generator, useLSP) {
   const generatorName = generator.name;
-  const cmDiv=`gencode-${generatorName}`;  
+  const cmDiv=`gencode-${generatorName}`;
   if (!useLSP) {
-    initCodeMirrorEditor(cmDiv, `genhcode-${generatorName}`, generator.sourcecode, changes.generators, generatorName, undefined,undefined,undefined, false);
+    initCodeMirrorEditor(cmDiv, `genhcode-${generatorName}`, generator.sourcecode, changes.generators, generatorName, undefined,undefined,"100%", false);
     disabableEditors.set(cmDiv,editors.get(cmDiv));
     setTimeout(() => editors.get(cmDiv).refresh(), 0);
   } else {
-    const generatorEditor = initLSPEditor(cmDiv, `genhcode-${generatorName}`, generator.sourcecode);
+    const generatorEditor = initLSPEditor(cmDiv, `genhcode-${generatorName}`, generator.sourcecode, "flex");
     generatorEditor.whenReady().then(() => {
       generatorEditor.refresh();
     });
   }
+  collapseDetailsOnEditorFocus(cmDiv, "gendetails-"+generatorName);
+  wireDetailsSourceToggle("gendetails-"+generatorName, "gensrclabel-"+generatorName);
 }
 
 async function initIndicatorEditor(ind, useLSP) {
   const indicatorName = ind.name;
   const cmDiv = `indcode-${indicatorName}`;
   if (!useLSP) {
-    initCodeMirrorEditor(cmDiv, `indhcode-${indicatorName}`, ind.code, changes.indicators, indicatorName, undefined, undefined, undefined, true);
+    initCodeMirrorEditor(cmDiv, `indhcode-${indicatorName}`, ind.code, changes.indicators, indicatorName, undefined, undefined, "100%", true);
     var indEditor = editors.get(cmDiv);
     disabableEditors.set(cmDiv,indEditor);
   } else {
-    const indicatorEditor = initLSPEditor(cmDiv, `indhcode-${indicatorName}`, ind.code);
+    const indicatorEditor = initLSPEditor(cmDiv, `indhcode-${indicatorName}`, ind.code, "flex");
     indicatorEditor.whenReady().then(() => {
       indicatorEditor.refresh();
     });
   }
+  collapseDetailsOnEditorFocus(cmDiv, "inddetails-"+indicatorName);
+  wireDetailsSourceToggle("inddetails-"+indicatorName, "indsrclabel-"+indicatorName);
 }
 
    // reads the "array" atribute of element with eltID (which is of 
@@ -767,6 +910,13 @@ function implementationSelectTab(paneID, tabID) {
   document.querySelectorAll('.content-div, .submenuitem').forEach(div => {div.style.display = 'none';});
   document.getElementById(tabID+"-list").style.display="block";
   const thisDiv = document.getElementById(tabID+"-div"); thisDiv.style.display="block";
+
+  // the just-shown .submenuitem can be a different height than the
+  // previously active one, which changes how much room #lower-section
+  // actually has left within #bodydiv - recompute it for this tab before
+  // refreshing the editors below, so they pick up the correct final size
+  setEditPageHeight();
+
   var allElements = thisDiv.querySelectorAll('[id]');
     allElements.forEach(function(element) {
       if (editors.get(element.id)) editors.get(element.id).refresh();
@@ -1283,8 +1433,10 @@ function saveParametersPhase2(projectName, parameter, response) {
 function getGeneratorHTML(projectName, key, desc,genpar) {
   var gLinePrefix=`${key}::`;
   var genHTML = `
-     <div id="generatordiv-__key__">
-     <span id="generatorElt-__key__"></span>  
+     <div id="generatordiv-__key__" style="height:100%; box-sizing:border-box; display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden;">
+     <span id="generatorElt-__key__"></span>
+     <details id="gendetails-__key__" open style="flex: 0 0 auto;">
+     <summary style="padding:8px 15px 0; font-family:Arial,sans-serif; font-size:14px; font-weight:bold; color:#333;"><span class="acc-triangle"></span>Details</summary>
      <table style="width:100%; padding: 15px;">
      <tr><td class="gentd"><label for="typeg-__key__">Name:</label></td>
          <td><input class="almostW" type="text" disabled id="typeg-__key__" readonly value="${key}">
@@ -1294,21 +1446,20 @@ function getGeneratorHTML(projectName, key, desc,genpar) {
          <td><textarea class="descTA almostW pEditE" disabled type="text" id="descg-__key__" onchange="contentChanged(changes.generators, '__key__')">${desc ? desc : ""}</textarea>
      </td></tr>
      <tr><td class="gentd"><label for="¸genpars-__key__">Generating parameters:</label></td>
-         <td><select class="multiselect pEditE" disabled id="genpars-__key__" multiple style="width: 400px; top: 0px;"  array="${genpar}" onchange="contentChanged(changes.generators, '__key__')"></select>  
-     </td></tr>
-     <tr><td class="gentd" style="vertical-align: top;"><label for="gencode-__key__">Code:</label></td>
-         <td><textarea id="genhcode-__key__" style="display: none;" onchange="contentChanged(changes.generators, '__key__')"></textarea>
-             <div class="CodeMirror almostW" id="gencode-__key__"></div>
-     </td></tr>
-     <tr id="run_generator_tr" class="editMode pEditNV" w="${projectEID} cw"><td style="vertical-align:top" class="gentd"></td>
-       <td>              
-         <span class="editMode pEditNV" w="${projectEID} cw" style="float: right; margin-right: 11px;"> 
-           Generating line: "<input id='generatingLine_${key}' type=text style='border: none;border-bottom: 1px solid gray;background: white;' value='${gLinePrefix}'>"
-           <input type=button value="Generate test case"   onclick="generateTestcase('${key}')" >
-         </span>
+         <td><select class="multiselect pEditE" disabled id="genpars-__key__" multiple style="width: 400px; top: 0px;"  array="${genpar}" onchange="contentChanged(changes.generators, '__key__')"></select>
      </td></tr>
      </table>
-     <hr>
+     </details>
+
+     <div id="gensrc_section-__key__" style="flex: 1 1 auto; min-height: 220px; box-sizing:border-box; display:flex; flex-direction:column; padding:0 15px;">
+       <label id="gensrclabel-__key__" for="gencode-__key__" style="cursor:pointer; padding:8px 0px 0; font-family:Arial,sans-serif; font-size:14px; font-weight:bold; color:#333;"><span class="acc-triangle"></span>Generator code</label>
+       <textarea id="genhcode-__key__" style="display: none;" onchange="contentChanged(changes.generators, '__key__')"></textarea>
+       <div class="almostW" id="gencode-__key__" style="flex:1 1 auto; min-height:0; margin-bottom:5px;"></div>
+       <div id="run_generator_tr" class="editMode pEditNV" w="${projectEID} cw" style="flex:0 0 auto; text-align:right; padding:5px 11px 5px 0;">
+         Generating line: "<input id='generatingLine_${key}' type=text style='border: none;border-bottom: 1px solid gray;background: white;' value='${gLinePrefix}'>"
+         <input type=button value="Generate test case"   onclick="generateTestcase('${key}')" >
+       </div>
+     </div>
      </div>
   `;
   return genHTML.replace(/__key__/g, key); 
@@ -1495,7 +1646,9 @@ function saveTimerPhase2(projectName, timer, response) {
 function getIndicatorHTML(projectName, key, desc, decimals=2) {
   var timHTML = `
      <span id="indicatorElt-__key__"></span>
-     <div id="indicatordiv-__key__">
+     <div id="indicatordiv-__key__" style="height:100%; box-sizing:border-box; display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden;">
+     <details id="inddetails-__key__" open style="flex: 0 0 auto;">
+     <summary style="padding:8px 15px 0; font-family:Arial,sans-serif; font-size:14px; font-weight:bold; color:#333;"><span class="acc-triangle"></span>Details</summary>
      <table style="width:100%; padding: 15px;">
      <tr><td class="gentd"><label for="namei-__key__">Name:</label></td>
         <td><input class="almostW" disabled type="text" id="namei-__key__" readonly value="${key}">
@@ -1517,12 +1670,14 @@ function getIndicatorHTML(projectName, key, desc, decimals=2) {
        </span>
 
      </td></tr>
-     <tr><td class="gentd" style="vertical-align: top;"><label for="indcode-__key__">Code:</label></td>
-         <td><textarea id="indhcode-__key__" style="display: none;" onchange="contentChanged(changes.indicators, '__key__')"></textarea>
-             <div class="CodeMirror almostW" id="indcode-__key__"></div>
-     </td></tr>     
      </table>
-     <hr>
+     </details>
+
+     <div id="indsrc_section-__key__" style="flex: 1 1 auto; min-height: 220px; box-sizing:border-box; display:flex; flex-direction:column; padding:0 15px;">
+       <label id="indsrclabel-__key__" for="indcode-__key__" style="cursor:pointer; padding:8px px 0; font-family:Arial,sans-serif; font-size:14px; font-weight:bold; color:#333;"><span class="acc-triangle"></span>Indicator code</label>
+       <textarea id="indhcode-__key__" style="display: none;" onchange="contentChanged(changes.indicators, '__key__')"></textarea>
+       <div class="almostW" id="indcode-__key__" style="flex:1 1 auto; min-height:0; margin-bottom:5px;"></div>
+     </div>
      </div>
   `;
   return timHTML.replace(/__key__/g, key); 
@@ -2255,7 +2410,7 @@ function getAlgorithmHTML(projectName, key, eid, desc, shortname, date, author, 
   var algorithmHTML = `
      <div id="algorithmChangesDot" class="smallDot" style="top:57px; right:5px;"></div>
 
-     <div id="algorithmdiv-__key__" style="margin:10px;">
+     <div id="algorithmdiv-__key__" style="margin:4px 0 0 0;">
        <div style="height:35px;"></div>
        <div id="algorithmOkCancelPanel">
          <div id="algorithmEditButtons" class="editMode" w="${eid} cw" style="display: flex;flex-direction: row-reverse;margin-right: 10px; padding-top: 5px;">
@@ -2270,40 +2425,52 @@ function getAlgorithmHTML(projectName, key, eid, desc, shortname, date, author, 
           </div>
        </div>
        
-       <div id="algorithm_container_div" style="border: 1px solid #cccccc; height: calc(100vh - 150px); display: flex; flex-direction: column; overflow: auto;">
-         <span id="algorithmElt-__key__"></span>  
-         <table style="width:100%; padding: 15px;">
-           <tr><td class="gentd"><label for="alname-__key__">Algorithm nameX</label></td>
-               <td><input class="almostW pEdit" disabled disabled readonly type="text" id="alname-__key__" value="${key}" own='${key}'>
-               <td class="gentd"><label for="alcolor-__key__">Color:</label></td> 
-               <td>${colors}</td>
-           </td></tr>
-           <tr><td class="gentd"><label for="alauthor-__key__">Author of implementation</label></td>
-               <td><input class="almostW pEdit" disabled disabled readonly type="text" id="alauthor-__key__" value="${author}" own='${key}'>
-               <td class="gentd"><label for="aldate-__key__">Creation Date</label>
-               <td><input class="almostW pEdit" disabled disabled readonly type="text" id="aldate-__key__" value="${date}" own='${key}'>
-           </td></tr>
-           <tr><td class="gentd"><label for="alshort-__key__">Short name</label></td>
-               <td><input class="almostW sEdit" disabled type="text" id="alshort-__key__" value="${shortname}" own='${key}' oninput="setAlgorithmChanged(true);">               
-               <td class="gentd"><label for="allang-__key__">Language</label>
-               <td colspan=3><input class="almostW sEdit" disabled type="text" id="allang-__key__" value="${language}" own='${key}' oninput="setAlgorithmChanged(true);">
-           </td></tr>
-           <tr><td class="gentd"><label for="descal-__key__">Short description:</label></td>
-               <td colspan=3><textarea class="descTA almostW sEdit" disabled class="almostW" type="text" id="descal-__key__" own='${key}' oninput="setAlgorithmChanged(true);">${desc}</textarea>
+       <div id="algorithm_container_div" style="border: 1px solid #cccccc; height: calc(100vh - 150px); display: flex; flex-direction: row; overflow: hidden;">
+        <div id="algorithm_scroll_inner-__key__" class="hide-native-scrollbar" style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden;">
+         <span id="algorithmElt-__key__"></span>
+         <details id="algdetails-__key__" open style="flex: 0 0 auto;">
+         <summary style="padding:8px 15px 0; font-family:Arial,sans-serif; font-size:14px; font-weight:bold; color:#333;"><span class="acc-triangle"></span>Details</summary>
+         <table style="width:100%; padding: 15px; box-sizing: border-box;">
+           <tr>
+             <td class="gentd"><label for="alname-__key__">Algorithm nameX</label></td>
+             <td><input class="almostW pEdit" disabled disabled readonly type="text" id="alname-__key__" value="${key}" own='${key}'></td>
+             <td class="gentd"><label for="alcolor-__key__">Color:</label></td>
+             <td>${colors}</td>
            </tr>
-           <tr><td style="vertical-align:top" class="gentd"><label for="alghtml-__key__">Detailed description</label></td>
-               <td colspan=3><div class="almostW not sEditV" style="background:#f5f5f5; border:1px solid lightgray; margin-bottom:10px;padding:10px;" id="alghtml_prev-algorithmDescription___key__" own='${key}' onchange="setAlgorithmChanged(true);">${htmlContent}</div>
-                   <div class="almostW     sEditV"  style="display:none"       id="alghtml-__key__" own='${key}' oninput="setAlgorithmChanged(true);"></div>
-           </td></tr>
-           <tr><td style="vertical-align:top" class="gentd"><label for="algsrcCM-__key__">Source code</label></td>
-               <td colspan=3><textarea style="display:none;" class="almostW" id="algsrcTA-__key__" onchange="setAlgorithmChanged(true)"></textarea>
-               <div class="CodeMirror almostW" id="algsrcCM-__key__"></div>
-           </td></tr>
-           <tr id="compile_alg_tr" class="editMode pEditNV" w="${eid} cw"><td style="vertical-align:top" class="gentd"></td>
-               <td  colspan=3>              
-                 <input type=button value="Compile" style="float: right; margin-right: 11px;" onclick="compileAlgorithm('${key}')">
-           </td></tr>
+           <tr>
+             <td class="gentd"><label for="alauthor-__key__">Author of implementation</label></td>
+             <td><input class="almostW pEdit" disabled disabled readonly type="text" id="alauthor-__key__" value="${author}" own='${key}'></td>
+             <td class="gentd"><label for="aldate-__key__">Creation Date</label></td>
+             <td><input class="almostW pEdit" disabled disabled readonly type="text" id="aldate-__key__" value="${date}" own='${key}'></td>
+           </tr>
+           <tr>
+             <td class="gentd"><label for="alshort-__key__">Short name</label></td>
+             <td><input class="almostW sEdit" disabled type="text" id="alshort-__key__" value="${shortname}" own='${key}' oninput="setAlgorithmChanged(true);"></td>
+             <td class="gentd"><label for="allang-__key__">Language</label></td>
+             <td><input class="almostW sEdit" disabled type="text" id="allang-__key__" value="${language}" own='${key}' oninput="setAlgorithmChanged(true);"></td>
+           </tr>
+           <tr>
+             <td class="gentd"><label for="descal-__key__">Short description:</label></td>
+             <td colspan=3><textarea class="descTA almostW sEdit" disabled class="almostW" type="text" id="descal-__key__" own='${key}' oninput="setAlgorithmChanged(true);">${desc}</textarea></td>
+           </tr>
+           <tr>
+             <td style="vertical-align:top" class="gentd"><label for="alghtml-__key__">Detailed description</label></td>
+             <td colspan=3><div class="almostW not sEditV" style="background:#f5f5f5; border:1px solid lightgray; margin-bottom:10px;padding:10px;" id="alghtml_prev-algorithmDescription___key__" own='${key}' onchange="setAlgorithmChanged(true);">${htmlContent}</div>
+                 <div class="almostW     sEditV"  style="display:none"       id="alghtml-__key__" own='${key}' oninput="setAlgorithmChanged(true);"></div></td>
+           </tr>
          </table>
+         </details>
+
+         <div id="algsrc_section-__key__" style="flex: 1 1 auto; min-height: 220px; box-sizing: border-box; display:flex; flex-direction:column; padding:0 15px;">
+           <label id="algsrclabel-__key__" for="algsrcCM-__key__" style="cursor:pointer; padding:8px 0px 0; font-family:Arial,sans-serif; font-size:14px; font-weight:bold; color:#333;"><span class="acc-triangle"></span>Source code</label>
+           <textarea style="display:none;" id="algsrcTA-__key__" onchange="setAlgorithmChanged(true)"></textarea>
+           <div class="almostW" id="algsrcCM-__key__" style="flex:1 1 auto; min-height:0; margin-bottom:5px;"></div>
+           <div id="compile_alg_tr" class="editMode pEditNV" w="${eid} cw" style="flex:0 0 auto; text-align:right; padding:5px 11px 5px 0;">
+             <input type=button value="Compile" onclick="compileAlgorithm('${key}')">
+           </div>
+         </div>
+        </div>
+        <div class="custom-vscrollbar-track"><div class="custom-vscrollbar-thumb"></div></div>
        </div>
      </div>
   `;
@@ -2337,10 +2504,10 @@ async function showSelectedAlgorithm(algorithmName) {
     await populatePrivatnessSpans("algorithm");
     showHidePrivatenessIcons();
 
-    initAlgorithmEditor(alg, use_LSP_functionality);
+    await initAlgorithmEditor(alg, use_LSP_functionality);
 
     let view = getViewOfType("TextBox", "algorithmDescription", algorithmName);
-    document.getElementById("alghtml-"+algorithmName).innerHTML = view.getEditorHTML();  
+    document.getElementById("alghtml-"+algorithmName).innerHTML = view.getEditorHTML();
     document.getElementById("htmlEditorView_algorithmDescription_"+algorithmName).style.margin = "0px 0px 20px 0px";
     view.initNewMode();
     view.viewJSON["htmltext"]=alg.htmlContent;
@@ -2348,7 +2515,13 @@ async function showSelectedAlgorithm(algorithmName) {
     htmlViews.set(algorithmName, view);
 
     let algDescDiv = document.getElementById(`alghtml_prev-algorithmDescription_${algorithmName}`);
-    formatMath(algDescDiv);
+    await formatMath(algDescDiv);
+
+    // the async work above (LSP editor mount, MathJax typesetting) can
+    // change the page's layout well after enableEditMode()'s blind 100ms
+    // setEditPageHeight() timer has already fired, so re-snapshot the
+    // height now that everything has actually settled
+    setEditPageHeight();
   } else {
     document.getElementById("algorithm_panel_detail").innerHTML = "";
   }
@@ -2415,6 +2588,7 @@ function saveSelectedAlgorithm(event) {
 
   saveAlgorithm(alName, true);
   enableProjectEditMode(false);
+  setEditPageHeight();
 }
 
 // save algorithm and (optionally) move resources
@@ -2825,8 +2999,16 @@ function setEditPageHeight() {
     var contentDiv = document.getElementById('bodydiv');
     var bodyDivHeight = windowHeight - contentDiv.offsetTop - 10;;
     contentDiv.style.height = bodyDivHeight + 'px';
-    document.getElementById('lower-section').style.height = (bodyDivHeight-90) + 'px';
-    
+
+    var lowerSection = document.getElementById('lower-section');
+    if (lowerSection) {
+      // offsetTop already reflects however tall the currently-visible
+      // .submenuitem in #intermediate-section actually is (it varies by
+      // tab), so measure it directly instead of subtracting a fixed guess
+      var lowerSectionHeight = windowHeight - lowerSection.offsetTop - 10;
+      lowerSection.style.height = lowerSectionHeight + 'px';
+    }
+
     var testset_container_div = document.getElementById('testset_container_div');    
     if (testset_container_div) {
       var testsetDivHeight = windowHeight - testset_container_div.offsetTop;
@@ -2836,7 +3018,7 @@ function setEditPageHeight() {
     var algorithm_container_div = document.getElementById('algorithm_container_div');
     if (algorithm_container_div) {
       var algorithmDivHeight = windowHeight - algorithm_container_div.offsetTop;
-      algorithm_container_div.style.height = (algorithmDivHeight-5) + 'px';
+      algorithm_container_div.style.height = (algorithmDivHeight+1) + 'px';
     }
 }
 
@@ -2912,13 +3094,13 @@ async function openImportFileDialog() {
   let fileInput = document.getElementById('fileInput');
   fileInput.click();
   fileInput.onchange = async () => {
-      document.body.style.cursor = "wait";
       if (fileInput.files.length > 0)  {
-        let uploadResult = await uploadFiles([fileInput.files[0]], new Map([["type", "importProject"],[]]));
+        document.body.style.cursor = "wait";
+        let uploadResult = await uploadFiles([fileInput.files[0]], new Map([["type", "importProject"]/*,[]*/]));
         if (uploadResult.Status == 0) {
           let path     = uploadResult.Answer.Location;
           let filename = fileInput.files[0].name;
-          askServer(importProjectPhase2, projectName, "import", `alter {'Action':'ImportProject', 'Path':'${path}', 'Filename':'${filename}', 'ProjectName':'?'}`); 
+          askServer(importProjectPhase2, projectName, "import", `alter {'Action':'ImportProject', 'Path':'${path}', 'Filename':'${filename}', 'ProjectName':'?'}`, importProjectError);
         } else  {
           document.body.style.cursor = "default";
           showPopup(uploadResult.Answer);
@@ -2944,6 +3126,25 @@ function importProjectPhase2(p1, p2, response) {
 }
 
 
+// askServer()'s callbackError: fires on Status != 0 answers (response is the raw
+// JSON-string answer, e.g. Access denied / bad zip structure) AND on transport/HTTP
+// failures (response is a jqXHR object). importProjectPhase2 is never called in
+// either case, so this is the only place left to reset the cursor and show the error.
+function importProjectError(response) {
+  document.body.style.cursor = "default";
+  let message = "Error importing project.";
+  if (typeof response === "string") {
+    try {
+      const jResp = JSON.parse(response);
+      message = jResp.Answer || jResp.Message || message;
+    } catch (e) {
+      message = response;
+    }
+  } else if (response && response.responseText) {
+    message = response.responseText;
+  }
+  showInfoPopup(message);
+}
 
 
 //////////////********** PRIVATENESS icons **************/////////////////

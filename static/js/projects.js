@@ -178,6 +178,12 @@ let updateVisibilityG = null;
 document.addEventListener('DOMContentLoaded', async () => {
     await populatePrivatnessSpans("project", document, askForProjectPrivatnessChange);
 
+    // show "Import project..." only for users who have can_import_project on the Projects entity (e0_P)
+    const actionImport = document.getElementById('actionImport');
+    if (actionImport) {
+        const canImport = await can('e0_P', 'can_import_project');
+        actionImport.style.display = canImport ? "" : "none";
+    }
 
     const searchInput = document.querySelector('.search-input');
     const clearBtn = document.getElementById('clearSearch');

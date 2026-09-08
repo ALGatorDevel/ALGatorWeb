@@ -1047,13 +1047,38 @@ function setPresentersDataHeight() {
 
 
 
+// Serializes migration runs so opening two not-yet-migrated presenters back
+// to back can't race each other's pde_state.json saves (each migration adds
+// a box to the same shared pde.boxes array and persists the full array --
+// overlapping runs could otherwise silently drop one another's box, since
+// neither knows about the other's in-flight write).
+let _migrationQueue = Promise.resolve();
+
 // funkcija je bila dodana, ko sem spremenil način pridobivanja podatkov posameznega prezenterja;
 // prej je imel vsak prezenter svojo poizvedbo, sedaj so poizvedbe skupne. Ko uporabnik odpre
 // star prezenter, ga ta funkcija preoblikuje v novo obliko in shrani. Ko bodo vsi projekti pretvorjeni
-// v nov sistem, ta funkcija ne bo več potrebna (in jo bom lahko odstranil). 
-async function migratePresenterIfNeeded(presenterName) {
+// v nov sistem, ta funkcija ne bo več potrebna (in jo bom lahko odstranil).
+function migratePresenterIfNeeded(presenterName) {
+  const run = _migrationQueue.then(() => _migratePresenterIfNeededImpl(presenterName));
+  _migrationQueue = run.catch(() => {});   // keep the queue alive even if one migration fails
+  return run;
+}
+
+async function _migratePresenterIfNeededImpl(presenterName) {
  const presenter = pp.presenterJSONs.get(presenterName);
   if (!presenter) return;
+
+  // Migration writes to both the presenter file and pde_state.json -- skip
+  // entirely for a user who can't write both, so a read-only/restricted
+  // viewer never attempts (and silently fails, or leaves an orphan box
+  // behind) a save they were never allowed to make. Root/owner always pass
+  // (see CanUtil.can()'s superuser/ownership bypass, server-side).
+  const pEID = getPresenterEID(presenterName);
+  const [canWritePresenter, canWriteProject] = await Promise.all([
+    can(pEID, 'can_write'),
+    can(projectEID, 'can_write'),
+  ]);
+  if (!canWritePresenter || !canWriteProject) return;
 
   // Backfill missing height on view JSONs (added when per-view resize was introduced)
   const defaultHeights = { Graph: 450, Table: 450, TextBox: 450 };
@@ -1065,7 +1090,7 @@ async function migratePresenterIfNeeded(presenterName) {
       heightMigrated = true;
     }
   });
-  if (heightMigrated) savePresenter(projectName, presenterName, presenter, null);
+  if (heightMigrated) await savePresenter(projectName, presenterName, presenter, null);
 
   if (!('Query' in presenter)) return;
 
@@ -1080,7 +1105,7 @@ async function migratePresenterIfNeeded(presenterName) {
       if (presenter[viewName] && !viewName.startsWith('TextBox_')) presenter[viewName].data_source = existingNode.id;
     });
     delete presenter.Query;
-    savePresenter(projectName, presenterName, presenter, null);
+    await savePresenter(projectName, presenterName, presenter, null);
     pp.presenterJSONs.set(presenterName, presenter);
     return;
   }
@@ -1127,9 +1152,16 @@ async function migratePresenterIfNeeded(presenterName) {
   pde.renderBox(newNode, false);
   pde.drawArrows();
 
-  // persist both presenter and pde state
-  savePresenter(projectName, presenterName, presenter, null);
-  pde.savePdeState(projectName);
+  // Persist pde_state FIRST, then the presenter. If the tab is closed/reloaded
+  // between the two and only one lands, this order fails safe: the box exists
+  // in pde_state.json but the presenter still has its old 'Query' field, so
+  // next time it's opened this function runs again, finds the box via
+  // existingNode above, and just re-links to it -- nothing is lost. The
+  // previous order instead saved the presenter (dropping 'Query') before the
+  // box existed anywhere durable, which is exactly how a corrupted project
+  // loses its query with no way to recover it.
+  await pde.savePdeState(projectName);
+  await savePresenter(projectName, presenterName, presenter, null);
 
   pp.presenterJSONs.set(presenterName, presenter);
 }

@@ -1,7 +1,7 @@
 {% load static %}
 
 
-<!-- *********  BEGIN ********* za podporo CodeMirror in/ali SmartCodeEditor -->
+<!-- *********  BEGIN ********* za podporo CodeMirror in SmartCodeEditor -->
   <link rel="stylesheet" href="{% static 'codemirror/lib/codemirror.css' %}">
   <link rel="stylesheet" href="{% static 'codemirror/theme/eclipse.css' %}">
   <link rel="stylesheet" href="{% static 'codemirror/theme/abcdef.css' %}">
@@ -21,7 +21,7 @@
   <script src="{% static 'smartcodeeditor/js/smartCodeEditor.js' %}"></script>
   <script src="{% static 'smartcodeeditor/js/editorMain.js' %}"></script>
 <!- *********  END ********* za podporo SmartCodeEditor -->
-¸
+
 <link href="{% static 'css/select2.css' %}" rel="stylesheet">
 <link href="{% static 'css/edit.css' %}" rel="stylesheet">
 
@@ -105,25 +105,21 @@
         <div id="general-div" class="content-div"></div>
 
         <div id="input-div" class="content-div">
-            <table style="width:100%;">
-            <tr>
-                <td><textarea id="input-class" style="display: none;" onchange="contentChanged(changes.other, 'input')"></textarea>
-                    <div class="CodeMirror" disabled id="input-code-editor"></div>
-                </td>
-            </tr></table>
-            <script>  
+            <div style="height:100%; box-sizing:border-box; display:flex; flex-direction:column;">
+                <textarea id="input-class" style="display: none;" onchange="contentChanged(changes.other, 'input')"></textarea>
+                <div class="CodeMirror" disabled id="input-code-editor" style="flex:1 1 auto; min-height:0; margin-bottom:5px;"></div>
+            </div>
+            <script>
               initInputEditor(use_LSP_functionality);
             </script>
         </div>
 
         <div id="output-div" class="content-div">
-            <table style="width:100%;">
-            <tr>
-                <td><textarea id="output-class" style="display: none;"></textarea>
-                    <div class="CodeMirror" id="output-code-editor"></div>
-                </td>
-            </tr></table>
-            <script> 
+            <div style="height:100%; box-sizing:border-box; display:flex; flex-direction:column;">
+                <textarea id="output-class" style="display: none;"></textarea>
+                <div class="CodeMirror" id="output-code-editor" style="flex:1 1 auto; min-height:0; margin-bottom:5px;"></div>
+            </div>
+            <script>
               initOutputEditor(use_LSP_functionality);
             </script>
         </div>
@@ -134,10 +130,10 @@
           <div id="cont_parameters-div"    style="display:none" ></div>
         </div>
 
-        <div id="generators-div" class="content-div">
+        <div id="generators-div" class="content-div" style="overflow:hidden;">
           <div id="loading_generators-div" style="display:block">... loading           </div>
           <div id="no_generators-div"      style="display:none" >No generators defined.</div>
-          <div id="cont_generators-div"    style="display:none" ></div>
+          <div id="cont_generators-div"    style="display:none; height:100%; box-sizing:border-box; overflow:hidden;" ></div>
         </div>
 
         <div id="timers-div" class="content-div">
@@ -146,10 +142,10 @@
           <div id="cont_timers-div"    style="display:none" ></div>
         </div>
 
-        <div id="indicators-div" class="content-div">
+        <div id="indicators-div" class="content-div" style="overflow:hidden;">
           <div id="loading_indicators-div" style="display:block">... loading           </div>
           <div id="no_indicators-div"      style="display:none" >No indicators defined.</div>
-          <div id="cont_indicators-div"    style="display:none" ></div>
+          <div id="cont_indicators-div"    style="display:none; height:100%; box-sizing:border-box; overflow:hidden;" ></div>
         </div>
 
         <div id="counters-div" class="content-div">
@@ -159,15 +155,13 @@
         </div>
 
         <div id="tools-div" class="content-div">
-            <table style="width:100%;">
-            <tr>
-                <td><textarea id="tools-class" style="display: none;" onchange="contentChanged(changes.other, 'tools')"></textarea>
-                    <div class="CodeMirror" id="tools-code-editor"></div>
-                </td>
-            </tr></table>
-            <script>  
+            <div style="height:100%; box-sizing:border-box; display:flex; flex-direction:column;">
+                <textarea id="tools-class" style="display: none;" onchange="contentChanged(changes.other, 'tools')"></textarea>
+                <div class="CodeMirror" id="tools-code-editor" style="flex:1 1 auto; min-height:0; margin-bottom:5px;"></div>
+            </div>
+            <script>
               initToolsEditor(use_LSP_functionality);
-            </script>            
+            </script>
         </div>
       </div>
   </div>

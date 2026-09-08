@@ -450,13 +450,33 @@
                     });
                 },
 
+                // Returns the jqXHR (a thenable) so callers can await completion; tracks
+                // the pending-save counter so beforeunload warns even for fire-and-forget
+                // callers (autosave, box add/remove/rename, ...), and surfaces a popup if
+                // the server rejects the save (e.g. insufficient permissions).
                 savePdeState(projectName) {
                     const stateJSON = this.getStateAsJSON();
-                    $.post('/projects/save_pde_state', {
+                    beginPendingSave();
+                    return $.post('/projects/save_pde_state', {
                         csrfmiddlewaretoken: window.CSRF_TOKEN,
                         ProjectName: projectName,
                         pde_state: stateJSON,
-                    });
+                    })
+                        .done(data => {
+                            // /projects/save_pde_state's response is JSON but is currently served
+                            // with a text/html Content-Type (a pre-existing bug in au_response(),
+                            // ausers/autools.py -- response.content_type = ... is a no-op in this
+                            // Django version), so jQuery does not auto-parse it: `data` arrives here
+                            // as a raw string, not an object. Parse defensively so a successful save
+                            // (whose Answer is the project name) is never mistaken for an error.
+                            let jData = data;
+                            if (typeof jData === "string") {
+                                try { jData = JSON.parse(jData); } catch (e) { jData = null; }
+                            }
+                            if (jData && jData.Status !== 0) showSaveError('presentation layout', projectName, jData.Answer || data);
+                        })
+                        .fail(jqXHR => showSaveError('presentation layout', projectName, jqXHR))
+                        .always(() => endPendingSave());
                 },
 
                 removeBox(id) {

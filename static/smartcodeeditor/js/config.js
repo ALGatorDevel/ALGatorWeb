@@ -1,9 +1,14 @@
-const SmartCodeConfig = {
+const localSetup = true;                    // true for testing, false for server instalation
+const lspServer  = "algator.fri.unl-lj.si"; // used only if localSetup==false
 
+const host       = localSetup ? "localhost:3000" : `${lspServer}/lsp`;
+const secure     = localSetup ? "" : "s";
+
+const SmartCodeConfig = {
   server: {
-    httpUrl:  "http://localhost:3000",
-    wsClangd: "ws://localhost:3000/",
-    wsJava:   "ws://localhost:3000/java"
+    httpUrl:  `http${secure}://${host}`,
+    wsClangd: `ws${secure}://${host}/`,
+    wsJava:   `ws${secure}://${host}/java`
   },
 
   workspace: {

@@ -812,10 +812,30 @@ function getViewsDropDownItems(pName) {
   return result;
 }
 
+// Returns a Promise that resolves once the save has actually reached the
+// server (success or failure) -- callers that need the write to be durable
+// before proceeding (e.g. migratePresenterIfNeeded) can now await it, and
+// beginPendingSave/endPendingSave keep the beforeunload guard accurate even
+// for callers that don't await.
 function savePresenter(projectName, presenterName, presenterJSON, actionPhase2) {
   let json = presenterToCleanString(presenterJSON);
-  askServer(actionPhase2, projectName, "savePresenter", 
-     `alter {'Action':'SavePresenter', 'ProjectName':'${projectName}', 'PresenterName':'${presenterName}', 'PresenterData':${json}}` );
+  beginPendingSave();
+  return new Promise(resolve => {
+    askServer(
+      (pName, key, jResp, param1, param2) => {
+        if (actionPhase2) actionPhase2(pName, key, jResp, param1, param2);
+        endPendingSave();
+        resolve(jResp);
+      },
+      projectName, "savePresenter",
+      `alter {'Action':'SavePresenter', 'ProjectName':'${projectName}', 'PresenterName':'${presenterName}', 'PresenterData':${json}}`,
+      (response) => {   // callbackError
+        endPendingSave();
+        showSaveError('presenter', presenterName, response);
+        resolve(null);
+      }
+    );
+  });
 }
 
 

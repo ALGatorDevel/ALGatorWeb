@@ -521,9 +521,43 @@ function showAlgatorShell() {
   }
 }
 
-// Warn the user if they try to close/reload the browser tab while an edit is active.
+// Tracks in-flight presenter/PDE persistence requests (migration saves,
+// one-click layout saves, autosave) so beforeunload can warn even when no
+// edit panel is open -- these saves are fire-and-forget from the UI's point
+// of view, so they're otherwise invisible to anyEditActive().
+let _pendingSaveCount = 0;
+function beginPendingSave() { _pendingSaveCount++; }
+function endPendingSave()   { _pendingSaveCount = Math.max(0, _pendingSaveCount - 1); }
+function hasPendingSaves()  { return _pendingSaveCount > 0; }
+
+// Shows a popup with the server's error message for a failed presenter/PDE
+// save (e.g. insufficient permissions) instead of silently swallowing it.
+// `response` may be the raw JSON-string answer askServer's callbackError
+// passes on Status != 0, a jqXHR from an outright HTTP/network failure, or
+// an already-extracted Answer string/object.
+function showSaveError(what, name, response) {
+  let message = `Error saving ${what} '${name}'.`;
+  if (typeof response === "string") {
+    try {
+      const jResp = JSON.parse(response);
+      message = jResp.Answer || jResp.Message || message;
+    } catch (e) {
+      message = response || message;
+    }
+  } else if (response && response.responseText) {
+    message = response.responseText;
+  } else if (response && typeof response === "object") {
+    message = response.Answer || response.Message || JSON.stringify(response);
+  }
+  showInfoPopup(message);
+}
+
+// Warn the user if they try to close/reload the browser tab while an edit is
+// active, or while a presenter/PDE save triggered in the background
+// (migration, autosave, duplicate/delete view, ...) hasn't finished yet.
 window.addEventListener('beforeunload', function(e) {
-  if (typeof anyEditActive === 'function' && anyEditActive()) {
+  const editing = typeof anyEditActive === 'function' && anyEditActive();
+  if (editing || hasPendingSaves()) {
     e.preventDefault();
     e.returnValue = ''; // required for Chrome to show the native "Leave site?" dialog
   }

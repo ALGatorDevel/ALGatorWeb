@@ -234,8 +234,14 @@ def save_pde_state(request: HttpResponse, data: dict) -> HttpResponse:
     return au_response(f'Invalid request or missing one or more input fields {fields}', 1)
 
   uid = try_get_user(request)
-  setPdeState(data['ProjectName'], data['pde_state'], uid)
-  return au_response('ok')
+  result = setPdeState(data['ProjectName'], data['pde_state'], uid)
+  # forward the ALGatorServer's real Status/Answer (e.g. access denied) instead
+  # of always reporting success -- previously this discarded `result` entirely
+  try:
+    jResult = json.loads(result)
+    return au_response(jResult.get('Answer', result), jResult.get('Status', 0))
+  except Exception:
+    return au_response(result or 'ok')
 
 def get_presenters(request: HttpResponse, data: dict) -> HttpResponse:
   fields = ['ProjectName']
