@@ -817,7 +817,12 @@ function getViewsDropDownItems(pName) {
 // before proceeding (e.g. migratePresenterIfNeeded) can now await it, and
 // beginPendingSave/endPendingSave keep the beforeunload guard accurate even
 // for callers that don't await.
-function savePresenter(projectName, presenterName, presenterJSON, actionPhase2) {
+// `reason` is a human-readable description of what triggered this save
+// (e.g. "Saving presenter 'X' after resizing view 'Y'") -- shown verbatim in
+// the error popup so a rejection is traceable to the action that caused it,
+// instead of a bare "Access denied." Falls back to a generic description if
+// omitted.
+function savePresenter(projectName, presenterName, presenterJSON, actionPhase2, reason) {
   let json = presenterToCleanString(presenterJSON);
   beginPendingSave();
   return new Promise(resolve => {
@@ -831,7 +836,7 @@ function savePresenter(projectName, presenterName, presenterJSON, actionPhase2) 
       `alter {'Action':'SavePresenter', 'ProjectName':'${projectName}', 'PresenterName':'${presenterName}', 'PresenterData':${json}}`,
       (response) => {   // callbackError
         endPendingSave();
-        showSaveError('presenter', presenterName, response);
+        showSaveError(reason || `Saving presenter '${presenterName}'`, response);
         resolve(null);
       }
     );
@@ -1014,7 +1019,8 @@ function startViewResize(e, presenterName, viewName) {
     const presJSON = (typeof pp !== 'undefined') ? pp.presenterJSONs.get(presenterName) : null;
     if (presJSON?.[viewName]) {
       presJSON[viewName].height = newH;
-      savePresenter(projectName, presenterName, presJSON);
+      savePresenter(projectName, presenterName, presJSON, null,
+        `Saving presenter '${presenterName}' after resizing view '${viewName}'`);
     }
 
     const view = getView(presenterName, viewName);

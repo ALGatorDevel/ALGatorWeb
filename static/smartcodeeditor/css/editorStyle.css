@@ -161,7 +161,15 @@ x_body {
   border: 1px solid #e3e3e3;
 }
 
-.CodeMirror {
+/* Scoped to .editor-wrapper (the embedded LSP editor's own mount container,
+   see editorMain.js:3050) rather than bare ".CodeMirror" -- an unscoped rule
+   here with !important overrode every other CodeMirror instance on every
+   page that loads this stylesheet (e.g. the classic, non-LSP testset "Tests"
+   editor in edit.js, which sets its own fixed pixel height), forcing them
+   all to height:100% of an often-indeterminate ancestor, which resolves to
+   "auto" (unbounded growth to fit content) instead of the intended fixed/
+   scrollable height. */
+.editor-wrapper .CodeMirror {
   height: 100% !important;
   font-size: 15px;
 }

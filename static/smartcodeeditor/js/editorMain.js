@@ -838,19 +838,24 @@ function getCompletionEditRange(item, fallbackFrom, fallbackTo) {
 
 const JAVA_LOCAL_SNIPPETS = [
   {
-    label: "count",
-    detail: "ALGator counter mechanism: the COUNT command",
-    insertText: "//@COUNT{${1:var}, ${1:num}}\n"
-  },
-  {
-    label: "remove_line",
-    detail: "ALGator counter mechanism: the REMOVE_LINE command",
-    insertText: "//@REMOVE_LINE\n"
-  },
-  {
     label: "for",
     detail: "Creates a for statement",
     insertText: "for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++) {\n\t$0\n}"
+  },
+  {
+    label: "fori",
+    detail: "Creates an indexed for loop",
+    insertText: "for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++) {\n\t$0\n}"
+  },
+  {
+    label: "itar",
+    detail: "Iterates over an array using an indexed for loop",
+    insertText: "for (int ${1:i} = 0; ${1:i} < ${2:array}.length; ${1:i}++) {\n\t${3:Type} ${4:item} = ${2:array}[${1:i}];\n\t$0\n}"
+  },
+  {
+    label: "ritar",
+    detail: "Iterates over an array in reverse order",
+    insertText: "for (int ${1:i} = ${2:array}.length - 1; ${1:i} >= 0; ${1:i}--) {\n\t${3:Type} ${4:item} = ${2:array}[${1:i}];\n\t$0\n}"
   },
   {
     label: "iter",
@@ -861,6 +866,21 @@ const JAVA_LOCAL_SNIPPETS = [
     label: "if",
     detail: "Creates an if statement",
     insertText: "if (${1:condition}) {\n\t$0\n}"
+  },
+  {
+    label: "ifn",
+    detail: "Creates an if statement checking for null",
+    insertText: "if (${1:variable} == null) {\n\t$0\n}"
+  },
+  {
+    label: "inn",
+    detail: "Creates an if statement checking for non-null",
+    insertText: "if (${1:variable} != null) {\n\t$0\n}"
+  },
+  {
+    label: "iff",
+    detail: "Creates an if statement checking for false",
+    insertText: "if (!${1:condition}) {\n\t$0\n}"
   },
   {
     label: "else",
@@ -893,6 +913,16 @@ const JAVA_LOCAL_SNIPPETS = [
     insertText: "try {\n\t$0\n} catch (${1:Exception} ${2:e}) {\n\t\n}"
   },
   {
+    label: "tryc",
+    detail: "Creates a try-catch statement",
+    insertText: "try {\n\t$0\n} catch (${1:Exception} ${2:e}) {\n\t\n}"
+  },
+  {
+    label: "thr",
+    detail: "Creates a throw statement",
+    insertText: "throw new ${1:Exception}(${2:message});"
+  },
+  {
     label: "assert",
     detail: "Creates an assert statement",
     insertText: "assert ${1:condition} : ${2:\"message\"};"
@@ -903,6 +933,21 @@ const JAVA_LOCAL_SNIPPETS = [
     insertText: "System.out.println(${1});"
   },
   {
+    label: "soutv",
+    detail: "Prints a variable to standard output",
+    insertText: "System.out.println(\"${1:variable} = \" + ${1:variable});"
+  },
+  {
+    label: "soutp",
+    detail: "Prints a method parameter to standard output",
+    insertText: "System.out.println(\"${1:parameter} = \" + ${1:parameter});"
+  },
+  {
+    label: "soutm",
+    detail: "Prints the current method name",
+    insertText: "System.out.println(\"${1:methodName}\");"
+  },
+  {
     label: "souf",
     detail: "Prints formatted output",
     insertText: "System.out.printf(\"${1:format}\", ${2:arguments});"
@@ -911,6 +956,51 @@ const JAVA_LOCAL_SNIPPETS = [
     label: "psvm",
     detail: "Creates a public static main method",
     insertText: "public static void main(String[] args) {\n\t$0\n}"
+  },
+  {
+    label: "main",
+    detail: "Creates a main method",
+    insertText: "public static void main(String[] args) {\n\t$0\n}"
+  },
+  {
+    label: "psvma",
+    detail: "Creates a public static main method with arguments",
+    insertText: "public static void main(String[] ${1:args}) {\n\t$0\n}"
+  },
+  {
+    label: "maina",
+    detail: "Creates a main method with arguments",
+    insertText: "public static void main(String[] ${1:args}) {\n\t$0\n}"
+  },
+  {
+    label: "psf",
+    detail: "Creates a public static final declaration",
+    insertText: "public static final ${1:Type} ${2:NAME} = ${3:value};"
+  },
+  {
+    label: "psfi",
+    detail: "Creates a public static final int declaration",
+    insertText: "public static final int ${1:NAME} = ${2:value};"
+  },
+  {
+    label: "psfs",
+    detail: "Creates a public static final String declaration",
+    insertText: "public static final String ${1:NAME} = ${2:\"value\"};"
+  },
+  {
+    label: "prsf",
+    detail: "Creates a private static final declaration",
+    insertText: "private static final ${1:Type} ${2:NAME} = ${3:value};"
+  },
+  {
+    label: "psf",
+    detail: "Creates a public static final declaration",
+    insertText: "public static final ${1:Type} ${2:NAME} = ${3:value};"
+  },
+  {
+    label: "nn",
+    detail: "Creates a not-null check",
+    insertText: "if (${1:variable} != null) {\n\t$0\n}"
   },
   {
     label: "null",

@@ -36,8 +36,9 @@ def get_project_general_data(request: HttpResponse, data: dict) -> HttpResponse:
       if server_response["Status"] == 0:
           project_data = getValue(server_response, "Answer", {})
           return au_response(project_data)
+      return au_response(getValue(server_response, "Answer", "Can't read project general properties."), server_response["Status"])
     except Exception as e:
-        au_response("Can't read project general properties: " + str(e), 1)
+        return au_response("Can't read project general properties: " + str(e), 1)
 
 def get_project_html_description(request: HttpResponse, data: dict) -> HttpResponse:
     fields = ['ProjectName']
@@ -97,7 +98,7 @@ def get_project_properties(request: HttpResponse, data: dict) -> HttpResponse:
 
       return au_response({'Props' : project_props, 'Sources': project_sources})
     except Exception as e:
-        au_response("Can't read project properties: " + str(e), 1)
+        return au_response("Can't read project properties: " + str(e), 1)
 
 def get_testset(request: HttpResponse, data: dict) -> HttpResponse:
   fields = ['ProjectName', 'EntityName']

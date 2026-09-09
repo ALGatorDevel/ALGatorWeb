@@ -2133,7 +2133,11 @@ async function showSelectedTestset(testsetName) {
     showHidePrivatenessIcons();
 
     var cmDiv = "tsfilecontCM-"+testsetName;
-    initCodeMirrorEditor(cmDiv, "tsfilecontTA-"+testsetName, ts.fileContent, changes.testsets, testsetName, "light", undefined, "240px", true);
+    // ~15 lines at this editor's 14px font (CodeMirror's own measured line
+    // height here is 21px/line) -- fixed height + CodeMirror's built-in
+    // internal scrollbar keeps the rest of the page's controls reachable
+    // regardless of how many tests this testset has.
+    initCodeMirrorEditor(cmDiv, "tsfilecontTA-"+testsetName, ts.fileContent, changes.testsets, testsetName, "light", undefined, "250px", true);
     var tsEditor = editors.get(cmDiv);
     setTimeout(() => {tsEditor.refresh();}, 100); // to render properly
     disabableEditors.set(cmDiv,tsEditor);
@@ -3012,7 +3016,7 @@ function setEditPageHeight() {
     var testset_container_div = document.getElementById('testset_container_div');    
     if (testset_container_div) {
       var testsetDivHeight = windowHeight - testset_container_div.offsetTop;
-      testset_container_div.style.height = (testsetDivHeight-5) + 'px';
+      testset_container_div.style.height = (testsetDivHeight+11) + 'px';
     }
 
     var algorithm_container_div = document.getElementById('algorithm_container_div');

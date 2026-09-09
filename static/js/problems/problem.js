@@ -532,24 +532,28 @@ function hasPendingSaves()  { return _pendingSaveCount > 0; }
 
 // Shows a popup with the server's error message for a failed presenter/PDE
 // save (e.g. insufficient permissions) instead of silently swallowing it.
-// `response` may be the raw JSON-string answer askServer's callbackError
-// passes on Status != 0, a jqXHR from an outright HTTP/network failure, or
-// an already-extracted Answer string/object.
-function showSaveError(what, name, response) {
-  let message = `Error saving ${what} '${name}'.`;
+// `action` is a human-readable description of what was being attempted
+// (e.g. "Auto-saving presentation layout (background save)") -- without it,
+// every failure reads as a bare "Access denied." with no way to tell which
+// of the many save paths (autosave, box edit, view resize, migration, ...)
+// caused it. `response` may be the raw JSON-string answer askServer's
+// callbackError passes on Status != 0, a jqXHR from an outright HTTP/network
+// failure, or an already-extracted Answer string/object.
+function showSaveError(action, response) {
+  let detail = '';
   if (typeof response === "string") {
     try {
       const jResp = JSON.parse(response);
-      message = jResp.Answer || jResp.Message || message;
+      detail = jResp.Answer || jResp.Message || '';
     } catch (e) {
-      message = response || message;
+      detail = response || '';
     }
   } else if (response && response.responseText) {
-    message = response.responseText;
+    detail = response.responseText;
   } else if (response && typeof response === "object") {
-    message = response.Answer || response.Message || JSON.stringify(response);
+    detail = response.Answer || response.Message || JSON.stringify(response);
   }
-  showInfoPopup(message);
+  showInfoPopup(`${action}${detail ? ': ' + detail : ' failed.'}`);
 }
 
 // Warn the user if they try to close/reload the browser tab while an edit is

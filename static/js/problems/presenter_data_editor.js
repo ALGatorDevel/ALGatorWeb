@@ -304,10 +304,20 @@
                         scrollEl.addEventListener('touchcancel', e => this._onPinchEnd(e),    { passive: false });
                     }
                     if (this._autosaveInterval) clearInterval(this._autosaveInterval);
-                    this._autosaveInterval = setInterval(() => {
+                    this._autosaveInterval = setInterval(async () => {
                         if (this._viewDirty) {
                             this._viewDirty = false;
-                            this.savePdeState(projectName);
+                            // A viewer without write access can never persist this (e.g. the
+                            // zoom/scroll restore on load always marks the view dirty once),
+                            // so skip the attempt entirely instead of firing a doomed request
+                            // that just ends in an "Access denied" popup every few reloads.
+                            // can() can itself reject (e.g. ausers permission data timing out
+                            // to load) -- fail closed (skip this save) rather than let that
+                            // become an unhandled rejection in this interval callback.
+                            let canWrite = false;
+                            try { canWrite = await can(projectEID, 'can_write'); } catch (e) {}
+                            if (!canWrite) return;
+                            this.savePdeState(projectName, 'Auto-saving presentation layout (background save)');
                         }
                     }, 5000);
 
@@ -453,8 +463,12 @@
                 // Returns the jqXHR (a thenable) so callers can await completion; tracks
                 // the pending-save counter so beforeunload warns even for fire-and-forget
                 // callers (autosave, box add/remove/rename, ...), and surfaces a popup if
-                // the server rejects the save (e.g. insufficient permissions).
-                savePdeState(projectName) {
+                // the server rejects the save (e.g. insufficient permissions). `reason` is a
+                // human-readable description of what triggered this particular save -- shown
+                // verbatim in the error popup so a rejection is traceable to the action that
+                // caused it (autosave, a box rename, an edit, ...) instead of a bare
+                // "Access denied." with no context.
+                savePdeState(projectName, reason = 'Saving presentation layout') {
                     const stateJSON = this.getStateAsJSON();
                     beginPendingSave();
                     return $.post('/projects/save_pde_state', {
@@ -473,9 +487,9 @@
                             if (typeof jData === "string") {
                                 try { jData = JSON.parse(jData); } catch (e) { jData = null; }
                             }
-                            if (jData && jData.Status !== 0) showSaveError('presentation layout', projectName, jData.Answer || data);
+                            if (jData && jData.Status !== 0) showSaveError(reason, jData.Answer || data);
                         })
-                        .fail(jqXHR => showSaveError('presentation layout', projectName, jqXHR))
+                        .fail(jqXHR => showSaveError(reason, jqXHR))
                         .always(() => endPendingSave());
                 },
 
@@ -587,14 +601,15 @@
                                     }
                                 }
                             });
-                            if (changed) savePresenter(projectName, presName, presJSON, null);
+                            if (changed) savePresenter(projectName, presName, presJSON, null,
+                                `Saving presenter '${presName}' after renaming box '${oldName}' to '${newName}'`);
                         });
                         // Redraw live views so they immediately reflect the new name
                         if (typeof repaintViews === 'function') repaintViews();
                     }
 
                     this.refreshDependentCreationStrings(id);
-                    this.savePdeState(projectName);
+                    this.savePdeState(projectName, `Saving presentation layout after renaming box '${oldName}' to '${newName}'`);
                     this.cancelRename();
                 },
 
@@ -779,7 +794,7 @@
                     this.canvas.style.marginBottom = Math.max(0, this.canvas.offsetHeight * (this.zoom - 1)) + 'px';
                     this.drawArrows();
                     this._viewDirty = true;
-                    this.savePdeState(projectName);
+                    this.savePdeState(projectName, 'Saving presentation layout after auto-arranging boxes');
                 },
 
                 async createBox(type, parentId) {
@@ -1190,14 +1205,15 @@
                                         }
                                     }
                                 });
-                                if (changed) savePresenter(projectName, presName, presJSON, null);
+                                if (changed) savePresenter(projectName, presName, presJSON, null,
+                                    `Saving presenter '${presName}' after renaming a value in box '${box.name || id}'`);
                             });
                         });
                         if (tbChanged && typeof repaintViews === 'function') repaintViews();
                     }
 
                     this.centerBox(id);
-                    this.savePdeState(projectName);
+                    this.savePdeState(projectName, `Saving presentation layout after editing box '${box.name || id}'`);
                 },
 
                 showDeriveModal(parentId) {

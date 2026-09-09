@@ -178,10 +178,13 @@ let updateVisibilityG = null;
 document.addEventListener('DOMContentLoaded', async () => {
     await populatePrivatnessSpans("project", document, askForProjectPrivatnessChange);
 
-    // show "Import project..." only for users who have can_import_project on the Projects entity (e0_P)
+    // show "Import project..." only for users who have can_import_project on the Projects entity (e0_P).
+    // can() can reject (e.g. ausers permission data timing out to load) -- guard it so that
+    // doesn't abort the rest of this handler (search/sort/filter setup below still needs to run).
     const actionImport = document.getElementById('actionImport');
     if (actionImport) {
-        const canImport = await can('e0_P', 'can_import_project');
+        let canImport = false;
+        try { canImport = await can('e0_P', 'can_import_project'); } catch (e) {}
         actionImport.style.display = canImport ? "" : "none";
     }
 

@@ -25,11 +25,12 @@ class PagePresenters extends PageData {
   constructor() {
     super();
 
-    this.projectPresenters = [];
+    this.projectPresenters   = [];
+    this.accessiblePresenters = [];   // subset of projectPresenters the current user can actually read
     this.presenterJSONs    = new Map();
     this.navbar            = [];
     this.pdeState          = null;
-    this.deepLoadedPresenters = new Set();     
+    this.deepLoadedPresenters = new Set();
   }
 
   setVar(type, value, params) {
@@ -110,11 +111,20 @@ pde = null;
 async function showPresenters() {
   if (!presentersShown) {
     await pp.waitForDataToLoad(["get_presenters", "get_pde_state"], false, {'ProjectName': projectName});
-    pp.projectPresenters.forEach(pName => {
+    // A presenter the current user can't read (e.g. marked private) comes back
+    // as a null value rather than being absent, so track which ones actually
+    // got real data -- used below to only add a tab for readable presenters,
+    // and to pick a safe default to auto-open instead of blindly using
+    // projectPresenters[0], which may be one the user can't see.
+    pp.accessiblePresenters = pp.projectPresenters.filter(pName => {
+      let presenter = pp.presenterJSONs.get(pName);
+      if (!presenter) return false;
       try {
-        let presenter = pp.presenterJSONs.get(pName);
         addTab("presenters", pName, presenter.ShortTitle, guardedShowPresenter);
-      } catch (e) {}
+        return true;
+      } catch (e) {
+        return false;
+      }
     });
 
     if (_pdeInitPromise) {
@@ -133,9 +143,9 @@ async function showPresenters() {
     presentersShown = true;
   }
 
-  let hasPresenters = pp.projectPresenters.length > 0;
+  let hasPresenters = pp.accessiblePresenters.length > 0;
   showCorPresenterDiv(hasPresenters, false);
-  if (hasPresenters) showPresenter("presenters", pp.projectPresenters[0]);
+  if (hasPresenters) showPresenter("presenters", pp.accessiblePresenters[0]);
 }
 
 async function showPresenter(paneID, tabID) {
@@ -147,12 +157,16 @@ async function showPresenter(paneID, tabID) {
     pp.deepLoadedPresenters.add(tabID);   // ← mark loaded
   }
 
-  if (!pp.presenterJSONs.has(tabID)) return;
-
-  let presentersDiv = document.getElementById("presenters");
-
   const pName     = tabID;
   const presenter = pp.presenterJSONs.get(pName);
+
+  // presenterJSONs.has(pName) can be true with a null VALUE -- e.g. a private
+  // presenter the current user isn't allowed to read (getPresenter() returns
+  // None server-side, stored here as null via storeOnePresenterData). Bail
+  // out instead of crashing on presenter.Title/.Layout below.
+  if (!presenter) return;
+
+  let presentersDiv = document.getElementById("presenters");
 
   await migratePresenterIfNeeded(pName);   // ← add here
 
@@ -809,7 +823,8 @@ function duplicatePresenterView(presenterName, viewName) {
   enableEditMode(isEditMode);
 
   // Persist
-  savePresenter(projectName, presenterName, presenterJSON, null);
+  savePresenter(projectName, presenterName, presenterJSON, null,
+    `Saving presenter '${presenterName}' after duplicating view '${viewName}'`);
 }
 
 function deletePresenterView(presenterName, viewName) {
@@ -822,7 +837,8 @@ function deletePresenterViewPhase2(answer, presenterName, viewName) {
   let presenterJSON = pp.presenterJSONs.get(presenterName);
   removeElementFromArray(presenterJSON.Layout, viewName);
   delete presenterJSON[viewName];
-  savePresenter(projectName, presenterName, presenterJSON, null);
+  savePresenter(projectName, presenterName, presenterJSON, null,
+    `Saving presenter '${presenterName}' after deleting view '${viewName}'`);
 
   aLayout.views.delete(getViewID(presenterName, viewName))
 
@@ -1074,10 +1090,16 @@ async function _migratePresenterIfNeededImpl(presenterName) {
   // behind) a save they were never allowed to make. Root/owner always pass
   // (see CanUtil.can()'s superuser/ownership bypass, server-side).
   const pEID = getPresenterEID(presenterName);
-  const [canWritePresenter, canWriteProject] = await Promise.all([
-    can(pEID, 'can_write'),
-    can(projectEID, 'can_write'),
-  ]);
+  // can() can reject (e.g. ausers permission data timing out to load) -- fail
+  // closed (skip migration) rather than let that propagate up through
+  // showPresenter() and abort rendering the whole presenter.
+  let canWritePresenter = false, canWriteProject = false;
+  try {
+    [canWritePresenter, canWriteProject] = await Promise.all([
+      can(pEID, 'can_write'),
+      can(projectEID, 'can_write'),
+    ]);
+  } catch (e) {}
   if (!canWritePresenter || !canWriteProject) return;
 
   // Backfill missing height on view JSONs (added when per-view resize was introduced)
@@ -1090,7 +1112,8 @@ async function _migratePresenterIfNeededImpl(presenterName) {
       heightMigrated = true;
     }
   });
-  if (heightMigrated) await savePresenter(projectName, presenterName, presenter, null);
+  if (heightMigrated) await savePresenter(projectName, presenterName, presenter, null,
+    `Saving presenter '${presenterName}' after backfilling view heights (legacy-format migration)`);
 
   if (!('Query' in presenter)) return;
 
@@ -1105,7 +1128,8 @@ async function _migratePresenterIfNeededImpl(presenterName) {
       if (presenter[viewName] && !viewName.startsWith('TextBox_')) presenter[viewName].data_source = existingNode.id;
     });
     delete presenter.Query;
-    await savePresenter(projectName, presenterName, presenter, null);
+    await savePresenter(projectName, presenterName, presenter, null,
+      `Saving presenter '${presenterName}' while migrating it to the new data-box format (reusing an existing box)`);
     pp.presenterJSONs.set(presenterName, presenter);
     return;
   }
@@ -1160,8 +1184,9 @@ async function _migratePresenterIfNeededImpl(presenterName) {
   // previous order instead saved the presenter (dropping 'Query') before the
   // box existed anywhere durable, which is exactly how a corrupted project
   // loses its query with no way to recover it.
-  await pde.savePdeState(projectName);
-  await savePresenter(projectName, presenterName, presenter, null);
+  await pde.savePdeState(projectName, `Saving presentation layout while migrating presenter '${presenterName}' to the new data-box format`);
+  await savePresenter(projectName, presenterName, presenter, null,
+    `Saving presenter '${presenterName}' while migrating it to the new data-box format (new box)`);
 
   pp.presenterJSONs.set(presenterName, presenter);
 }
